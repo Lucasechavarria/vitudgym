@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
-import { userGoalsService } from '@/services/user-goals.service';
+import { createUserGoal } from '@/actions/user-goals';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -102,7 +102,7 @@ export default function GoalsPage() {
                 is_active: true,
             };
 
-            await userGoalsService.create(goalData);
+            await createUserGoal(goalData);
 
             // Guardar en localStorage
             localStorage.setItem('onboarding_goals', JSON.stringify(goalData));
@@ -160,8 +160,8 @@ export default function GoalsPage() {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, primary_goal: goal.value })}
                                         className={`p-4 rounded-lg border transition-all ${formData.primary_goal === goal.value
-                                                ? 'bg-orange-500 border-orange-500 text-white scale-105'
-                                                : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-orange-500'
+                                            ? 'bg-orange-500 border-orange-500 text-white scale-105'
+                                            : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-orange-500'
                                             }`}
                                     >
                                         <div className="text-3xl mb-2">{goal.icon}</div>
@@ -222,8 +222,8 @@ export default function GoalsPage() {
                                         type="button"
                                         onClick={() => toggleDay(day.value)}
                                         className={`w-14 h-14 rounded-full border transition-all ${formData.available_days.includes(day.value)
-                                                ? 'bg-orange-500 border-orange-500 text-white scale-110'
-                                                : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-orange-500'
+                                            ? 'bg-orange-500 border-orange-500 text-white scale-110'
+                                            : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-orange-500'
                                             }`}
                                     >
                                         {day.label}
@@ -244,8 +244,8 @@ export default function GoalsPage() {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, preferred_training_time: time.value })}
                                         className={`px-4 py-3 rounded-lg border transition-colors ${formData.preferred_training_time === time.value
-                                                ? 'bg-orange-500 border-orange-500 text-white'
-                                                : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-orange-500'
+                                            ? 'bg-orange-500 border-orange-500 text-white'
+                                            : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-orange-500'
                                             }`}
                                     >
                                         {time.label}

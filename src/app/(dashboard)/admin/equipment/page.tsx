@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { gymEquipmentService } from '@/services/gym-equipment.service';
+import { getEquipment, createEquipment, updateEquipment, deleteEquipment } from '@/actions/gym-equipment';
 import toast from 'react-hot-toast';
 
 interface Equipment {
@@ -55,7 +55,7 @@ export default function EquipmentManagementPage() {
 
     const loadEquipment = async () => {
         try {
-            const data = await gymEquipmentService.getAll();
+            const data = await getEquipment();
             setEquipment(data);
         } catch (error) {
             console.error('Error:', error);
@@ -71,10 +71,10 @@ export default function EquipmentManagementPage() {
 
         try {
             if (editingId) {
-                await gymEquipmentService.update(editingId, formData);
+                await updateEquipment(editingId, formData);
                 toast.success('Equipamiento actualizado');
             } else {
-                await gymEquipmentService.create(formData);
+                await createEquipment(formData);
                 toast.success('Equipamiento creado');
             }
 
@@ -107,7 +107,7 @@ export default function EquipmentManagementPage() {
         if (!confirm('¿Estás seguro de eliminar este equipamiento?')) return;
 
         try {
-            await gymEquipmentService.delete(id);
+            await deleteEquipment(id);
             toast.success('Equipamiento eliminado');
             loadEquipment();
         } catch (error: any) {
