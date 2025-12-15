@@ -75,6 +75,13 @@ export class AIService {
   }
 
   /**
+   * Alias para compatibilidad
+   */
+  async generateRoutine(prompt: string): Promise<any> {
+    return this.generateRoutineFromPrompt(prompt);
+  }
+
+  /**
    * Construye el prompt para Gemini con todas las instrucciones
    * 
    * @private

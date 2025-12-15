@@ -8,13 +8,14 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
  */
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { user, supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
         if (error) return error;
 
-        const userId = params.id;
+        const { id } = await params;
+        const userId = id;
         const body = await request.json();
         const days = body.days || 30; // Default 30 dias
 

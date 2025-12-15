@@ -8,7 +8,7 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
  */
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { supabase, error } = await authenticateAndRequireRole(
@@ -18,7 +18,8 @@ export async function GET(
 
         if (error) return error;
 
-        const studentId = params.id;
+        const { id } = await params;
+        const studentId = id;
 
         // Obtener perfil completo del alumno
         const { data: student, error: studentError } = await supabase

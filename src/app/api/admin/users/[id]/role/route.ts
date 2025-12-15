@@ -8,7 +8,7 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
  */
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { user, supabase, error } = await authenticateAndRequireRole(
@@ -18,7 +18,8 @@ export async function PUT(
 
         if (error) return error;
 
-        const userId = params.id;
+        const { id } = await params;
+        const userId = id;
         const body = await request.json();
         const { role } = body;
 

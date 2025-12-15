@@ -8,7 +8,7 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
  */
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { supabase, error } = await authenticateAndRequireRole(
@@ -18,7 +18,8 @@ export async function POST(
 
         if (error) return error;
 
-        const routineId = params.id;
+        const { id } = await params;
+        const routineId = id;
 
         // Actualizar status a active
         const { error: updateError } = await supabase

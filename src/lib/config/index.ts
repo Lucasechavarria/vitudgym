@@ -1,3 +1,3 @@
 // Re-export all configurations for easy importing
 export * from './gemini';
-export { mercadoPago } from './mercadopago';
+export { default as mercadoPago, preference } from './mercadopago';

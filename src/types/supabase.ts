@@ -30,6 +30,8 @@ export interface Database {
                     membership_end_date: string | null
                     created_at: string
                     updated_at: string
+                    onboarding_completed?: boolean
+                    onboarding_completed_at?: string
                 }
                 Insert: {
                     id: string
@@ -51,6 +53,8 @@ export interface Database {
                     membership_end_date?: string | null
                     created_at?: string
                     updated_at?: string
+                    onboarding_completed?: boolean
+                    onboarding_completed_at?: string
                 }
                 Update: {
                     id?: string
@@ -72,6 +76,8 @@ export interface Database {
                     membership_end_date?: string | null
                     created_at?: string
                     updated_at?: string
+                    onboarding_completed?: boolean
+                    onboarding_completed_at?: string
                 }
             }
             user_goals: {
@@ -117,6 +123,7 @@ export interface Database {
                     condition: 'excellent' | 'good' | 'fair' | 'needs_repair' | null
                     created_at: string
                     updated_at: string
+                    quantity: number
                 }
                 Insert: {
                     id?: string
@@ -128,6 +135,7 @@ export interface Database {
                     condition?: 'excellent' | 'good' | 'fair' | 'needs_repair' | null
                     created_at?: string
                     updated_at?: string
+                    quantity?: number
                 }
                 Update: {
                     id?: string
@@ -139,6 +147,7 @@ export interface Database {
                     condition?: 'excellent' | 'good' | 'fair' | 'needs_repair' | null
                     created_at?: string
                     updated_at?: string
+                    quantity?: number
                 }
             }
             nutrition_plans: {

@@ -82,7 +82,7 @@ export default function StudentProgressPage() {
     };
 
     const getWeightChange = () => {
-        if (!progress || progress.weight_history.length < 2) return 0;
+        if (!progress || progress.weight_history.length < 2) return '0';
         const first = progress.weight_history[0].weight;
         const last = progress.weight_history[progress.weight_history.length - 1].weight;
         return (last - first).toFixed(1);
