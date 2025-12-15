@@ -74,6 +74,38 @@ export interface Database {
                     updated_at?: string
                 }
             }
+            user_goals: {
+                Row: {
+                    id: string
+                    user_id: string
+                    primary_goal: string
+                    training_frequency_per_week: number | null
+                    coach_notes: string | null
+                    is_active: boolean
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    primary_goal: string
+                    training_frequency_per_week?: number | null
+                    coach_notes?: string | null
+                    is_active?: boolean
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    primary_goal?: string
+                    training_frequency_per_week?: number | null
+                    coach_notes?: string | null
+                    is_active?: boolean
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
             activities: {
                 Row: {
                     id: string

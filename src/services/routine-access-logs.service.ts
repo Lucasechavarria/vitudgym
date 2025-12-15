@@ -1,7 +1,17 @@
 import { createClient } from '@/lib/supabase/server';
 
-type RoutineAccessLog = any;
-type RoutineAccessLogInsert = any;
+interface RoutineAccessLog {
+    id?: string;
+    routine_id: string;
+    user_id: string;
+    action: string;
+    ip_address?: string;
+    user_agent?: string;
+    device_info?: Record<string, unknown>;
+    created_at?: string;
+}
+
+type RoutineAccessLogInsert = Omit<RoutineAccessLog, 'id' | 'created_at'>;
 
 /**
  * Service for logging and monitoring routine access (security)
@@ -28,7 +38,7 @@ export const routineAccessLogsService = {
     async logView(routineId: string, userId: string, metadata?: {
         ip_address?: string;
         user_agent?: string;
-        device_info?: any;
+        device_info?: Record<string, unknown>;
     }) {
         return this.logAccess({
             routine_id: routineId,
@@ -44,7 +54,7 @@ export const routineAccessLogsService = {
     async logScreenshotAttempt(routineId: string, userId: string, metadata?: {
         ip_address?: string;
         user_agent?: string;
-        device_info?: any;
+        device_info?: Record<string, unknown>;
     }) {
         return this.logAccess({
             routine_id: routineId,

@@ -2,11 +2,14 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { Database } from '@/types/supabase';
+
+type UserGoalInsert = Database['public']['Tables']['user_goals']['Insert'];
 
 /**
  * Create a new user goal (Server Action)
  */
-export async function createUserGoal(goalData: any) {
+export async function createUserGoal(goalData: Omit<UserGoalInsert, 'user_id' | 'updated_at'>) {
     const supabase = await createClient();
 
     // Ensure the user is authenticated

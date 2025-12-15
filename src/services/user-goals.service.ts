@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
+import { Database } from '@/types/supabase';
 
-type UserGoal = any;
-type UserGoalInsert = any;
-type UserGoalUpdate = any;
+type UserGoal = Database['public']['Tables']['user_goals']['Row'];
+type UserGoalInsert = Database['public']['Tables']['user_goals']['Insert'];
+type UserGoalUpdate = Database['public']['Tables']['user_goals']['Update'];
 
 /**
  * Service for managing user fitness goals
