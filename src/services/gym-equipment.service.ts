@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 
-type GymEquipment = any;
-type GymEquipmentInsert = any;
-type GymEquipmentUpdate = any;
+import { Database } from '@/types/supabase';
+
+type GymEquipment = Database['public']['Tables']['gym_equipment']['Row'];
+type GymEquipmentInsert = Database['public']['Tables']['gym_equipment']['Insert'];
+type GymEquipmentUpdate = Database['public']['Tables']['gym_equipment']['Update'];
 
 /**
  * Service for managing gym equipment inventory

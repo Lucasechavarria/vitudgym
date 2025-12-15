@@ -106,6 +106,94 @@ export interface Database {
                     updated_at?: string
                 }
             }
+            gym_equipment: {
+                Row: {
+                    id: string
+                    name: string
+                    category: string
+                    description: string | null
+                    image_url: string | null
+                    is_available: boolean
+                    condition: 'excellent' | 'good' | 'fair' | 'needs_repair' | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    name: string
+                    category: string
+                    description?: string | null
+                    image_url?: string | null
+                    is_available?: boolean
+                    condition?: 'excellent' | 'good' | 'fair' | 'needs_repair' | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    name?: string
+                    category?: string
+                    description?: string | null
+                    image_url?: string | null
+                    is_available?: boolean
+                    condition?: 'excellent' | 'good' | 'fair' | 'needs_repair' | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            nutrition_plans: {
+                Row: {
+                    id: string
+                    user_id: string
+                    coach_id: string | null
+                    routine_id: string | null
+                    name: string | null
+                    description: string | null
+                    meals: Json | null
+                    supplements: Json | null
+                    daily_calories: number | null
+                    protein_grams: number | null
+                    carbs_grams: number | null
+                    fats_grams: number | null
+                    is_active: boolean
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    coach_id?: string | null
+                    routine_id?: string | null
+                    name?: string | null
+                    description?: string | null
+                    meals?: Json | null
+                    supplements?: Json | null
+                    daily_calories?: number | null
+                    protein_grams?: number | null
+                    carbs_grams?: number | null
+                    fats_grams?: number | null
+                    is_active?: boolean
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    coach_id?: string | null
+                    routine_id?: string | null
+                    name?: string | null
+                    description?: string | null
+                    meals?: Json | null
+                    supplements?: Json | null
+                    daily_calories?: number | null
+                    protein_grams?: number | null
+                    carbs_grams?: number | null
+                    fats_grams?: number | null
+                    is_active?: boolean
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
             activities: {
                 Row: {
                     id: string

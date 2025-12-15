@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 
-type NutritionPlan = any;
-type NutritionPlanInsert = any;
-type NutritionPlanUpdate = any;
+import { Database } from '@/types/supabase';
+
+type NutritionPlan = Database['public']['Tables']['nutrition_plans']['Row'];
+type NutritionPlanInsert = Database['public']['Tables']['nutrition_plans']['Insert'];
+type NutritionPlanUpdate = Database['public']['Tables']['nutrition_plans']['Update'];
 
 /**
  * Service for managing nutrition plans
@@ -170,14 +172,14 @@ export const nutritionPlansService = {
     /**
      * Update meals
      */
-    async updateMeals(id: string, meals: any) {
+    async updateMeals(id: string, meals: Database['public']['Tables']['nutrition_plans']['Update']['meals']) {
         return this.update(id, { meals });
     },
 
     /**
      * Update supplements
      */
-    async updateSupplements(id: string, supplements: any) {
+    async updateSupplements(id: string, supplements: Database['public']['Tables']['nutrition_plans']['Update']['supplements']) {
         return this.update(id, { supplements });
     },
 
