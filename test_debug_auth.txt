@@ -1,0 +1,2 @@
+Status: 400
+Body: {"error":"Missing uid or role"}

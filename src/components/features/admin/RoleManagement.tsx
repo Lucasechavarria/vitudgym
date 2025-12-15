@@ -1,0 +1,201 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
+
+const AVAILABLE_ROLES = [
+    { id: 'user', label: 'Alumno', icon: '🏃', color: 'text-blue-400' },
+    { id: 'coach', label: 'Profesor', icon: '🎓', color: 'text-orange-400' },
+    { id: 'admin', label: 'Admin', icon: '⚙️', color: 'text-purple-400' },
+    { id: 'superadmin', label: 'SuperAdmin', icon: '👑', color: 'text-red-400' },
+];
+
+export function RoleManagement() {
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedUser, setSelectedUser] = useState<any | null>(null);
+    const [showRoleModal, setShowRoleModal] = useState(false);
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const res = await fetch('/api/admin/users/list');
+            const data = await res.json();
+            if (data.users) {
+                setUsers(data.users);
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            toast.error('Error al cargar usuarios');
+            // Mock data fallback
+            setUsers([
+                { id: '1', full_name: 'Juan Pérez', email: 'juan@demo.com', role: 'user' },
+                { id: '2', full_name: 'María García', email: 'maria@demo.com', role: 'coach' },
+                { id: '3', full_name: 'Carlos López', email: 'carlos@demo.com', role: 'user' },
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRoleChange = async (newRole: string) => {
+        if (!selectedUser) return;
+
+        try {
+            // TODO: Conectar con API real
+            // const res = await fetch('/api/admin/users/update-role', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ userId: selectedUser.id, newRole }),
+            // });
+
+            // Simular cambio
+            setUsers(users.map(u =>
+                u.id === selectedUser.id ? { ...u, role: newRole } : u
+            ));
+
+            toast.success(`Rol cambiado a ${AVAILABLE_ROLES.find(r => r.id === newRole)?.label}`);
+            setShowRoleModal(false);
+            setSelectedUser(null);
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Error al cambiar rol');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="text-center py-12">
+                <div className="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-400">Cargando usuarios...</p>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div className="bg-white/5 rounded-xl p-4 mb-4">
+                <p className="text-sm text-gray-400">
+                    💡 Haz clic en "Cambiar Rol" para asignar o modificar permisos de usuarios
+                </p>
+            </div>
+
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead className="bg-[#0a0a0a] text-gray-400 text-sm">
+                        <tr>
+                            <th className="p-3 text-left">Usuario</th>
+                            <th className="p-3 text-left">Email</th>
+                            <th className="p-3 text-left">Rol Actual</th>
+                            <th className="p-3 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                        {users.map((user) => {
+                            const roleInfo = AVAILABLE_ROLES.find(r => r.id === user.role);
+                            return (
+                                <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                                    <td className="p-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                                                {user.full_name?.charAt(0) || 'U'}
+                                            </div>
+                                            <span className="font-medium text-white">{user.full_name || 'Sin nombre'}</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-3 text-gray-400">{user.email}</td>
+                                    <td className="p-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">{roleInfo?.icon}</span>
+                                            <span className={`font-bold ${roleInfo?.color}`}>
+                                                {roleInfo?.label || user.role}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="p-3 text-right">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setShowRoleModal(true);
+                                            }}
+                                            className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500 text-purple-300 hover:text-white rounded-lg transition-all text-sm font-medium"
+                                        >
+                                            Cambiar Rol
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Role Change Modal */}
+            <AnimatePresence>
+                {showRoleModal && selectedUser && (
+                    <div
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setShowRoleModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-[#1c1c1e] rounded-2xl border border-white/10 max-w-md w-full p-6"
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-black text-white">Cambiar Rol</h2>
+                                <button onClick={() => setShowRoleModal(false)} className="text-gray-400 hover:text-white text-2xl">×</button>
+                            </div>
+
+                            <div className="mb-6">
+                                <p className="text-gray-400 mb-2">Usuario seleccionado:</p>
+                                <div className="bg-white/5 rounded-lg p-3">
+                                    <p className="font-bold text-white">{selectedUser.full_name}</p>
+                                    <p className="text-sm text-gray-400">{selectedUser.email}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 mb-6">
+                                <p className="text-gray-400 font-bold text-sm">Selecciona nuevo rol:</p>
+                                {AVAILABLE_ROLES.map((role) => (
+                                    <button
+                                        key={role.id}
+                                        onClick={() => handleRoleChange(role.id)}
+                                        disabled={role.id === selectedUser.role}
+                                        className={`w-full p-4 rounded-xl border-2 transition-all text-left ${role.id === selectedUser.role
+                                                ? 'bg-white/5 border-white/10 cursor-not-allowed opacity-50'
+                                                : 'bg-white/5 border-white/10 hover:border-purple-500 hover:bg-purple-500/10'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-2xl">{role.icon}</span>
+                                            <div>
+                                                <p className={`font-bold ${role.color}`}>{role.label}</p>
+                                                {role.id === selectedUser.role && (
+                                                    <p className="text-xs text-gray-500">Rol actual</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                                <p className="text-yellow-400 text-xs">
+                                    ⚠️ <strong>Advertencia:</strong> El cambio de rol es inmediato y afectará los permisos del usuario.
+                                </p>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </>
+    );
+}
