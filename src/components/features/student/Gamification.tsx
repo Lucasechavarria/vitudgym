@@ -31,6 +31,22 @@ const CHALLENGES = [
     },
 ];
 
+interface Achievement {
+    id: number;
+    unlocked_at: string;
+    achievements: {
+        icon: string;
+        name: string;
+        description: string;
+    };
+}
+
+interface LeaderboardUser {
+    name: string;
+    points: number;
+    streak: number;
+}
+
 export function Gamification() {
     const [view, setView] = useState<'ranking' | 'achievements' | 'challenges'>('ranking');
     const [showCreateChallenge, setShowCreateChallenge] = useState(false);
@@ -38,8 +54,8 @@ export function Gamification() {
 
     // State populated from API
     const [myStats, setMyStats] = useState({ points: 0, current_streak: 0, level: 1 });
-    const [myAchievements, setMyAchievements] = useState<any[]>([]);
-    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [myAchievements, setMyAchievements] = useState<Achievement[]>([]);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
 
     useEffect(() => {
         fetchGamificationData();
@@ -126,7 +142,7 @@ export function Gamification() {
                 ].map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => setView(tab.id as any)}
+                        onClick={() => setView(tab.id as 'ranking' | 'achievements' | 'challenges')}
                         className={`flex-1 px-4 py-3 rounded-lg font-bold transition-all text-sm md:text-base ${view === tab.id
                             ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
                             : 'text-gray-400 hover:bg-white/5 hover:text-white'
@@ -207,7 +223,7 @@ export function Gamification() {
                         </p>
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {myAchievements.map((ua: any) => (
+                            {myAchievements.map((ua) => (
                                 <motion.div
                                     key={ua.id}
                                     whileHover={{ scale: 1.05 }}

@@ -10,14 +10,36 @@ import { TRAINING_GOALS } from '@/lib/constants/gym';
  * Componente para generar rutinas de entrenamiento personalizadas usando IA.
  * Incluye selección de alumno, objetivo, y notas del coach.
  */
+interface Exercise {
+    exercise: string;
+    notes: string;
+    sets: number;
+    reps: number;
+    rest: number;
+}
+
+interface Routine {
+    name: string;
+    description: string;
+    exercises: Exercise[];
+}
+
+interface Student {
+    id: string;
+    full_name?: string;
+    name?: string;
+    email: string;
+    role?: string;
+}
+
 export default function RoutineGenerator({ initialTemplate }: { initialTemplate?: string | null } = {}) {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [routine, setRoutine] = useState<any>(null);
+    const [routine, setRoutine] = useState<Routine | null>(null);
     const [selectedStudent, setSelectedStudent] = useState('');
     const [goal, setGoal] = useState<string>(TRAINING_GOALS[0]);
     const [coachNotes, setCoachNotes] = useState('');
-    const [students, setStudents] = useState<any[]>([]);
+    const [students, setStudents] = useState<Student[]>([]);
     const [loadingStudents, setLoadingStudents] = useState(true);
     const [studentsError, setStudentsError] = useState<string | null>(null);
 
@@ -36,7 +58,7 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 const data = await res.json();
                 if (data.users) {
                     // Filter only students
-                    const studentUsers = data.users.filter((u: any) => u.role === 'user' || u.role === 'student');
+                    const studentUsers = data.users.filter((u: Student) => u.role === 'user' || u.role === 'student');
                     setStudents(studentUsers);
 
                     if (studentUsers.length === 0) {
@@ -270,7 +292,7 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                             {/* Main Workout */}
                             <div className="mb-6">
                                 <h2 className="text-xl font-black mb-3 text-orange-600">💪 Entrenamiento</h2>
-                                {routine.exercises && routine.exercises.map((exercise: any, i: number) => (
+                                {routine.exercises && routine.exercises.map((exercise: Exercise, i: number) => (
                                     <div key={i} className="flex items-center gap-4 p-4 bg-black/20 rounded-lg border border-white/5 mb-2">
                                         <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold text-sm">
                                             {i + 1}

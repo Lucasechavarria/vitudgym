@@ -46,7 +46,7 @@ export default function MetricsDashboard() {
                 {['volume', 'skills', 'progress'].map((tab) => (
                     <button
                         key={tab}
-                        onClick={() => setActiveTab(tab as any)}
+                        onClick={() => setActiveTab(tab as 'volume' | 'skills' | 'progress')}
                         className={`px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all relative ${activeTab === tab ? 'text-white' : 'text-gray-400 hover:text-white'
                             }`}
                     >

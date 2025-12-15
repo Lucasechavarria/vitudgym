@@ -5,10 +5,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase/client';
 import { StudentAction } from './StudentAction';
 
+interface Student {
+    id: string;
+    nombre: string;
+    email: string;
+    experiencia: string;
+    status: string;
+    lastAttendance: string;
+    nextClass: string;
+    [key: string]: string | number; // Allow extra fields if needed or define strict
+}
+
 export default function StudentsGrid() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState<'all' | 'alert' | 'active'>('all');
-    const [students, setStudents] = useState<any[]>([]);
+    const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState<'routine' | 'chat' | 'progress' | null>(null);
@@ -34,9 +45,10 @@ export default function StudentsGrid() {
                         experiencia: 'Nivel Intermedio',
                         status: 'active', // Default to active
                         lastAttendance: 'Reciente',
-                        nextClass: 'Por agendar'
+                        nextClass: 'Por agendar',
+                        edad: 25 // Mock
                     }));
-                    setStudents(formattedStudents);
+                    setStudents(formattedStudents as Student[]);
                 }
             } catch (error) {
                 console.error('Error fetching students:', error);
@@ -77,7 +89,7 @@ export default function StudentsGrid() {
                     {['all', 'active', 'alert'].map((f) => (
                         <button
                             key={f}
-                            onClick={() => setFilter(f as any)}
+                            onClick={() => setFilter(f as 'all' | 'alert' | 'active')}
                             className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all duration-300 ${filter === f
                                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
                                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
@@ -231,8 +243,13 @@ function ModalOverlay({ children, onClose }: { children: React.ReactNode; onClos
     );
 }
 
+interface StudentModalProps {
+    student: Student;
+    onClose: () => void;
+}
+
 // Routine Modal
-function RoutineModal({ student, onClose }: any) {
+function RoutineModal({ student, onClose }: StudentModalProps) {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
@@ -264,7 +281,7 @@ function RoutineModal({ student, onClose }: any) {
 }
 
 // Chat Modal  
-function ChatModal({ student, onClose }: any) {
+function ChatModal({ student, onClose }: StudentModalProps) {
     const [message, setMessage] = useState('');
 
     return (
@@ -306,7 +323,7 @@ function ChatModal({ student, onClose }: any) {
 }
 
 // Progress Modal
-function ProgressModal({ student, onClose }: any) {
+function ProgressModal({ student, onClose }: StudentModalProps) {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">

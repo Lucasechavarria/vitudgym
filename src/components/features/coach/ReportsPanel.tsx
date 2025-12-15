@@ -239,7 +239,7 @@ function CreateReportModal({ onClose }: { onClose: () => void }) {
                         <label className="block text-gray-300 mb-2 font-bold text-sm">Tipo</label>
                         <select
                             value={formData.type}
-                            onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                            onChange={(e) => setFormData({ ...formData, type: e.target.value as 'injury' | 'pain' | 'question' | 'concern' })}
                             className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white"
                         >
                             <option value="question">Consulta</option>

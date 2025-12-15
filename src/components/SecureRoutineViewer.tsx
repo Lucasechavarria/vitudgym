@@ -232,7 +232,7 @@ export function SecureRoutineViewer({ routineId, userId, children }: SecureRouti
         let repeatedViewsInterval: NodeJS.Timeout | undefined;
         if (isMobileDevice) {
             window.addEventListener('orientationchange', handleOrientationChange);
-            document.addEventListener('touchstart', handleTouchStart as any);
+            document.addEventListener('touchstart', handleTouchStart as unknown as EventListener);
             document.addEventListener('touchend', handleTouchEnd);
 
             // Check repeated views every 30 seconds
@@ -257,13 +257,13 @@ export function SecureRoutineViewer({ routineId, userId, children }: SecureRouti
             // Mobile cleanup
             if (isMobileDevice) {
                 window.removeEventListener('orientationchange', handleOrientationChange);
-                document.removeEventListener('touchstart', handleTouchStart as any);
+                document.removeEventListener('touchstart', handleTouchStart as unknown as EventListener);
                 document.removeEventListener('touchend', handleTouchEnd);
             }
         };
     }, [routineId, userId]);
 
-    const logAccess = async (action: string, extraData?: any) => {
+    const logAccess = async (action: string, extraData?: Record<string, unknown>) => {
         try {
             await fetch('/api/routines/log-access', {
                 method: 'POST',

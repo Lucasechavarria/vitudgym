@@ -2,15 +2,26 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
-export default function ChatInterface({ currentUser, initialRecipientId }: { currentUser: any, initialRecipientId?: string }) {
+interface ChatInterfaceProps {
+    currentUser: {
+        id: string;
+        role: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        [key: string]: any;
+    };
+    initialRecipientId?: string;
+}
+
+export default function ChatInterface({ currentUser, initialRecipientId }: ChatInterfaceProps) {
     // const [supabase] = useState(() => createClientComponentClient()); // Removed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [conversations, setConversations] = useState<any[]>([]);
     const [selectedRecipient, setSelectedRecipient] = useState<string | null>(initialRecipientId || null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
-    const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // 1. Fetch Conversations (Users you have chattered with or potential contacts)
@@ -37,13 +48,11 @@ export default function ChatInterface({ currentUser, initialRecipientId }: { cur
                 }
             } catch (error) {
                 console.error('Error fetching contacts:', error);
-            } finally {
-                setLoading(false);
             }
         };
 
         if (currentUser) fetchContacts();
-    }, [currentUser, supabase]);
+    }, [currentUser]);
 
 
     // 2. Fetch Messages for Selected Recipient & Subscribe
@@ -88,7 +97,7 @@ export default function ChatInterface({ currentUser, initialRecipientId }: { cur
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [selectedRecipient, currentUser, supabase]);
+    }, [selectedRecipient, currentUser]);
 
     // Scroll to bottom
     useEffect(() => {
@@ -149,10 +158,18 @@ export default function ChatInterface({ currentUser, initialRecipientId }: { cur
                             className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${selectedRecipient === contact.id ? 'bg-orange-500/20 border border-orange-500/50' : 'hover:bg-white/5 border border-transparent'
                                 }`}
                         >
-                            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold">
+                            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold relative overflow-hidden shrink-0">
                                 {contact.avatar_url ? (
-                                    <img src={contact.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-                                ) : contact.full_name?.charAt(0)}
+                                    <Image
+                                        src={contact.avatar_url}
+                                        alt=""
+                                        fill
+                                        className="object-cover"
+                                        sizes="40px"
+                                    />
+                                ) : (
+                                    contact.full_name?.charAt(0)
+                                )}
                             </div>
                             <div className="text-left">
                                 <p className="font-bold text-white text-sm">{contact.full_name}</p>

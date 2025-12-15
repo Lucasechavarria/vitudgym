@@ -4,6 +4,13 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
+interface Role {
+    id: string;
+    name: string;
+    icon: string;
+    path: string;
+}
+
 export default function RoleSwitcher({ currentRole }: { currentRole: string }) {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +19,7 @@ export default function RoleSwitcher({ currentRole }: { currentRole: string }) {
 
     if (!canSwitchRoles) return null;
 
-    const roles = [
+    const roles: Role[] = [
         { id: 'superadmin', name: 'SuperAdmin', icon: '👑', path: '/admin' },
         { id: 'admin', name: 'Admin', icon: '⚙️', path: '/admin' },
         { id: 'coach', name: 'Profesor', icon: '🏋️', path: '/coach' },
@@ -21,7 +28,7 @@ export default function RoleSwitcher({ currentRole }: { currentRole: string }) {
 
     const currentRoleData = roles.find(r => r.id === currentRole);
 
-    const switchRole = (role: any) => {
+    const switchRole = (role: Role) => {
         setIsOpen(false);
         router.push(role.path);
     };
@@ -60,8 +67,8 @@ export default function RoleSwitcher({ currentRole }: { currentRole: string }) {
                                     key={role.id}
                                     onClick={() => switchRole(role)}
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${role.id === currentRole
-                                            ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                                            : 'text-gray-300 hover:bg-white/5'
+                                        ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                                        : 'text-gray-300 hover:bg-white/5'
                                         }`}
                                 >
                                     <span className="text-xl">{role.icon}</span>

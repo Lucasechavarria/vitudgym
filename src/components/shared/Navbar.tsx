@@ -23,8 +23,9 @@ export default function Navbar({ user, showLogin = true }: NavbarProps) {
       await authService.signOut();
       toast.success("Sesión cerrada correctamente");
       router.replace("/login");
-    } catch (error: any) {
-      toast.error(error.message || "Error al cerrar sesión");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error al cerrar sesión";
+      toast.error(message);
       console.error("Logout error:", error);
     } finally {
       setIsLoggingOut(false);
