@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, ReactNode } from 'react';
-import { routineAccessLogsService } from '@/services/routine-access-logs.service';
+
 
 interface SecureRoutineViewerProps {
     routineId: string;
