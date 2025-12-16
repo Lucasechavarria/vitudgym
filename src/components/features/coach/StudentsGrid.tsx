@@ -31,7 +31,7 @@ export default function StudentsGrid() {
                 const { data: profiles, error } = await supabase
                     .from('profiles')
                     .select('*')
-                    .or('role.eq.member,role.eq.user');
+                    .or('role.eq.member,role.eq.user') as { data: any[]; error: any };
 
                 if (error) throw error;
 
