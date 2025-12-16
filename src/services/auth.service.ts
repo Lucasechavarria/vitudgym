@@ -100,8 +100,8 @@ export const authService = {
      * Update user profile
      */
     async updateProfile(userId: string, updates: Partial<Profile>) {
-        const { data, error } = await supabase
-            .from('profiles')
+        const { data, error } = await (supabase
+            .from('profiles') as any)
             .update(updates)
             .eq('id', userId)
             .select()
