@@ -103,8 +103,8 @@ export const bookingsService = {
             waitlistPosition = (count || 0) + 1;
         }
 
-        const { data, error } = await supabase
-            .from('bookings')
+        const { data, error } = await (supabase
+            .from('bookings') as any)
             .insert({
                 ...booking,
                 status: isWaitlist ? 'waitlist' : 'confirmed',
@@ -122,8 +122,8 @@ export const bookingsService = {
      * Cancel a booking
      */
     async cancel(bookingId: string) {
-        const { data, error } = await supabase
-            .from('bookings')
+        const { data, error } = await (supabase
+            .from('bookings') as any)
             .update({ status: 'cancelled' })
             .eq('id', bookingId)
             .select()
@@ -144,8 +144,8 @@ export const bookingsService = {
      * Check in a user
      */
     async checkIn(bookingId: string, checkedInBy: string) {
-        const { data, error } = await supabase
-            .from('bookings')
+        const { data, error } = await (supabase
+            .from('bookings') as any)
             .update({
                 status: 'attended',
                 checked_in_at: new Date().toISOString(),
@@ -177,8 +177,8 @@ export const bookingsService = {
 
         const firstWaitlist = waitlistBookings[0];
 
-        await supabase
-            .from('bookings')
+        await (supabase
+            .from('bookings') as any)
             .update({
                 status: 'confirmed',
                 is_waitlist: false,
@@ -197,8 +197,8 @@ export const bookingsService = {
 
         if (remaining) {
             for (let i = 0; i < remaining.length; i++) {
-                await supabase
-                    .from('bookings')
+                await (supabase
+                    .from('bookings') as any)
                     .update({ waitlist_position: i + 1 })
                     .eq('id', remaining[i].id);
             }
