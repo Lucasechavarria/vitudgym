@@ -30,7 +30,7 @@ export const getCurrentUser = async () => {
 };
 
 // Helper to get user profile
-export const getUserProfile = async (userId: string) => {
+export const getUserProfile = async (userId: string): Promise<Database['public']['Tables']['profiles']['Row'] | null> => {
     const { data, error } = await supabase
         .from('profiles')
         .select('*')

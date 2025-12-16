@@ -21,7 +21,7 @@ export default function SettingsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUser(user);
-                const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+                const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single() as { data: any; error: any };
                 if (data) {
                     setProfile(data);
                     setFullName(data.full_name || '');
