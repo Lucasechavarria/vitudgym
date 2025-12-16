@@ -22,8 +22,9 @@ export async function GET() {
         ),
         profiles (
           id,
-          first_name,
-          last_name
+          full_name,
+          email,
+          role
         )
       `)
             .eq('is_active', true)
