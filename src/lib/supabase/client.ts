@@ -19,8 +19,13 @@ const getSupabaseClient = (): SupabaseClient<Database> => {
     return supabaseInstance;
 };
 
-// Export as getter - call getSupabaseClient() to get the instance
-export const supabase = getSupabaseClient();
+// Export as a Proxy to allow lazy initialization only when accessing properties
+export const supabase = new Proxy({} as SupabaseClient<Database>, {
+    get: (target, prop) => {
+        const client = getSupabaseClient();
+        return Reflect.get(client, prop);
+    },
+});
 
 // Helper to get the current user
 export const getCurrentUser = async () => {
