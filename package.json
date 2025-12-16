@@ -23,7 +23,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.25",
     "frontend": "file:",
-    "json2csv": "^6.0.0-alpha.2",
+    "json2csv": "^5.0.7",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.556.0",
     "mercadopago": "^2.11.0",
