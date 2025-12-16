@@ -94,8 +94,8 @@ export const classesService = {
      * Create new class (coach/admin only)
      */
     async create(classData: ClassInsert) {
-        const { data, error } = await supabase
-            .from('classes')
+        const { data, error } = await (supabase
+            .from('classes') as any)
             .insert(classData)
             .select()
             .single();
@@ -108,8 +108,8 @@ export const classesService = {
      * Update class (coach/admin only)
      */
     async update(id: string, updates: ClassUpdate) {
-        const { data, error } = await supabase
-            .from('classes')
+        const { data, error } = await (supabase
+            .from('classes') as any)
             .update(updates)
             .eq('id', id)
             .select()
@@ -123,8 +123,8 @@ export const classesService = {
      * Delete class (admin only)
      */
     async delete(id: string) {
-        const { error } = await supabase
-            .from('classes')
+        const { error } = await (supabase
+            .from('classes') as any)
             .delete()
             .eq('id', id);
 
@@ -139,7 +139,7 @@ export const classesService = {
             .from('classes')
             .select('max_capacity, current_capacity')
             .eq('id', classId)
-            .single();
+            .single() as { data: any; error: any };
 
         if (error) throw error;
         if (!data) throw new Error('Class not found');

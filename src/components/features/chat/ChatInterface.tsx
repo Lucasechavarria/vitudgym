@@ -123,8 +123,8 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
         };
         setMessages((prev) => [...prev, optimisticMsg]);
 
-        const { data, error } = await supabase
-            .from('messages')
+        const { data, error } = await (supabase
+            .from('messages') as any)
             .insert({
                 sender_id: currentUser.id,
                 receiver_id: selectedRecipient,
