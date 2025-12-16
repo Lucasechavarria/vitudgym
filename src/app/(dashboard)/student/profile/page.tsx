@@ -66,7 +66,10 @@ export default function StudentProfilePage() {
     const handleSaveProfile = async () => {
         setSaving(true);
         try {
-            await authService.updateProfile(profileData);
+            const user = await authService.getCurrentUser();
+            if (!user) throw new Error('No user found');
+
+            await authService.updateProfile(user.id, profileData);
             toast.success('Perfil actualizado correctamente');
         } catch (error: any) {
             console.error('Error:', error);
@@ -122,8 +125,8 @@ export default function StudentProfilePage() {
                     <button
                         onClick={() => setActiveTab('profile')}
                         className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all ${activeTab === 'profile'
-                                ? 'bg-orange-500 text-white'
-                                : 'text-gray-400 hover:text-white'
+                            ? 'bg-orange-500 text-white'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         📋 Información Personal
@@ -131,8 +134,8 @@ export default function StudentProfilePage() {
                     <button
                         onClick={() => setActiveTab('password')}
                         className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all ${activeTab === 'password'
-                                ? 'bg-orange-500 text-white'
-                                : 'text-gray-400 hover:text-white'
+                            ? 'bg-orange-500 text-white'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         🔒 Contraseña
@@ -140,8 +143,8 @@ export default function StudentProfilePage() {
                     <button
                         onClick={() => setActiveTab('settings')}
                         className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all ${activeTab === 'settings'
-                                ? 'bg-orange-500 text-white'
-                                : 'text-gray-400 hover:text-white'
+                            ? 'bg-orange-500 text-white'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         ⚙️ Configuración
