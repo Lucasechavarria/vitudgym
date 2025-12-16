@@ -170,7 +170,8 @@ export const bookingsService = {
             .eq('booking_date', date)
             .eq('is_waitlist', true)
             .order('waitlist_position')
-            .limit(1);
+            .order('waitlist_position')
+            .limit(1) as { data: any[]; error: any };
 
         if (error) throw error;
         if (!waitlistBookings || waitlistBookings.length === 0) return;
@@ -193,7 +194,8 @@ export const bookingsService = {
             .eq('class_id', classId)
             .eq('booking_date', date)
             .eq('is_waitlist', true)
-            .order('waitlist_position');
+            .eq('is_waitlist', true)
+            .order('waitlist_position') as { data: any[]; error: any };
 
         if (remaining) {
             for (let i = 0; i < remaining.length; i++) {
