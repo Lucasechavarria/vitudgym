@@ -3,11 +3,17 @@ import { aiService } from '@/services/ai.service';
 import { createClient } from '@supabase/supabase-js';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 
-// Admin client to bypass RLS for inserting usage logs
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors
+const getSupabaseAdmin = () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !key) {
+        throw new Error('Missing Supabase environment variables');
+    }
+
+    return createClient(url, key);
+};
 
 const FREE_TIER_LIMIT = 5; // Analisis por día
 
@@ -20,7 +26,7 @@ export async function POST(request: Request) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const { count, error: countError } = await supabaseAdmin
+        const { count, error: countError } = await getSupabaseAdmin()
             .from('ai_usage_logs')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
@@ -52,7 +58,7 @@ export async function POST(request: Request) {
         const analysis = await aiService.analyzeMovement(base64, mimeType);
 
         // 3. Registrar uso
-        await supabaseAdmin.from('ai_usage_logs').insert({
+        await getSupabaseAdmin().from('ai_usage_logs').insert({
             user_id: user.id,
             feature: 'vision_analysis'
         });
