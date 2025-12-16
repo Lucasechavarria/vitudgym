@@ -23,7 +23,7 @@ export default function RoutinePage() {
                     .select('*, exercises(*)')
                     .eq('user_id', user.id)
                     .eq('is_active', true)
-                    .single();
+                    .single() as { data: any; error: any };
 
                 if (activeRoutine) {
                     // Group exercises by day if structure is flat, or use as is if JSON

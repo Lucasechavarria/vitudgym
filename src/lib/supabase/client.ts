@@ -1,10 +1,10 @@
-import { createBrowserClient } from '@supabase/ssr';
+import { createBrowserClient, SupabaseClient } from '@supabase/ssr';
 import { Database } from '@/types/supabase';
 
 // Lazy initialization to avoid build-time errors
-let supabaseInstance: ReturnType<typeof createBrowserClient<Database>> | null = null;
+let supabaseInstance: SupabaseClient<Database> | null = null;
 
-const getSupabaseClient = () => {
+const getSupabaseClient = (): SupabaseClient<Database> => {
     if (supabaseInstance) return supabaseInstance;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -18,13 +18,8 @@ const getSupabaseClient = () => {
     return supabaseInstance;
 };
 
-// Export getter function
-export const supabase = new Proxy({} as ReturnType<typeof createBrowserClient<Database>>, {
-    get: (target, prop) => {
-        const client = getSupabaseClient();
-        return (client as any)[prop];
-    }
-});
+// Export as getter - call getSupabaseClient() to get the instance
+export const supabase = getSupabaseClient();
 
 // Helper to get the current user
 export const getCurrentUser = async () => {
