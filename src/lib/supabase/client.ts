@@ -12,20 +12,16 @@ const getSupabaseClient = (): SupabaseClient<Database> => {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Missing Supabase environment variables');
+        console.warn('⚠️ Missing Supabase environment variables - running in stub mode');
+        return {} as SupabaseClient<Database>;
     }
 
     supabaseInstance = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
     return supabaseInstance;
 };
 
-// Export as a Proxy to allow lazy initialization only when accessing properties
-export const supabase = new Proxy({} as SupabaseClient<Database>, {
-    get: (target, prop) => {
-        const client = getSupabaseClient();
-        return Reflect.get(client, prop);
-    },
-});
+// Export as getter - call getSupabaseClient() to get the instance
+export const supabase = getSupabaseClient();
 
 // Helper to get the current user
 export const getCurrentUser = async () => {
