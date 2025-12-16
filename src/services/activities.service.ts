@@ -56,8 +56,8 @@ export const activitiesService = {
      * Create new activity (admin only)
      */
     async create(activity: ActivityInsert) {
-        const { data, error } = await supabase
-            .from('activities')
+        const { data, error } = await (supabase
+            .from('activities') as any)
             .insert(activity)
             .select()
             .single();
@@ -70,8 +70,8 @@ export const activitiesService = {
      * Update activity (admin only)
      */
     async update(id: string, updates: ActivityUpdate) {
-        const { data, error } = await supabase
-            .from('activities')
+        const { data, error } = await (supabase
+            .from('activities') as any)
             .update(updates)
             .eq('id', id)
             .select()
@@ -85,8 +85,8 @@ export const activitiesService = {
      * Delete activity (admin only)
      */
     async delete(id: string) {
-        const { error } = await supabase
-            .from('activities')
+        const { error } = await (supabase
+            .from('activities') as any)
             .delete()
             .eq('id', id);
 
