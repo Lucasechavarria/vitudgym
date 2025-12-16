@@ -1,16 +1,30 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { Database } from '@/types/supabase';
 
-// Supabase client configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Lazy initialization to avoid build-time errors
+let supabaseInstance: ReturnType<typeof createBrowserClient<Database>> | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-}
+const getSupabaseClient = () => {
+    if (supabaseInstance) return supabaseInstance;
 
-// Create a single supabase client for interacting with your database
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Missing Supabase environment variables');
+    }
+
+    supabaseInstance = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+    return supabaseInstance;
+};
+
+// Export getter function
+export const supabase = new Proxy({} as ReturnType<typeof createBrowserClient<Database>>, {
+    get: (target, prop) => {
+        const client = getSupabaseClient();
+        return (client as any)[prop];
+    }
+});
 
 // Helper to get the current user
 export const getCurrentUser = async () => {
