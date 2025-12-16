@@ -43,7 +43,7 @@ export default function SettingsPage() {
                 updated_at: new Date().toISOString(),
             };
 
-            const { error } = await supabase.from('profiles').upsert(updates);
+            const { error } = await (supabase.from('profiles') as any).upsert(updates);
 
             if (error) throw error;
             toast.success('Perfil actualizado correctamente');
