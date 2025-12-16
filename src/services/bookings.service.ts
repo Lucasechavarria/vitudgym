@@ -77,7 +77,7 @@ export const bookingsService = {
             .from('classes')
             .select('max_capacity, current_capacity, waitlist_enabled')
             .eq('id', booking.class_id)
-            .single();
+            .single() as { data: any; error: any };
 
 
         if (classError) throw classError;
