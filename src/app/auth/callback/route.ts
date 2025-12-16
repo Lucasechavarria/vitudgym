@@ -12,6 +12,11 @@ export async function GET(request: NextRequest) {
     if (code) {
         const cookieStore = await cookies();
 
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.error('Missing Supabase environment variables in auth callback');
+            return NextResponse.redirect(new URL('/login?error=missing_env_vars', request.url));
+        }
+
         const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
