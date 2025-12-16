@@ -13,7 +13,15 @@ const getSupabaseClient = (): SupabaseClient<Database> => {
 
     if (!supabaseUrl || !supabaseAnonKey) {
         console.warn('⚠️ Missing Supabase environment variables - running in stub mode');
-        return {} as SupabaseClient<Database>;
+        // Return a Proxy that throws meaningful errors when accessed
+        return new Proxy({} as SupabaseClient<Database>, {
+            get: (_target, prop) => {
+                throw new Error(
+                    `Supabase client not initialized. Attempted to access property '${String(prop)}'. ` +
+                    `Please check valid NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env file.`
+                );
+            }
+        });
     }
 
     supabaseInstance = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
