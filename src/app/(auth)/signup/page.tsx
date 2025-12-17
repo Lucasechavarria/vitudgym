@@ -47,9 +47,25 @@ export default function SignupPage() {
 
         setIsLoading(true);
         try {
-            await authService.signUp(formData.email, formData.password, formData.firstName, formData.lastName);
-            toast.success("¡Cuenta creada exitosamente!");
-            router.push('/dashboard');
+            const data = await authService.signUp(formData.email, formData.password, formData.firstName, formData.lastName);
+
+            // Check if session exists immediately (Auto Confirm enabled)
+            if (data.session) {
+                toast.success("¡Cuenta creada! Iniciando sesión...");
+                router.push('/dashboard');
+            } else if (data.user && !data.session) {
+                // If no session but user exists, it MIGHT need confirmation (but user says disabled).
+                // Try logging in manually just in case
+                try {
+                    await authService.signIn(formData.email, formData.password);
+                    toast.success("¡Bienvenido!");
+                    router.push('/dashboard');
+                } catch (signinError) {
+                    // If manual login fails, maybe it DOES need confirmation or other error
+                    toast.success("Cuenta creada. Por favor inicia sesión.");
+                    router.push('/login');
+                }
+            }
         } catch (error: any) {
             toast.error(error.message || "Error al crear cuenta");
             console.error("Email signup error:", error);
