@@ -1,4 +1,4 @@
-import { Parser } from 'json2csv';
+// import { Parser } from 'json2csv'; // REMOVED to fix build errors
 
 export type ExportFormat = 'csv' | 'excel' | 'pdf';
 
@@ -10,13 +10,30 @@ interface ExportOptions {
 }
 
 /**
- * Exportar datos a CSV
+ * Exportar datos a CSV (Implementation manual sin librerías externas)
  */
 export function exportToCSV(data: any[], fields?: string[]): string {
     try {
-        const parser = new Parser({ fields });
-        const csv = parser.parse(data);
-        return csv;
+        if (!data || data.length === 0) return '';
+
+        // Determinar campos si no se proveen
+        const headers = fields || Object.keys(data[0]);
+
+        // Crear fila de encabezados
+        const headerRow = headers.join(',');
+
+        // Mapear datos a filas CSV
+        const rows = data.map(row => {
+            return headers.map(fieldName => {
+                const value = row[fieldName] || '';
+                // Manejar comillas y comas en el contenido
+                const stringValue = String(value).replace(/"/g, '""');
+                return `"${stringValue}"`;
+            }).join(',');
+        });
+
+        // Unir todo con saltos de línea
+        return [headerRow, ...rows].join('\n');
     } catch (error) {
         console.error('Error exporting to CSV:', error);
         throw new Error('Error al exportar a CSV');
