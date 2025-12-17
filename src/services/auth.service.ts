@@ -10,13 +10,18 @@ export const authService = {
     /**
      * Sign up with email and password
      */
-    async signUp(email: string, password: string, fullName?: string) {
+    /**
+     * Sign up with email and password
+     */
+    async signUp(email: string, password: string, firstName: string, lastName: string) {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
-                    full_name: fullName,
+                    first_name: firstName,
+                    last_name: lastName,
+                    full_name: `${firstName} ${lastName}`.trim(), // Keep full_name for compatibility
                 },
             },
         });

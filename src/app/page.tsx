@@ -42,7 +42,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/inscripcion" className="px-8 py-4 bg-orange-500 text-white font-bold rounded-full hover:bg-orange-600 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+              <Link href="/signup" className="px-8 py-4 bg-orange-500 text-white font-bold rounded-full hover:bg-orange-600 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
                 EMPEZAR AHORA <ArrowRight className="w-5 h-5" />
               </Link>
               <Link href="/login" className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-full hover:bg-white/10 transition-all">
