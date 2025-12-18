@@ -26,6 +26,7 @@ export async function GET(request: Request) {
 
         // Formatear respuesta
         const formattedUsers = users.map((u: any) => ({
+            ...u, // Include ALL profile fields (medical_info, etc.)
             id: u.id,
             name: u.full_name || 'Sin Nombre',
             email: u.email,

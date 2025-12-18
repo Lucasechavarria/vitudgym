@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import RegistrationForm from '@/components/features/profile/RegistrationForm';
-import { useAuth } from '@/components/providers/supabase-auth-provider';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function CompleteProfilePage() {
     const { user } = useAuth();

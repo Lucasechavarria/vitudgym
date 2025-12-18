@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
+import ProfileViewerModal from '@/components/features/admin/ProfileViewerModal';
+
 interface User {
     id: string;
     name: string;
@@ -10,11 +12,14 @@ interface User {
     role: string;
     membershipStatus: string;
     membershipEnds: string | null;
+    [key: string]: any; // Allow other profile fields
 }
 
 export default function UsersPage() {
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -172,18 +177,18 @@ export default function UsersPage() {
                                     <td className="p-4">
                                         <div className="flex gap-2">
                                             <button
+                                                onClick={() => { setSelectedUser(user); setIsModalOpen(true); }}
+                                                className="px-3 py-1.5 bg-purple-600/20 text-purple-400 hover:bg-purple-600 hover:text-white rounded-lg text-xs font-medium border border-purple-600/30 transition-all"
+                                                title="Ver Ficha Técnica Completa"
+                                            >
+                                                📄 Ver Ficha
+                                            </button>
+                                            <button
                                                 onClick={() => handleActivateMembership(user.id)}
                                                 className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-medium border border-green-600/30 transition-all"
                                                 title="Activar manualmente por 30 días"
                                             >
                                                 ✓ Activar
-                                            </button>
-                                            <button
-                                                onClick={() => toast.loading('Funcionalidad en desarrollo')}
-                                                className="px-3 py-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-medium border border-blue-600/30 transition-all"
-                                                title="Editar perfil"
-                                            >
-                                                ✏️ Editar
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -214,6 +219,12 @@ export default function UsersPage() {
                     </table>
                 </div>
             </div>
+
+            <ProfileViewerModal
+                isOpen={isModalOpen}
+                onClose={() => { setIsModalOpen(false); setSelectedUser(null); }}
+                user={selectedUser}
+            />
         </div>
     );
 }

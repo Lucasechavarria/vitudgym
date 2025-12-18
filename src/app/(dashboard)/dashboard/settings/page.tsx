@@ -138,6 +138,32 @@ export default function SettingsPage() {
                 </form>
             </motion.div>
 
+            {/* Medical Profile Section */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="bg-[#1c1c1e] p-6 rounded-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6"
+            >
+                <div>
+                    <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        🩺 Ficha Médica y Deslinde
+                    </h2>
+                    <p className="text-gray-400 text-sm">
+                        Mantén actualizada tu información de salud y contacto de emergencia.
+                        Es vital para tu seguridad.
+                    </p>
+                </div>
+                <div className="flex-shrink-0">
+                    <a
+                        href="/dashboard/profile/complete"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-600/30 rounded-xl font-bold transition-all"
+                    >
+                        📝 Actualizar Ficha
+                    </a>
+                </div>
+            </motion.div>
+
             {/* Password Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
