@@ -107,12 +107,15 @@ INFORMACIÓN DEL ALUMNO:
 - Nombre: ${studentProfile.full_name}
 - Edad: ${age || 'No especificada'}
 - Género: ${studentProfile.gender || 'No especificado'}
-- Condiciones médicas: ${studentProfile.medical_conditions?.join(', ') || 'Ninguna'}
-- Lesiones: ${studentProfile.injuries?.join(', ') || 'Ninguna'}
-- Medicamentos: ${studentProfile.medications || 'Ninguno'}
-- Restricciones: ${studentProfile.restrictions || 'Ninguna'}
+- Condiciones médicas: ${studentProfile.medical_info?.chronic_diseases || 'Ninguna'}
+- Lesiones: ${studentProfile.medical_info?.injuries || 'Ninguna'}
+- Alergias: ${studentProfile.medical_info?.allergies || 'Ninguna'}
+- Antecedentes: ${studentProfile.medical_info?.background || 'Ninguno'}
+- Fuma: ${studentProfile.medical_info?.is_smoker ? 'Sí' : 'No'}
+- Peso: ${studentProfile.medical_info?.weight || 'No especificado'}kg
+- Presión Arterial: ${studentProfile.medical_info?.blood_pressure || 'No especificada'}
 - Observaciones del coach: ${studentProfile.coach_observations || 'Ninguna'}
-- Restricciones adicionales: ${studentProfile.additional_restrictions || 'Ninguna'}
+- Contacto Emergencia: ${studentProfile.emergency_contact?.full_name || 'No especificado'} (${studentProfile.emergency_contact?.phone || '-'})
 
 OBJETIVOS:
 - Objetivo principal: ${goalText}

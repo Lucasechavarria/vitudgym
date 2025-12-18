@@ -25,8 +25,9 @@ export async function GET(request: Request) {
                 full_name,
                 avatar_url,
                 onboarding_completed,
-                medical_conditions,
-                injuries,
+                onboarding_completed,
+                medical_info,
+                emergency_contact,
                 role
             `)
             .eq('role', 'member')

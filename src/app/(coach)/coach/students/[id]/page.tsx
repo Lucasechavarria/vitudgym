@@ -15,12 +15,25 @@ interface StudentDetail {
     onboarding_completed: boolean;
     created_at: string;
 
-    // Medical info
-    height: number;
-    weight: number;
-    medical_conditions: string[];
-    injuries: string[];
-    medications: string[];
+    // Medical info (JSONB)
+    medical_info: {
+        weight?: string;
+        height?: string;
+        blood_type?: string;
+        blood_pressure?: string;
+        is_smoker?: boolean;
+        injuries?: string;
+        allergies?: string;
+        chronic_diseases?: string;
+        background?: string;
+        activity_details?: string;
+    };
+    emergency_contact: {
+        full_name?: string;
+        phone?: string;
+        relationship?: string;
+        address?: string;
+    };
     fitness_level: string;
 
     // Goals
@@ -189,19 +202,24 @@ export default function StudentDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <div className="text-gray-400 text-sm mb-1">Edad</div>
-                        <div className="text-2xl font-bold text-white">{calculateAge(student.date_of_birth)} años</div>
+                        <div className="text-2xl font-bold text-white">{student.date_of_birth ? calculateAge(student.date_of_birth) + ' años' : '--'}</div>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <div className="text-gray-400 text-sm mb-1">Peso</div>
-                        <div className="text-2xl font-bold text-white">{student.weight} kg</div>
+                        <div className="text-2xl font-bold text-white">{student.medical_info?.weight || '--'} kg</div>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <div className="text-gray-400 text-sm mb-1">Altura</div>
-                        <div className="text-2xl font-bold text-white">{student.height} cm</div>
+                        <div className="text-2xl font-bold text-white">{student.medical_info?.height || '--'} cm</div>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <div className="text-gray-400 text-sm mb-1">IMC</div>
-                        <div className="text-2xl font-bold text-white">{calculateBMI(student.weight, student.height)}</div>
+                        <div className="text-2xl font-bold text-white">
+                            {calculateBMI(
+                                parseFloat(student.medical_info?.weight || '0'),
+                                parseFloat(student.medical_info?.height || '0')
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -288,61 +306,65 @@ export default function StudentDetailPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <h3 className="text-lg font-semibold text-white mb-3">Nivel de Fitness</h3>
-                                <div className="bg-gray-700 rounded-lg p-4">
-                                    <div className="text-orange-400 font-bold capitalize">{student.fitness_level}</div>
+                                <h3 className="text-lg font-semibold text-white mb-3">Datos Básicos</h3>
+                                <div className="bg-gray-700 rounded-lg p-4 space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Peso:</span>
+                                        <span className="text-white font-bold">{student.medical_info?.weight || '--'} kg</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Grupo Sanguíneo:</span>
+                                        <span className="text-white font-bold">{student.medical_info?.blood_type || '--'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Presión:</span>
+                                        <span className="text-white font-bold">{student.medical_info?.blood_pressure || '--'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Fumador:</span>
+                                        <span className="text-white font-bold">{student.medical_info?.is_smoker ? 'Sí' : 'No'}</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-semibold text-white mb-3">Condiciones Médicas</h3>
-                                {student.medical_conditions && student.medical_conditions.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {student.medical_conditions.map((condition, index) => (
-                                            <div key={index} className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-300">
-                                                ⚠️ {condition}
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="bg-gray-700 rounded-lg p-4 text-gray-400">
-                                        Sin condiciones médicas reportadas
-                                    </div>
-                                )}
+                                <h3 className="text-lg font-semibold text-white mb-3">Enfermedades Crónicas</h3>
+                                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-200">
+                                    {student.medical_info?.chronic_diseases || 'Ninguna reportada'}
+                                </div>
                             </div>
 
                             <div>
                                 <h3 className="text-lg font-semibold text-white mb-3">Lesiones</h3>
-                                {student.injuries && student.injuries.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {student.injuries.map((injury, index) => (
-                                            <div key={index} className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-yellow-300">
-                                                🩹 {injury}
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="bg-gray-700 rounded-lg p-4 text-gray-400">
-                                        Sin lesiones reportadas
-                                    </div>
-                                )}
+                                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-yellow-200">
+                                    {student.medical_info?.injuries || 'Ninguna reportada'}
+                                </div>
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-semibold text-white mb-3">Medicamentos</h3>
-                                {student.medications && student.medications.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {student.medications.map((medication, index) => (
-                                            <div key={index} className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-blue-300">
-                                                💊 {medication}
-                                            </div>
-                                        ))}
+                                <h3 className="text-lg font-semibold text-white mb-3">Alergias y Antecedentes</h3>
+                                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-blue-200 space-y-2">
+                                    <p><strong>Alergias:</strong> {student.medical_info?.allergies || 'Ninguna'}</p>
+                                    <p><strong>Antecedentes:</strong> {student.medical_info?.background || 'Ninguno'}</p>
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <h3 className="text-lg font-semibold text-white mb-3">Contacto de Emergencia</h3>
+                                <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <span className="text-gray-400 block text-xs uppercase">Nombre</span>
+                                        <span className="text-white font-medium">{student.emergency_contact?.full_name || '--'}</span>
                                     </div>
-                                ) : (
-                                    <div className="bg-gray-700 rounded-lg p-4 text-gray-400">
-                                        Sin medicamentos reportados
+                                    <div>
+                                        <span className="text-gray-400 block text-xs uppercase">Relación</span>
+                                        <span className="text-white font-medium">{student.emergency_contact?.relationship || '--'}</span>
                                     </div>
-                                )}
+                                    <div>
+                                        <span className="text-gray-400 block text-xs uppercase">Teléfono</span>
+                                        <span className="text-white font-medium">{student.emergency_contact?.phone || '--'}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -363,7 +385,12 @@ export default function StudentDetailPage() {
                                 <div className="text-gray-400 text-sm mb-2">Peso Objetivo</div>
                                 <div className="text-2xl font-bold text-white">{student.target_weight} kg</div>
                                 <div className="text-sm text-gray-400 mt-1">
-                                    {student.target_weight > student.weight ? '↗️ Aumentar' : '↘️ Reducir'} {Math.abs(student.target_weight - student.weight)} kg
+                                    {(() => {
+                                        const currentWeight = parseFloat(student.medical_info?.weight || '0');
+                                        const diff = Math.abs(student.target_weight - currentWeight);
+                                        if (currentWeight === 0) return 'Sin peso actual';
+                                        return (student.target_weight > currentWeight ? '↗️ Aumentar ' : '↘️ Reducir ') + diff.toFixed(1) + ' kg';
+                                    })()}
                                 </div>
                             </div>
 
@@ -392,8 +419,8 @@ export default function StudentDetailPage() {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${routine.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                                                    routine.status === 'pending_approval' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                        'bg-gray-600 text-gray-400'
+                                                routine.status === 'pending_approval' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                    'bg-gray-600 text-gray-400'
                                                 }`}>
                                                 {routine.status === 'active' ? '✓ Activa' :
                                                     routine.status === 'pending_approval' ? '⏳ Pendiente' :
