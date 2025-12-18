@@ -76,9 +76,15 @@ export function UniversalSidebar({
 
     // Determine nav items based on path first, then fallback to role
     let viewRole = role;
-    if (pathname.startsWith('/admin')) viewRole = 'admin';
-    else if (pathname.startsWith('/coach')) viewRole = 'coach';
-    else if (pathname.startsWith('/dashboard')) viewRole = 'user';
+    
+    // For admin and superadmin, always keep their role menu unless they explicitly want to see another view
+    // (though for now, standardizing to their primary role menu as requested)
+    if (role === 'superadmin' || role === 'admin') {
+        viewRole = role;
+    } else {
+        if (pathname.startsWith('/coach')) viewRole = 'coach';
+        else if (pathname.startsWith('/dashboard')) viewRole = 'user';
+    }
 
     const navItems = NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.user;
     const color = ROLE_COLORS[viewRole] || 'blue';

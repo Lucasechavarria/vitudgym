@@ -61,8 +61,8 @@ export default function CoachMetricsPage() {
                             key={mode.id}
                             onClick={() => setViewMode(mode.id as any)}
                             className={`px-4 py-2 rounded-lg font-medium transition-all ${viewMode === mode.id
-                                    ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
-                                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
+                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                 }`}
                             title={mode.desc}
                         >
@@ -91,13 +91,33 @@ export default function CoachMetricsPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {[
-                    { label: 'Asistencia', value: '92%', icon: '✅', color: 'text-green-400' },
-                    { label: 'Días Entrenados', value: '18/20', icon: '💪', color: 'text-blue-400' },
-                    { label: 'Progreso 1RM', value: '+15kg', icon: '📈', color: 'text-purple-400' },
-                    { label: 'Índice Grasa', value: '16.8%', icon: '🎯', color: 'text-orange-400' },
+                    {
+                        label: 'Asistencia',
+                        value: viewMode === 'individual' ? '92%' : viewMode === 'group' ? '88%' : '95%',
+                        icon: '✅',
+                        color: 'text-green-400'
+                    },
+                    {
+                        label: viewMode === 'class' ? 'Alumnos Presentes' : 'Días Entrenados',
+                        value: viewMode === 'individual' ? '18/20' : viewMode === 'group' ? '145/160' : '24/25',
+                        icon: '💪',
+                        color: 'text-blue-400'
+                    },
+                    {
+                        label: viewMode === 'class' ? 'Intensidad Prom.' : 'Progreso 1RM',
+                        value: viewMode === 'individual' ? '+15kg' : viewMode === 'group' ? '+8.5kg' : '85%',
+                        icon: '📈',
+                        color: 'text-purple-400'
+                    },
+                    {
+                        label: viewMode === 'class' ? 'Calorías Prom.' : 'Índice Grasa',
+                        value: viewMode === 'individual' ? '16.8%' : viewMode === 'group' ? '18.2%' : '450',
+                        icon: '🎯',
+                        color: 'text-orange-400'
+                    },
                 ].map((stat, i) => (
                     <motion.div
-                        key={i}
+                        key={`${viewMode}-${i}`}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.05 }}

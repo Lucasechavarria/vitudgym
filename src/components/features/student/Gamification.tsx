@@ -9,25 +9,26 @@ import { getRankByPoints, getNextRank } from '@/lib/constants/gamification';
 const CHALLENGES = [
     {
         id: 1,
-        name: 'Desafío Sentadilla',
-        description: 'Mayor peso en 1RM',
+        name: 'Desafío Sentadilla ⚔️',
+        description: 'Mayor peso en 1RM (Aprobado por Coach)',
         participants: 8,
         endsIn: '2 días',
         prize: '🏆 Badge exclusivo',
         status: 'active',
-        yourPosition: 3,
+        type: 'open',
         leader: 'Carlos Ruiz - 150kg',
     },
     {
         id: 2,
-        name: 'Racha Asistencia',
-        description: 'Más días consecutivos',
-        participants: 12,
+        name: 'Duelo de Plancha ⏱️',
+        description: 'Reto personal: Quién aguanta más tiempo.',
+        participants: 2,
         endsIn: '5 días',
-        prize: '⭐ 500 puntos',
+        prize: '⭐ 200 puntos',
         status: 'active',
-        yourPosition: 5,
-        leader: 'Ana Martínez - 25 días',
+        type: 'individual',
+        opponent: 'Ana Martínez',
+        leader: 'Tú - 4:20 min',
     },
 ];
 
@@ -50,6 +51,8 @@ interface LeaderboardUser {
 export function Gamification() {
     const [view, setView] = useState<'ranking' | 'achievements' | 'challenges'>('ranking');
     const [showCreateChallenge, setShowCreateChallenge] = useState(false);
+    const [challengeType, setChallengeType] = useState<'open' | 'individual'>('open');
+    const [targetStudent, setTargetStudent] = useState('');
     const [loading, setLoading] = useState(true);
 
     // State populated from API
@@ -264,18 +267,41 @@ export function Gamification() {
 
                     <div className="space-y-4">
                         {CHALLENGES.map((challenge) => (
-                            <div key={challenge.id} className="p-6 rounded-xl border bg-white/5 border-white/10 hover:border-purple-500/50 transition-all">
+                            <div key={challenge.id} className="p-6 rounded-xl border bg-white/5 border-white/10 hover:border-purple-500/50 transition-all relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-2">
+                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tighter ${challenge.type === 'open' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'
+                                        }`}>
+                                        {challenge.type === 'open' ? '🌎 Abierto' : '⚔️ Duelo Personal'}
+                                    </span>
+                                </div>
+
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h4 className="text-xl font-bold text-white mb-1">{challenge.name}</h4>
                                         <p className="text-sm text-gray-400">{challenge.description}</p>
                                     </div>
                                 </div>
-                                {/* ... simplified details ... */}
+
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                                        <p className="text-[10px] text-gray-500 uppercase font-black">Participantes</p>
+                                        <p className="text-white font-bold">{challenge.participants}</p>
+                                    </div>
+                                    <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                                        <p className="text-[10px] text-gray-500 uppercase font-black">Líder Actual</p>
+                                        <p className="text-white font-bold truncate text-xs">{challenge.leader}</p>
+                                    </div>
+                                </div>
+
                                 <div className="flex gap-2">
-                                    <button className="flex-1 px-4 py-2 bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-white rounded-lg transition-all font-medium">
-                                        Ver Detalle
+                                    <button className="flex-1 px-4 py-2 bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-white rounded-lg transition-all font-bold text-sm">
+                                        Ver Progreso de Todos
                                     </button>
+                                    {challenge.type === 'open' && (
+                                        <button className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg transition-all font-bold text-sm">
+                                            Unirse
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -283,20 +309,115 @@ export function Gamification() {
                 </div>
             )}
 
-            {/* Create Challenge Modal (Simplified/Kept) */}
+            {/* Create Challenge Modal */}
             <AnimatePresence>
                 {showCreateChallenge && (
                     <div
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
                         onClick={() => setShowCreateChallenge(false)}
                     >
                         <motion.div
-                            className="bg-[#1c1c1e] rounded-2xl border border-white/10 max-w-md w-full p-6 text-white text-center"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-[#1c1c1e] rounded-2xl border border-white/10 max-w-md w-full p-8 text-white shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <h2 className="text-xl font-bold mb-4">Próximamente</h2>
-                            <p className="text-gray-400 mb-6">La creación de desafíos estará disponible muy pronto.</p>
-                            <button onClick={() => setShowCreateChallenge(false)} className="bg-purple-600 px-6 py-2 rounded-lg font-bold">Entendido</button>
+                            <h2 className="text-2xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                                Crear Nuevo Desafío ⚔️
+                            </h2>
+                            <p className="text-gray-400 text-sm mb-6">Reta a tus compañeros y sube en el ranking.</p>
+
+                            <form className="space-y-4" onSubmit={(e) => {
+                                e.preventDefault();
+                                const msg = challengeType === 'individual'
+                                    ? `¡Duelo enviado a ${targetStudent || 'tu compañero'}! Esperando aceptación.`
+                                    : '¡Desafío propuesto! Todos podrán unirse una vez el coach lo apruebe.';
+                                toast.success(msg);
+                                setShowCreateChallenge(false);
+                            }}>
+                                <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-xl border border-white/5 mb-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setChallengeType('open')}
+                                        className={`py-2 text-xs font-bold rounded-lg transition-all ${challengeType === 'open' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500'}`}
+                                    >
+                                        🌍 Abierto
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setChallengeType('individual')}
+                                        className={`py-2 text-xs font-bold rounded-lg transition-all ${challengeType === 'individual' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500'}`}
+                                    >
+                                        ⚔️ Individual
+                                    </button>
+                                </div>
+
+                                {challengeType === 'individual' && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                    >
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Seleccionar Oponente</label>
+                                        <select
+                                            required
+                                            value={targetStudent}
+                                            onChange={(e) => setTargetStudent(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all text-white"
+                                        >
+                                            <option value="" className="bg-[#1c1c1e]">Elegir compañero...</option>
+                                            {leaderboard.map(u => (
+                                                <option key={u.name} value={u.name} className="bg-[#1c1c1e]">{u.name}</option>
+                                            ))}
+                                        </select>
+                                    </motion.div>
+                                )}
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nombre del Desafío</label>
+                                    <input
+                                        required
+                                        placeholder={challengeType === 'individual' ? "Ej: Duelo de dominadas" : "Ej: Desafío mensual de asistencia"}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all text-white"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Reglas / Meta</label>
+                                    <textarea
+                                        required
+                                        placeholder="Define cómo se gana..."
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all h-24 resize-none text-white"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Duración (días)</label>
+                                        <input type="number" defaultValue={7} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Premio sugerido (XP)</label>
+                                        <input type="number" defaultValue={500} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white" />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCreateChallenge(false)}
+                                        className="flex-1 px-6 py-3 rounded-xl font-bold bg-white/5 hover:bg-white/10 transition-all text-sm"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20 text-sm"
+                                    >
+                                        {challengeType === 'individual' ? 'Enviar Duelo' : 'Crear Desafío'}
+                                    </button>
+                                </div>
+                            </form>
                         </motion.div>
                     </div>
                 )}

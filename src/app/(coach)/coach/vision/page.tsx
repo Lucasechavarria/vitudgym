@@ -100,9 +100,12 @@ export default function VisionLabPage() {
         <div className="space-y-8 max-w-5xl mx-auto">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400 mb-2">
-                        Vision Lab 👁️
-                    </h1>
+                    <div className="flex items-center gap-3 mb-2">
+                        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400">
+                            Vision Lab
+                        </h1>
+                        <span className="text-4xl">👁️</span>
+                    </div>
                     <p className="text-gray-400">Analiza la técnica de tus atletas con Inteligencia Artificial.</p>
                 </div>
 
