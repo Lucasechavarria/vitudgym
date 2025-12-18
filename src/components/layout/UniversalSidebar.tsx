@@ -16,6 +16,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
+        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
         { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
         { href: '/admin/schedule', label: 'Horarios', icon: '📅' },
         { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
@@ -24,6 +25,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
+        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
         { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
         { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
     ],
@@ -42,6 +44,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
         { href: '/dashboard/messages', label: 'Mensajes', icon: '💬' },
         { href: '/schedule', label: 'Cronograma', icon: '🗓️' },
+        { href: '/dashboard/routine', label: 'Mi Rutina', icon: '💪' },
         { href: '/dashboard/progress', label: 'Mi Progreso', icon: '📈' },
         { href: '/dashboard/classes', label: 'Mis Clases', icon: '📅' },
         { href: '/dashboard/nutrition', label: 'Nutrición', icon: '🥗' },
@@ -70,8 +73,15 @@ export function UniversalSidebar({
     isMobile: boolean;
 }) {
     const pathname = usePathname();
-    const navItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.user;
-    const color = ROLE_COLORS[role] || 'blue';
+
+    // Determine nav items based on path first, then fallback to role
+    let viewRole = role;
+    if (pathname.startsWith('/admin')) viewRole = 'admin';
+    else if (pathname.startsWith('/coach')) viewRole = 'coach';
+    else if (pathname.startsWith('/dashboard')) viewRole = 'user';
+
+    const navItems = NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.user;
+    const color = ROLE_COLORS[viewRole] || 'blue';
 
     return (
         <aside

@@ -5,12 +5,50 @@ import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
+import { supabase } from '@/lib/supabase/client';
 
 export default function VisionLabPage() {
     const [analysis, setAnalysis] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [usage, setUsage] = useState({ used: 0, limit: 5 });
     const [preview, setPreview] = useState<string | null>(null);
+    const [students, setStudents] = useState<any[]>([]);
+    const [selectedStudent, setSelectedStudent] = useState('');
+    const [sharing, setSharing] = useState(false);
+
+    React.useEffect(() => {
+        const fetchStudents = async () => {
+            const { data } = await supabase.from('profiles').select('id, full_name, email').eq('role', 'member');
+            if (data) setStudents(data);
+        };
+        fetchStudents();
+    }, []);
+
+    const handleShare = async () => {
+        if (!selectedStudent || !analysis) {
+            toast.error('Selecciona un alumno');
+            return;
+        }
+
+        try {
+            setSharing(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('No user');
+
+            await (supabase.from('messages') as any).insert({
+                sender_id: user.id,
+                receiver_id: selectedStudent,
+                content: `🔍 **Análisis de Técnica (Vision Lab)**\n\n${analysis}`
+            });
+
+            toast.success('¡Análisis compartido con el alumno!');
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al compartir');
+        } finally {
+            setSharing(false);
+        }
+    };
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
@@ -145,6 +183,29 @@ export default function VisionLabPage() {
                                 className="prose prose-invert prose-p:text-gray-300 prose-headings:text-white max-w-none"
                             >
                                 <ReactMarkdown>{analysis}</ReactMarkdown>
+
+                                <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
+                                    <h4 className="text-white font-bold">Compartir con Alumno</h4>
+                                    <div className="flex flex-col md:flex-row gap-3">
+                                        <select
+                                            value={selectedStudent}
+                                            onChange={(e) => setSelectedStudent(e.target.value)}
+                                            className="flex-1 bg-black/40 text-white border border-white/10 rounded-xl p-3 outline-none focus:border-purple-500 transition-all"
+                                        >
+                                            <option value="">Seleccionar alumno...</option>
+                                            {students.map(s => (
+                                                <option key={s.id} value={s.id}>{s.full_name || s.email}</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={handleShare}
+                                            disabled={sharing || !selectedStudent}
+                                            className="bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-purple-500/20"
+                                        >
+                                            {sharing ? 'Compartiendo...' : '📤 Compartir'}
+                                        </button>
+                                    </div>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>

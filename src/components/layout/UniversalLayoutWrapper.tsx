@@ -31,7 +31,7 @@ export function UniversalLayoutWrapper({
     const btnColor = profileRole === 'coach' ? 'orange' : 'purple';
 
     return (
-        <>
+        <div className="flex w-full min-h-screen">
             {/* Hamburger Button - Only mobile */}
             {isMobile && (
                 <button
@@ -67,9 +67,9 @@ export function UniversalLayoutWrapper({
             />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 min-h-screen">
                 {/* Header */}
-                <UniversalHeader role={profileRole} />
+                <UniversalHeader currentRole={profileRole} profileRole={profileRole} />
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-y-auto">
@@ -78,6 +78,6 @@ export function UniversalLayoutWrapper({
                     </div>
                 </main>
             </div>
-        </>
+        </div>
     );
 }

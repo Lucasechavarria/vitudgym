@@ -88,53 +88,46 @@ const ROUTINE_TEMPLATES = [
     },
 ];
 
-const MOCK_STUDENT_ROUTINES = [
-    {
-        id: 1,
-        studentName: 'Juan Pérez',
-        studentAvatar: 'J',
-        routineName: 'Fuerza 8 Semanas',
-        template: 'strength',
-        createdAt: '2025-01-15',
-        status: 'active',
-        progress: 65,
-    },
-    {
-        id: 2,
-        studentName: 'María García',
-        studentAvatar: 'M',
-        routineName: 'Hipertrofia Avanzada',
-        template: 'hypertrophy',
-        createdAt: '2025-01-10',
-        status: 'active',
-        progress: 85,
-    },
-    {
-        id: 3,
-        studentName: 'Carlos López',
-        studentAvatar: 'C',
-        routineName: 'Funcional Principiante',
-        template: 'functional',
-        createdAt: '2025-01-05',
-        status: 'completed',
-        progress: 100,
-    },
-    {
-        id: 4,
-        studentName: 'Ana Martínez',
-        studentAvatar: 'A',
-        routineName: 'Peso Corporal Casa',
-        template: 'bodyweight',
-        createdAt: '2025-01-12',
-        status: 'active',
-        progress: 45,
-    },
-];
+// Replaced with real data fetching in component
+
+import { supabase } from '@/lib/supabase/client';
 
 export default function RoutinesPage() {
     const [viewMode, setViewMode] = useState<'generator' | 'templates' | 'history'>('templates');
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [previewTemplate, setPreviewTemplate] = useState<any | null>(null);
+    const [routineHistory, setRoutineHistory] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    const fetchHistory = React.useCallback(async () => {
+        try {
+            setLoadingHistory(true);
+            const { data, error } = await supabase
+                .from('routines')
+                .select(`
+                    *,
+                    profiles:user_id (
+                        full_name,
+                        avatar_url
+                    )
+                `)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setRoutineHistory(data || []);
+        } catch (error) {
+            console.error('Error fetching routine history:', error);
+            toast.error('Error al cargar historial');
+        } finally {
+            setLoadingHistory(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        if (viewMode === 'history') {
+            fetchHistory();
+        }
+    }, [viewMode, fetchHistory]);
 
     const handleUseTemplate = (templateId: string) => {
         setSelectedTemplate(templateId);
@@ -168,8 +161,8 @@ export default function RoutinesPage() {
                             key={mode.id}
                             onClick={() => setViewMode(mode.id as any)}
                             className={`px-6 py-3 rounded-lg font-bold transition-all ${viewMode === mode.id
-                                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30'
-                                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                 }`}
                         >
                             {mode.label}
@@ -280,14 +273,23 @@ export default function RoutinesPage() {
             {/* History View */}
             {viewMode === 'history' && (
                 <div>
-                    <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-white mb-2">📜 Rutinas Generadas</h2>
-                        <p className="text-gray-400">Historial completo de rutinas asignadas</p>
+                    <div className="mb-6 flex justify-between items-center">
+                        <div>
+                            <h2 className="text-2xl font-bold text-white mb-2">📜 Rutinas Generadas</h2>
+                            <p className="text-gray-400">Historial completo de rutinas asignadas</p>
+                        </div>
+                        <button onClick={fetchHistory} className="text-orange-400 hover:text-orange-300 text-sm font-bold">
+                            🔄 Actualizar
+                        </button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {MOCK_STUDENT_ROUTINES.map((routine) => {
-                            const template = ROUTINE_TEMPLATES.find(t => t.id === routine.template);
+                        {loadingHistory ? (
+                            <div className="col-span-full py-20 text-center text-gray-500">Cargando historial...</div>
+                        ) : routineHistory.length === 0 ? (
+                            <div className="col-span-full py-20 text-center text-gray-500">No hay rutinas registradas.</div>
+                        ) : routineHistory.map((routine) => {
+                            const template = ROUTINE_TEMPLATES.find(t => t.id === routine.template) || ROUTINE_TEMPLATES[0];
                             return (
                                 <motion.div
                                     key={routine.id}
@@ -296,48 +298,32 @@ export default function RoutinesPage() {
                                     className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-orange-500/30 transition-all"
                                 >
                                     <div className="flex items-start gap-4 mb-4">
-                                        <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${template?.color || 'from-gray-500 to-gray-600'} flex items-center justify-center text-white font-black text-xl shadow-lg`}>
-                                            {routine.studentAvatar}
+                                        <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${template?.color || 'from-gray-500 to-gray-600'} flex items-center justify-center text-white font-black text-xl shadow-lg uppercase`}>
+                                            {routine.profiles?.full_name?.charAt(0) || '?'}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-bold text-white text-lg">{routine.studentName}</h3>
-                                            <p className="text-sm text-gray-400">{routine.routineName}</p>
+                                            <h3 className="font-bold text-white text-lg">{routine.profiles?.full_name || 'Alumno'}</h3>
+                                            <p className="text-sm text-gray-400">{routine.name}</p>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${routine.status === 'active'
-                                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                                : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${routine.is_active
+                                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                            : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                                             }`}>
-                                            {routine.status === 'active' ? 'Activa' : 'Completada'}
+                                            {routine.is_active ? 'Activa' : 'Pendiente'}
                                         </span>
                                     </div>
 
-                                    <div className="mb-4">
-                                        <div className="flex justify-between text-sm mb-2">
-                                            <span className="text-gray-400">Progreso</span>
-                                            <span className="font-bold text-white">{routine.progress}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-700 rounded-full h-2">
-                                            <div
-                                                className={`h-2 rounded-full bg-gradient-to-r ${template?.color || 'from-gray-500 to-gray-600'} transition-all duration-500`}
-                                                style={{ width: `${routine.progress}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
                                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
-                                        <span>📅 {new Date(routine.createdAt).toLocaleDateString('es-AR')}</span>
+                                        <span>📅 {new Date(routine.created_at).toLocaleDateString('es-AR')}</span>
                                         <span>•</span>
                                         <span className="flex items-center gap-1">
-                                            {template?.icon} {template?.name}
+                                            {routine.generated_by_ai ? '✨ IA' : '📋 Manual'}
                                         </span>
                                     </div>
 
                                     <div className="flex gap-2">
                                         <button className="flex-1 px-4 py-2 bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-white rounded-lg transition-all font-medium">
-                                            👁️ Ver
-                                        </button>
-                                        <button className="flex-1 px-4 py-2 bg-orange-500/20 hover:bg-orange-500 text-orange-300 hover:text-white rounded-lg transition-all font-medium">
-                                            📋 Duplicar
+                                            👁️ Ver Detalle
                                         </button>
                                         <button className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500 text-purple-300 hover:text-white rounded-lg transition-all font-medium">
                                             💾

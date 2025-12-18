@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { RoleManagement } from '@/components/features/admin/RoleManagement';
 
 export default function SettingsPage() {
-    const [activeSection, setActiveSection] = useState<'gym' | 'integrations' | 'users' | 'branding'>('gym');
+    const [activeSection, setActiveSection] = useState<'gym' | 'integrations' | 'users' | 'branding' | 'equipment'>('gym');
 
     const [gymSettings, setGymSettings] = useState({
         name: 'VIRTUD Gym',
@@ -47,12 +47,13 @@ export default function SettingsPage() {
                 <p className="text-gray-400">Personaliza tu gimnasio y configuraciones del sistema</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="flex flex-col lg:flex-row gap-8">
                 {/* Sidebar Navigation */}
-                <div className="lg:col-span-1 bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 h-fit">
+                <div className="w-full lg:w-64 shrink-0 bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 h-fit sticky top-24">
                     <nav className="space-y-2">
                         {[
                             { id: 'gym', label: 'Gimnasio', icon: '🏢' },
+                            { id: 'equipment', label: 'Equipamiento', icon: '🏋️' },
                             { id: 'integrations', label: 'Integraciones', icon: '🔌' },
                             { id: 'users', label: 'Permisos', icon: '👥' },
                             { id: 'branding', label: 'Personalización', icon: '🎨' },
@@ -268,6 +269,41 @@ export default function SettingsPage() {
                                                 </span>
                                             ))}
                                         </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Equipment Management */}
+                    {activeSection === 'equipment' && (
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-2xl font-bold text-white">🏋️ Stock de Equipamiento</h2>
+                                <button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                                    + Agregar Máquina
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[
+                                    { name: 'Prensa de Piernas', quantity: 2, status: 'Disponible', icon: '📐' },
+                                    { name: 'Mancuernas Hex', quantity: 20, status: 'Excelente', icon: '💪' },
+                                    { name: 'Cinta de Correr T80', quantity: 5, status: 'En Mantenimiento', icon: '🏃' },
+                                    { name: 'Rack de Sentadillas', quantity: 3, status: 'Disponible', icon: '🏋️' },
+                                ].map((item, idx) => (
+                                    <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between hover:bg-white/10 transition-all cursor-pointer">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-2xl">{item.icon}</span>
+                                            <div>
+                                                <h4 className="text-white font-bold">{item.name}</h4>
+                                                <p className="text-xs text-gray-400">Cantidad: {item.quantity}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${item.status === 'En Mantenimiento' ? 'bg-orange-500/20 text-orange-400' : 'bg-emerald-500/20 text-emerald-400'
+                                            }`}>
+                                            {item.status}
+                                        </span>
                                     </div>
                                 ))}
                             </div>

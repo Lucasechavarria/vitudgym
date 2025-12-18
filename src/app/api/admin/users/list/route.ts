@@ -9,7 +9,7 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
  */
 export async function GET(request: Request) {
     try {
-        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
+        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
         if (error) return error;
 
         // Fetch users

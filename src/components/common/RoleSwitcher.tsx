@@ -11,11 +11,13 @@ interface Role {
     path: string;
 }
 
-export default function RoleSwitcher({ currentRole }: { currentRole: string }) {
+export default function RoleSwitcher({ currentRole, profileRole }: { currentRole: string; profileRole?: string }) {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
 
-    const canSwitchRoles = currentRole === 'superadmin' || currentRole === 'admin';
+    // If profileRole is admin/coach/superadmin, can always switch
+    const effectiveRole = profileRole || currentRole;
+    const canSwitchRoles = ['superadmin', 'admin', 'coach'].includes(effectiveRole);
 
     if (!canSwitchRoles) return null;
 

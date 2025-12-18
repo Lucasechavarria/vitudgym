@@ -1,21 +1,54 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Line, Bar } from 'recharts';
 import { LineChart, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Gamification } from '@/components/features/student/Gamification';
 import { toast } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase/client';
 
 export default function StudentDashboard() {
-  const [activeTab, setActiveTab] = useState<'progress' | 'attendance' | 'nutrition'>('progress');
+  const [activeTab, setActiveTab] = useState<'progress' | 'attendance'>('progress');
   const [loading, setLoading] = useState(true);
+  const [isRequesting, setIsRequesting] = useState(false);
   const [data, setData] = useState<any>({
     progress: [],
     attendance: [],
     routine: null
   });
+
+  const handleRequestRoutine = async () => {
+    try {
+      setIsRequesting(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+
+      // Find a coach to send the request to
+      const { data: coaches } = await (supabase
+        .from('profiles') as any)
+        .select('id')
+        .eq('role', 'coach')
+        .limit(1);
+
+      if (coaches && coaches.length > 0) {
+        await (supabase.from('messages') as any).insert({
+          sender_id: user.id,
+          receiver_id: coaches[0].id,
+          content: 'Hola! Me gustaría solicitar una nueva rutina de entrenamiento. Gracias!'
+        });
+        toast.success('Solicitud enviada a tu Coach. Te avisaremos pronto!');
+      } else {
+        toast.error('No hay coaches disponibles en este momento.');
+      }
+    } catch (error) {
+      console.error('Error requesting routine:', error);
+      toast.error('Error al enviar la solicitud.');
+    } finally {
+      setIsRequesting(false);
+    }
+  };
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -43,6 +76,7 @@ export default function StudentDashboard() {
   }
 
   const { progress, attendance, routine } = data;
+  const latestProgress = progress[progress.length - 1];
 
   // Transform progress for charts if needed
   const chartData = progress.length > 0 ? progress.map((p: any) => ({
@@ -66,6 +100,13 @@ export default function StudentDashboard() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  const stats = [
+    { label: 'Peso Actual', value: `${latestProgress?.weight || '--'} kg`, icon: '⚖️', trend: 'Objetivo: 75kg', color: 'from-emerald-500/20 to-emerald-600/5 border-emerald-500/30 text-emerald-400' },
+    { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: any) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-blue-500/20 to-blue-600/5 border-blue-500/30 text-blue-400' },
+    { label: 'Grasa Corporal', value: `${latestProgress?.body_fat || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-orange-500/20 to-orange-600/5 border-orange-500/30 text-orange-400' },
+    { label: 'Músculo', value: `${latestProgress?.muscle_mass || '--'} kg`, icon: '💪', trend: 'En Aumento', color: 'from-purple-500/20 to-purple-600/5 border-purple-500/30 text-purple-400' },
+  ];
 
   return (
     <motion.div
@@ -115,36 +156,7 @@ export default function StudentDashboard() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          {
-            label: 'Peso Actual',
-            value: progress[progress.length - 1]?.weight ? `${progress[progress.length - 1].weight}kg` : '--',
-            trend: 'Ver histórico',
-            icon: '⚖️',
-            color: 'from-green-500/20 to-green-600/5 border-green-500/30 text-green-400'
-          },
-          {
-            label: 'Clases Asistidas',
-            value: attendance.reduce((acc: number, curr: any) => acc + curr.rate, 0),
-            trend: 'Total',
-            icon: '🔥',
-            color: 'from-orange-500/20 to-orange-600/5 border-orange-500/30 text-orange-400'
-          },
-          {
-            label: '% Grasa',
-            value: progress[progress.length - 1]?.body_fat ? `${progress[progress.length - 1].body_fat}%` : '--',
-            trend: 'Última medición',
-            icon: '📉',
-            color: 'from-purple-500/20 to-purple-600/5 border-purple-500/30 text-purple-400'
-          },
-          {
-            label: 'Músculo',
-            value: progress[progress.length - 1]?.muscle_mass ? `${progress[progress.length - 1].muscle_mass}kg` : '--',
-            trend: 'Masa Muscular',
-            icon: '💪',
-            color: 'from-blue-500/20 to-blue-600/5 border-blue-500/30 text-blue-400'
-          },
-        ].map((stat, i) => (
+        {stats.map((stat, i) => (
           <motion.div
             key={i}
             variants={itemVariants}
@@ -321,8 +333,12 @@ export default function StudentDashboard() {
                   📝
                 </div>
                 <p className="text-gray-400 mb-6">Tu coach está diseñando tu plan a medida.</p>
-                <button className="w-full border border-white/10 hover:bg-white/5 text-white py-3 rounded-xl transition-all text-sm font-bold">
-                  Solicitar Rutina
+                <button
+                  onClick={handleRequestRoutine}
+                  disabled={isRequesting}
+                  className="w-full border border-white/10 hover:bg-white/5 text-white py-3 rounded-xl transition-all text-sm font-bold disabled:opacity-50"
+                >
+                  {isRequesting ? 'Enviando...' : 'Solicitar Rutina'}
                 </button>
               </div>
             )}

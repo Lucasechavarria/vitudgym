@@ -503,6 +503,29 @@ export interface Database {
                     updated_at?: string
                 }
             }
+            messages: {
+                Row: {
+                    id: string
+                    sender_id: string
+                    receiver_id: string
+                    content: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    sender_id: string
+                    receiver_id: string
+                    content: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    sender_id?: string
+                    receiver_id?: string
+                    content?: string
+                    created_at?: string
+                }
+            }
         }
         Views: {
             classes_with_availability: {
