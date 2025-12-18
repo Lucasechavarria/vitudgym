@@ -11,6 +11,14 @@ export interface Database {
         Tables: {
             profiles: {
                 Row: {
+                    dni: string | null
+                    address: string | null
+                    city: string | null
+                    emergency_contact: Json | null
+                    medical_info: Json | null
+                    waiver_accepted: boolean | null
+                    waiver_date: string | null
+                    // Keep existing below
                     id: string
                     email: string
                     full_name: string | null
@@ -21,12 +29,6 @@ export interface Database {
                     role: 'member' | 'coach' | 'admin' | 'superadmin'
                     date_of_birth: string | null
                     gender: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
-                    emergency_contact_name: string | null
-                    emergency_contact_phone: string | null
-                    medical_conditions: string[] | null
-                    injuries: string[] | null
-                    medications: string | null
-                    restrictions: string | null
                     membership_status: 'active' | 'inactive' | 'suspended' | 'expired'
                     membership_start_date: string | null
                     membership_end_date: string | null
@@ -36,20 +38,24 @@ export interface Database {
                     onboarding_completed_at?: string
                 }
                 Insert: {
+                    dni?: string | null
+                    address?: string | null
+                    city?: string | null
+                    emergency_contact?: Json | null
+                    medical_info?: Json | null
+                    waiver_accepted?: boolean | null
+                    waiver_date?: string | null
+                    // Keep existing below
                     id: string
                     email: string
                     full_name?: string | null
+                    first_name?: string | null
+                    last_name?: string | null
                     avatar_url?: string | null
                     phone?: string | null
                     role?: 'member' | 'coach' | 'admin' | 'superadmin'
                     date_of_birth?: string | null
                     gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
-                    emergency_contact_name?: string | null
-                    emergency_contact_phone?: string | null
-                    medical_conditions?: string[] | null
-                    injuries?: string[] | null
-                    medications?: string | null
-                    restrictions?: string | null
                     membership_status?: 'active' | 'inactive' | 'suspended' | 'expired'
                     membership_start_date?: string | null
                     membership_end_date?: string | null
@@ -59,20 +65,24 @@ export interface Database {
                     onboarding_completed_at?: string
                 }
                 Update: {
+                    dni?: string | null
+                    address?: string | null
+                    city?: string | null
+                    emergency_contact?: Json | null
+                    medical_info?: Json | null
+                    waiver_accepted?: boolean | null
+                    waiver_date?: string | null
+                    // Keep existing below
                     id?: string
                     email?: string
                     full_name?: string | null
+                    first_name?: string | null
+                    last_name?: string | null
                     avatar_url?: string | null
                     phone?: string | null
                     role?: 'member' | 'coach' | 'admin' | 'superadmin'
                     date_of_birth?: string | null
                     gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
-                    emergency_contact_name?: string | null
-                    emergency_contact_phone?: string | null
-                    medical_conditions?: string[] | null
-                    injuries?: string[] | null
-                    medications?: string | null
-                    restrictions?: string | null
                     membership_status?: 'active' | 'inactive' | 'suspended' | 'expired'
                     membership_start_date?: string | null
                     membership_end_date?: string | null

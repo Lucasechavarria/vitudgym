@@ -39,13 +39,23 @@ export async function GET() {
             .eq('is_active', true)
             .single();
 
+        // 5. Fetch Profile Status
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('waiver_accepted')
+            .eq('id', user.id)
+            .single();
+
         // Process Attendance Data for Chart
         const attendanceByMonth = processAttendance(bookings || []);
 
         return NextResponse.json({
             progress: measurements || [],
             attendance: attendanceByMonth,
-            routine: activeRoutine || null
+            routine: activeRoutine || null,
+            profile: {
+                waiver_accepted: profile?.waiver_accepted || false
+            }
         });
 
     } catch (error) {
