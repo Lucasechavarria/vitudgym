@@ -69,6 +69,18 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                             <p className="text-white font-medium">{user.dni || 'No registrado'}</p>
                                         </div>
                                         <div>
+                                            <p className="text-xs text-gray-500 uppercase">Género</p>
+                                            <p className="text-white font-medium capitalize">
+                                                {user.gender === 'male' ? 'Masculino' : user.gender === 'female' ? 'Femenino' : user.gender === 'other' ? 'Otro' : user.gender === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 uppercase">Género</p>
+                                            <p className="text-white font-medium capitalize">
+                                                {user.gender === 'male' ? 'Masculino' : user.gender === 'female' ? 'Femenino' : user.gender === 'other' ? 'Otro' : 'Prefiero no decir'}
+                                            </p>
+                                        </div>
+                                        <div>
                                             <p className="text-xs text-gray-500 uppercase">Fecha Nacimiento</p>
                                             <p className="text-white font-medium">
                                                 {user.date_of_birth || user.birth_date ? new Date(user.date_of_birth || user.birth_date).toLocaleDateString() : 'No registrada'}
@@ -128,6 +140,10 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                             <div>
                                                 <p className="text-sm font-bold text-gray-400 mb-1">Enfermedades Crónicas</p>
                                                 <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.chronic_diseases || 'Ninguna declarada'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-400 mb-1">Patologías</p>
+                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.pathologies || 'Ninguna declarada'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-gray-400 mb-1">Antecedentes</p>

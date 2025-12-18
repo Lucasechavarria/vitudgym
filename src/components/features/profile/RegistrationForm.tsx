@@ -25,12 +25,14 @@ type MedicalInfo = {
     injuries: string; // Lesiones
     allergies: string; // Alergias
     chronic_diseases: string; // Enfermedades Crónicas
+    pathologies: string; // Patologías
     background: string; // Antecedentes
 };
 
 type RegistrationFormData = {
     // Personal
     dni: string;
+    gender: "male" | "female" | "other" | "prefer_not_to_say";
     phone: string;
     address: string;
     city: string;
@@ -80,6 +82,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 .from('profiles') as any)
                 .update({
                     dni: data.dni,
+                    gender: data.gender,
                     phone: data.phone,
                     address: data.address,
                     city: data.city,
@@ -124,6 +127,18 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                         placeholder="Sin puntos"
                     />
                     {errors.dni && <span className="text-red-500 text-xs">{errors.dni.message}</span>}
+                </div>
+                <div>
+                    <label className="block text-sm text-gray-400 mb-1">Género</label>
+                    <select
+                        {...register('gender', { required: 'Seleccione una opción' })}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
+                    >
+                        <option value="" className="bg-gray-800">Seleccionar...</option>
+                        <option value="male" className="bg-gray-800">Masculino</option>
+                        <option value="female" className="bg-gray-800">Femenino</option>
+                        <option value="other" className="bg-gray-800">Otro</option>
+                    </select>
                 </div>
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Fecha de Nacimiento</label>
@@ -245,6 +260,14 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                     />
                 </div>
                 <div>
+                    <label className="block text-sm text-gray-400 mb-1">Patologías</label>
+                    <textarea
+                        {...register('medical.pathologies')}
+                        rows={2}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
+                    />
+                </div>
+                <div>
                     <label className="block text-sm text-gray-400 mb-1">Antecedentes Médicos</label>
                     <textarea
                         {...register('medical.background')}
@@ -307,7 +330,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                     derivado de mi práctica deportiva o condiciones preexistentes no declaradas.
                 </p>
                 <p>
-                    B. Me comprometo a entregar mi Certificado de Aptitud Física dentro de los 20 días como plazo
+                    B. Me comprometo a entregar mi Certificado Médico de Aptitud Física dentro de los 20 días como plazo
                     a partir de la fecha de hoy.
                 </p>
                 <p>

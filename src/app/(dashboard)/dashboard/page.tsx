@@ -79,7 +79,7 @@ export default function StudentDashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
         <div className="relative z-10">
           <h1 className="text-4xl font-black text-white mb-2">
-            Hola, Campeón 👋
+            Hola, {data.profile?.gender === 'female' ? 'Campeona' : data.profile?.gender === 'male' ? 'Campeón' : 'Campeón/a'} 👋
           </h1>
           <p className="text-blue-100 text-lg">
             "La disciplina es el puente entre metas y logros." ¡Vamos por más!
