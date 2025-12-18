@@ -46,14 +46,16 @@ export default function StudentProfilePage() {
             const user = await authService.getCurrentUser();
             const profile = await authService.getUserProfile();
 
+            const emergencyContact = (profile.emergency_contact as any) || {};
+
             setProfileData({
                 full_name: profile.full_name || '',
                 email: user?.email || '',
                 phone: profile.phone || '',
                 date_of_birth: profile.date_of_birth || '',
                 gender: profile.gender || 'prefer_not_to_say',
-                emergency_contact_name: profile.emergency_contact_name || '',
-                emergency_contact_phone: profile.emergency_contact_phone || ''
+                emergency_contact_name: emergencyContact.full_name || '',
+                emergency_contact_phone: emergencyContact.phone || ''
             });
         } catch (error) {
             console.error('Error:', error);
@@ -69,7 +71,19 @@ export default function StudentProfilePage() {
             const user = await authService.getCurrentUser();
             if (!user) throw new Error('No user found');
 
-            await authService.updateProfile(user.id, profileData);
+            // Preparar datos para actualizacion en formato DB
+            const updates = {
+                full_name: profileData.full_name,
+                phone: profileData.phone,
+                date_of_birth: profileData.date_of_birth,
+                gender: profileData.gender,
+                emergency_contact: {
+                    full_name: profileData.emergency_contact_name,
+                    phone: profileData.emergency_contact_phone
+                }
+            };
+
+            await authService.updateProfile(user.id, updates);
             toast.success('Perfil actualizado correctamente');
         } catch (error: any) {
             console.error('Error:', error);
