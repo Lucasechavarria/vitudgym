@@ -42,6 +42,8 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
     const [students, setStudents] = useState<Student[]>([]);
     const [loadingStudents, setLoadingStudents] = useState(true);
     const [studentsError, setStudentsError] = useState<string | null>(null);
+    const [includeNutrition, setIncludeNutrition] = useState(true);
+    const [nutritionPlan, setNutritionPlan] = useState<any | null>(null);
 
     // Fetch real students from Supabase
     useEffect(() => {
@@ -101,7 +103,8 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 body: JSON.stringify({
                     studentId: selectedStudent,
                     goal,
-                    coachNotes
+                    coachNotes,
+                    includeNutrition
                 })
             });
 
@@ -109,6 +112,7 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
 
             if (data.success) {
                 setRoutine(data.routine);
+                setNutritionPlan(data.nutritionPlan);
             } else {
                 alert('Error: ' + data.error);
             }
@@ -135,7 +139,8 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                     duration: '4', // Default duration if not from AI
                     description: routine.description || `Rutina generada para ${goal}`,
                     exercises: routine.exercises,
-                    generatedByAI: true
+                    generatedByAI: true,
+                    nutritionPlanId: nutritionPlan?.id
                 })
             });
 
@@ -242,6 +247,20 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                     />
                 </div>
 
+                {/* Nutrition Toggle */}
+                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
+                    <input
+                        type="checkbox"
+                        id="includeNutrition"
+                        checked={includeNutrition}
+                        onChange={(e) => setIncludeNutrition(e.target.checked)}
+                        className="w-5 h-5 accent-orange-500 rounded border-white/20 bg-black"
+                    />
+                    <label htmlFor="includeNutrition" className="text-sm font-bold text-white cursor-pointer select-none">
+                        🍎 Incluir Plan Nutricional Sugerido (IA)
+                    </label>
+                </div>
+
                 {/* Generate Button */}
                 <button
                     onClick={generate}
@@ -308,6 +327,36 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Nutrition Plan Preview */}
+                            {nutritionPlan && (
+                                <div className="border-t border-white/10 pt-6">
+                                    <h2 className="text-xl font-black mb-4 text-green-500 flex items-center gap-2">
+                                        🍎 Plan Nutricional <span className="text-xs bg-green-500/20 px-2 py-1 rounded text-green-400 border border-green-500/20">Sugerencia IA</span>
+                                    </h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
+                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Calorías</p>
+                                            <p className="text-white font-bold">{nutritionPlan.daily_calories} kcal</p>
+                                        </div>
+                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
+                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Proteínas</p>
+                                            <p className="text-blue-400 font-bold">{nutritionPlan.protein_grams}g</p>
+                                        </div>
+                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
+                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Carbs</p>
+                                            <p className="text-green-400 font-bold">{nutritionPlan.carbs_grams}g</p>
+                                        </div>
+                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
+                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Grasas</p>
+                                            <p className="text-yellow-400 font-bold">{nutritionPlan.fats_grams}g</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-4 p-3 bg-white/5 border border-white/10 rounded-lg italic">
+                                        <span className="text-orange-400 font-bold">⚠️ Nota para el Coach:</span> Esta es una guía generada por IA. Asegúrate de revisarla. Se mostrará al alumno con el siguiente aviso: "Esta es una guía de alimentación sugerida por IA para orientarte. Recordá que no reemplaza a un profesional: siempre consultá con un nutricionista para un plan a tu medida."
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}

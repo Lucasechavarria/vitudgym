@@ -9,11 +9,12 @@ import Script from 'next/script';
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export const viewport: Viewport = {
-  themeColor: '#ffffff',
+  themeColor: '#000000',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false
+  userScalable: false,
+  viewportFit: 'cover',
 }
 
 const inter = Inter({
@@ -25,12 +26,20 @@ const inter = Inter({
 // ▼ Mantén solo ESTA declaración de metadata ▼
 export const metadata: Metadata = {
   title: {
-    default: "Plataforma VIRTUD",
+    default: "VIRTUD | Entrenamiento Inteligente",
     template: "%s | VIRTUD"
   },
-  description: "Sistema de gestión integral para profesionales de la salud mental",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  description: "Centro de transformación integral: Fitness, Artes Marciales y Medicina China. Elevá tu potencial al siguiente nivel.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virtud-gym.com'), // Updated placeholder domain
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Virtud Gym',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({

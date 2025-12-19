@@ -19,7 +19,8 @@ export async function POST(req: Request) {
             goal,
             duration,
             exercises, // Array of exercises from the generator
-            description
+            description,
+            nutritionPlanId
         } = body;
 
         if (!studentId || !name || !exercises || exercises.length === 0) {
@@ -37,7 +38,8 @@ export async function POST(req: Request) {
                 description,
                 duration_weeks: parseInt(duration) || 4,
                 is_active: true, // Set as active by default
-                generated_by_ai: body.generatedByAI || false
+                generated_by_ai: body.generatedByAI || false,
+                nutrition_plan_id: nutritionPlanId || null
             })
             .select()
             .single();

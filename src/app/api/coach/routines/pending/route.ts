@@ -25,6 +25,7 @@ export async function GET(request: Request) {
                 created_at,
                 duration_weeks,
                 difficulty,
+                nutrition_plan_id,
                 profiles!routines_user_id_fkey (
                     full_name,
                     email

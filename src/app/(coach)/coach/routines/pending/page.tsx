@@ -14,6 +14,7 @@ interface PendingRoutine {
     exercises_count: number;
     duration_weeks: number;
     difficulty: string;
+    nutrition_plan_id?: string;
 }
 
 export default function PendingRoutinesPage() {
@@ -155,13 +156,18 @@ export default function PendingRoutinesPage() {
                                                 📅 {routine.duration_weeks} semanas
                                             </span>
                                             <span className={`px-2 py-1 rounded text-xs font-semibold ${routine.difficulty === 'beginner' ? 'bg-green-500/20 text-green-400' :
-                                                    routine.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                        'bg-red-500/20 text-red-400'
+                                                routine.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                    'bg-red-500/20 text-red-400'
                                                 }`}>
                                                 {routine.difficulty === 'beginner' ? '🟢 Principiante' :
                                                     routine.difficulty === 'intermediate' ? '🟡 Intermedio' :
                                                         '🔴 Avanzado'}
                                             </span>
+                                            {routine.nutrition_plan_id && (
+                                                <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full font-semibold">
+                                                    🍎 Incluye Nutrición
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-right text-sm text-gray-500">
@@ -258,8 +264,8 @@ export default function PendingRoutinesPage() {
                                     onClick={handleAction}
                                     disabled={processing}
                                     className={`flex-1 px-4 py-3 rounded-lg transition-colors font-semibold disabled:opacity-50 ${actionType === 'approve'
-                                            ? 'bg-green-500 text-white hover:bg-green-600'
-                                            : 'bg-red-500 text-white hover:bg-red-600'
+                                        ? 'bg-green-500 text-white hover:bg-green-600'
+                                        : 'bg-red-500 text-white hover:bg-red-600'
                                         }`}
                                 >
                                     {processing ? 'Procesando...' : actionType === 'approve' ? 'Confirmar Aprobación' : 'Confirmar Rechazo'}

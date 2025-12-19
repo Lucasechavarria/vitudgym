@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Line, Bar } from 'recharts';
 import { LineChart, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -33,7 +33,54 @@ const MOCK_STUDENT_METRICS = {
 
 export default function CoachMetricsPage() {
     const [viewMode, setViewMode] = useState<'individual' | 'group' | 'class'>('individual');
-    const [selectedStudent, setSelectedStudent] = useState('Juan Pérez');
+    const [selectedStudent, setSelectedStudent] = useState<string>('');
+    const [students, setStudents] = useState<any[]>([]);
+    const [metrics, setMetrics] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch Students
+    useEffect(() => {
+        const fetchStudents = async () => {
+            try {
+                const res = await fetch('/api/coach/students');
+                const data = await res.json();
+                if (data.success) {
+                    setStudents(data.students);
+                    if (data.students.length > 0) {
+                        setSelectedStudent(data.students[0].id);
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching students:', err);
+            }
+        };
+        fetchStudents();
+    }, []);
+
+    // Fetch Metrics
+    useEffect(() => {
+        const fetchMetrics = async () => {
+            if (viewMode === 'individual' && !selectedStudent) return;
+
+            setIsLoading(true);
+            try {
+                const params = new URLSearchParams({
+                    mode: viewMode,
+                    ...(selectedStudent && { studentId: selectedStudent })
+                });
+                const res = await fetch(`/api/coach/analytics?${params}`);
+                const data = await res.json();
+                if (data.success) {
+                    setMetrics(data.metrics);
+                }
+            } catch (err) {
+                console.error('Error fetching metrics:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchMetrics();
+    }, [viewMode, selectedStudent]);
 
     return (
         <motion.div
@@ -81,55 +128,61 @@ export default function CoachMetricsPage() {
                         onChange={(e) => setSelectedStudent(e.target.value)}
                         className="w-full md:w-64 bg-[#0a0a0a] text-white border border-white/10 rounded-lg p-3"
                     >
-                        <option>Juan Pérez</option>
-                        <option>María García</option>
-                        <option>Carlos López</option>
+                        {students.map(s => (
+                            <option key={s.id} value={s.id}>{s.full_name}</option>
+                        ))}
                     </select>
                 </div>
             )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                    {
-                        label: 'Asistencia',
-                        value: viewMode === 'individual' ? '92%' : viewMode === 'group' ? '88%' : '95%',
-                        icon: '✅',
-                        color: 'text-green-400'
-                    },
-                    {
-                        label: viewMode === 'class' ? 'Alumnos Presentes' : 'Días Entrenados',
-                        value: viewMode === 'individual' ? '18/20' : viewMode === 'group' ? '145/160' : '24/25',
-                        icon: '💪',
-                        color: 'text-blue-400'
-                    },
-                    {
-                        label: viewMode === 'class' ? 'Intensidad Prom.' : 'Progreso 1RM',
-                        value: viewMode === 'individual' ? '+15kg' : viewMode === 'group' ? '+8.5kg' : '85%',
-                        icon: '📈',
-                        color: 'text-purple-400'
-                    },
-                    {
-                        label: viewMode === 'class' ? 'Calorías Prom.' : 'Índice Grasa',
-                        value: viewMode === 'individual' ? '16.8%' : viewMode === 'group' ? '18.2%' : '450',
-                        icon: '🎯',
-                        color: 'text-orange-400'
-                    },
-                ].map((stat, i) => (
-                    <motion.div
-                        key={`${viewMode}-${i}`}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-xl p-4"
-                    >
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-2xl">{stat.icon}</span>
-                            <span className={`text-2xl font-black ${stat.color}`}>{stat.value}</span>
-                        </div>
-                        <p className="text-sm text-gray-400">{stat.label}</p>
-                    </motion.div>
-                ))}
+                {isLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                        <div key={i} className="bg-[#1c1c1e]/60 border border-white/10 rounded-xl p-4 animate-pulse h-24" />
+                    ))
+                ) : (
+                    [
+                        {
+                            label: 'Asistencia',
+                            value: `${metrics?.summary?.attendanceRate || 0}%`,
+                            icon: '✅',
+                            color: 'text-green-400'
+                        },
+                        {
+                            label: 'Clases Asistidas',
+                            value: metrics?.summary?.totalAttended || 0,
+                            icon: '💪',
+                            color: 'text-blue-400'
+                        },
+                        {
+                            label: 'Volumen Prescrito',
+                            value: metrics?.prescribedVolume || 0,
+                            icon: '📈',
+                            color: 'text-purple-400'
+                        },
+                        {
+                            label: 'Peso Actual',
+                            value: metrics?.measurements?.[metrics.measurements.length - 1]?.weight ? `${metrics.measurements[metrics.measurements.length - 1].weight}kg` : '-',
+                            icon: '🎯',
+                            color: 'text-orange-400'
+                        },
+                    ].map((stat, i) => (
+                        <motion.div
+                            key={`${viewMode}-${i}`}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-xl p-4"
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-2xl">{stat.icon}</span>
+                                <span className={`text-2xl font-black ${stat.color}`}>{stat.value}</span>
+                            </div>
+                            <p className="text-sm text-gray-400">{stat.label}</p>
+                        </motion.div>
+                    ))
+                )}
             </div>
 
             {/* Charts */}
@@ -138,7 +191,7 @@ export default function CoachMetricsPage() {
                 <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                     <h3 className="text-xl font-bold text-white mb-4">📅 Asistencia Mensual</h3>
                     <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={MOCK_STUDENT_METRICS.attendance}>
+                        <LineChart data={metrics?.attendance || []}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3c" />
                             <XAxis dataKey="month" stroke="#888" />
                             <YAxis stroke="#888" />
@@ -151,42 +204,44 @@ export default function CoachMetricsPage() {
                     </ResponsiveContainer>
                 </div>
 
-                {/* Performance Chart */}
+                {/* Performance Chart (Placeholder for now until logging is implemented) */}
                 <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">💪 Progreso 1RM</h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={MOCK_STUDENT_METRICS.performance}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3c" />
-                            <XAxis dataKey="exercise" stroke="#888" />
-                            <YAxis stroke="#888" />
-                            <Tooltip
-                                contentStyle={{ background: '#1c1c1e', border: '1px solid #3a3a3c', borderRadius: '8px' }}
-                                labelStyle={{ color: '#fff' }}
-                            />
-                            <Legend />
-                            <Bar dataKey="current" fill="#8b5cf6" name="Actual" />
-                            <Bar dataKey="target" fill="#3b82f6" name="Objetivo" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <h3 className="text-xl font-bold text-white mb-4">💪 Volumen de Entrenamiento</h3>
+                    <div className="flex flex-col items-center justify-center h-[250px]">
+                        <span className="text-5xl mb-4">🏋️</span>
+                        <p className="text-3xl font-black text-purple-400">{metrics?.prescribedVolume || 0}</p>
+                        <p className="text-gray-500 text-sm">Sets x Reps Totales Prescritas</p>
+                    </div>
                 </div>
 
                 {/* Body Metrics Chart */}
                 <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 lg:col-span-2">
                     <h3 className="text-xl font-bold text-white mb-4">📉 Evolución Corporal</h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={MOCK_STUDENT_METRICS.bodyMetrics}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3c" />
-                            <XAxis dataKey="week" stroke="#888" />
-                            <YAxis stroke="#888" />
-                            <Tooltip
-                                contentStyle={{ background: '#1c1c1e', border: '1px solid #3a3a3c', borderRadius: '8px' }}
-                                labelStyle={{ color: '#fff' }}
-                            />
-                            <Legend />
-                            <Line type="monotone" dataKey="peso" stroke="#f59e0b" strokeWidth={3} name="Peso (kg)" />
-                            <Line type="monotone" dataKey="grasa" stroke="#ef4444" strokeWidth={3} name="% Grasa" />
-                        </LineChart>
-                    </ResponsiveContainer>
+                    {metrics?.measurements?.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={metrics.measurements.map((m: any, i: number) => ({
+                                date: new Date(m.recorded_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }),
+                                peso: m.weight,
+                                grasa: m.body_fat
+                            }))}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3c" />
+                                <XAxis dataKey="date" stroke="#888" />
+                                <YAxis stroke="#888" />
+                                <Tooltip
+                                    contentStyle={{ background: '#1c1c1e', border: '1px solid #3a3a3c', borderRadius: '8px' }}
+                                    labelStyle={{ color: '#fff' }}
+                                />
+                                <Legend />
+                                <Line type="monotone" dataKey="peso" stroke="#f59e0b" strokeWidth={3} name="Peso (kg)" />
+                                <Line type="monotone" dataKey="grasa" stroke="#ef4444" strokeWidth={3} name="% Grasa" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-[250px] text-gray-500">
+                            <span className="text-4xl mb-2">⚖️</span>
+                            <p>Sin mediciones registradas recientemente.</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -194,21 +249,33 @@ export default function CoachMetricsPage() {
             <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                 <h3 className="text-xl font-bold text-white mb-4">🔥 Actividad Reciente</h3>
                 <div className="space-y-3">
-                    {[
-                        { date: 'Hoy, 10:00', activity: 'Completó rutina Tren Superior', badge: 'Excelente forma' },
-                        { date: 'Ayer, 18:30', activity: 'Nuevo PR en Sentadilla: 120kg', badge: '+10kg' },
-                        { date: '12 Dic, 09:00', activity: 'Asistió a clase de HIIT', badge: '95% asistencia' },
-                    ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                            <div>
-                                <p className="text-white font-medium">{item.activity}</p>
-                                <p className="text-xs text-gray-400">{item.date}</p>
+                    {metrics?.summary?.totalAttended > 0 || metrics?.measurements?.length > 0 ? (
+                        <>
+                            {metrics.measurements.slice(-2).reverse().map((m: any, i: number) => (
+                                <div key={`m-${i}`} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                                    <div>
+                                        <p className="text-white font-medium">Nueva medición registrada</p>
+                                        <p className="text-xs text-gray-400">{new Date(m.recorded_at).toLocaleDateString('es-AR')}</p>
+                                    </div>
+                                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-bold">
+                                        {m.weight}kg
+                                    </span>
+                                </div>
+                            ))}
+                            {/* Simple placeholder for recent booking attendance */}
+                            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                                <div>
+                                    <p className="text-white font-medium">Asistencia registrada</p>
+                                    <p className="text-xs text-gray-400">Últimas sesiones</p>
+                                </div>
+                                <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold">
+                                    {metrics?.summary?.totalAttended} clases
+                                </span>
                             </div>
-                            <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold">
-                                {item.badge}
-                            </span>
-                        </div>
-                    ))}
+                        </>
+                    ) : (
+                        <p className="text-gray-500 text-sm text-center py-4">Sin actividad reciente para mostrar.</p>
+                    )}
                 </div>
             </div>
         </motion.div>

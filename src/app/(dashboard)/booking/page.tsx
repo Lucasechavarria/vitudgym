@@ -1,7 +1,10 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase/client';
+import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 const mockClasses = [
     { id: 1, name: 'CrossFit WOD', time: '06:00', coach: 'Pablo', spots: 3, total: 15 },
@@ -11,6 +14,38 @@ const mockClasses = [
 ];
 
 export default function BookingPage() {
+    const [profile, setProfile] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data } = await supabase
+                        .from('profiles')
+                        .select('waiver_accepted')
+                        .eq('id', user.id)
+                        .single();
+                    setProfile(data);
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProfile();
+    }, []);
+
+    const handleBookingClick = (clase: any) => {
+        if (!profile?.waiver_accepted) {
+            toast.error('Debes completar tu ficha médica antes de reservar.');
+            return;
+        }
+        // Logic for booking would go here
+        toast.success(`Reserva para ${clase.name} enviada.`);
+    };
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -58,8 +93,8 @@ export default function BookingPage() {
                         <motion.button
                             key={day}
                             className={`px-6 py-3 rounded-xl font-bold whitespace-nowrap ${idx === 1
-                                    ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white'
-                                    : 'bg-[#1c1c1e] text-gray-400 border border-[#3a3a3c]'
+                                ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white'
+                                : 'bg-[#1c1c1e] text-gray-400 border border-[#3a3a3c]'
                                 }`}
                             whileHover={{ scale: 1.05, borderColor: '#FF5722' }}
                             whileTap={{ scale: 0.95 }}
@@ -115,13 +150,16 @@ export default function BookingPage() {
                                     </div>
 
                                     <motion.button
+                                        onClick={() => handleBookingClick(clase)}
                                         className={`px-6 py-2 rounded-xl font-bold ${clase.spots > 0
+                                            ? profile?.waiver_accepted
                                                 ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white'
-                                                : 'bg-gray-700 text-gray-400'
+                                                : 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-50'
+                                            : 'bg-gray-700 text-gray-400'
                                             }`}
-                                        whileHover={{ scale: clase.spots > 0 ? 1.1 : 1 }}
-                                        whileTap={{ scale: clase.spots > 0 ? 0.95 : 1 }}
-                                        disabled={clase.spots === 0}
+                                        whileHover={{ scale: (clase.spots > 0 && profile?.waiver_accepted) ? 1.1 : 1 }}
+                                        whileTap={{ scale: (clase.spots > 0 && profile?.waiver_accepted) ? 0.95 : 1 }}
+                                        disabled={clase.spots === 0 || !profile?.waiver_accepted}
                                     >
                                         {clase.spots > 0 ? 'Reservar' : 'Lleno'}
                                     </motion.button>
@@ -148,6 +186,41 @@ export default function BookingPage() {
                     ))}
                 </motion.div>
             </motion.div>
+
+            {/* Waiver Warning Modal */}
+            <AnimatePresence>
+                {!loading && !profile?.waiver_accepted && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            className="bg-[#1c1c1e] border border-orange-500/50 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center"
+                        >
+                            <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <span className="text-4xl">⚠️</span>
+                            </div>
+                            <h2 className="text-2xl font-black mb-4">¡Atención, Campeón!</h2>
+                            <p className="text-gray-400 mb-8">
+                                Para tu seguridad y la de todos, es necesario que completes tu **Ficha Médica** antes de comenzar a entrenar.
+                            </p>
+                            <Link
+                                href="/dashboard/profile/complete"
+                                className="block w-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold py-4 rounded-xl hover:scale-105 transition-all shadow-lg shadow-orange-600/30 mb-4"
+                            >
+                                Completar Ficha Ahora
+                            </Link>
+                            <Link href="/dashboard" className="text-sm text-gray-500 hover:text-white transition-colors">
+                                Volver al Dashboard
+                            </Link>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

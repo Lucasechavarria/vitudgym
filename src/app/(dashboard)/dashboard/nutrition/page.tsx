@@ -181,8 +181,8 @@ export default function StudentNutritionPage() {
                                 key={index}
                                 onClick={() => setSelectedMeal(index)}
                                 className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all ${selectedMeal === index
-                                        ? 'bg-orange-500 text-white'
-                                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                                     }`}
                             >
                                 {meal.name}
@@ -247,13 +247,12 @@ export default function StudentNutritionPage() {
                     </div>
                 </div>
 
-                {/* Notes */}
-                {nutritionPlan.notes && (
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6 mt-6">
-                        <h3 className="text-lg font-semibold text-blue-400 mb-2">📝 Notas del Coach</h3>
-                        <p className="text-gray-300">{nutritionPlan.notes}</p>
-                    </div>
-                )}
+                {/* Disclaimer */}
+                <div className="mt-8 p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                    <p className="text-gray-400 text-sm text-center">
+                        <span className="text-orange-400 font-bold">⚠️ Aviso Legal:</span> Esta es una guía de alimentación sugerida por IA para orientarte. Recordá que no reemplaza a un profesional: siempre consultá con un nutricionista para un plan a tu medida.
+                    </p>
+                </div>
             </div>
         </div>
     );

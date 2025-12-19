@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from "@sentry/nextjs";
 import { aiService } from '@/services/ai.service';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';
@@ -17,10 +18,10 @@ import { nutritionPlansService } from '@/services/nutrition-plans.service';
  */
 export async function POST(request: Request) {
     try {
-        // Verificar autenticación y rol
+        // Verificar autenticación y rol (Estudiantes pueden solicitar, Coaches/Admins pueden generar directamente)
         const { user, profile, supabase, error } = await authenticateAndRequireRole(
             request,
-            ['coach', 'admin', 'superadmin']
+            ['student', 'coach', 'admin', 'superadmin']
         );
 
         if (error) return error;
@@ -218,18 +219,18 @@ IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después.
             .from('routines')
             .insert({
                 user_id: studentId,
-                coach_id: user.id,
-                user_goal_id: goalId || null, // Opcional para modo demo
+                coach_id: profile.role === 'student' ? null : user.id, // Student requested, no coach yet
+                user_goal_id: goalId || null,
                 name: aiResponse.routineName,
                 description: aiResponse.medicalConsiderations,
                 goal: goalText,
                 duration_weeks: aiResponse.durationWeeks,
                 generated_by_ai: true,
                 ai_prompt: prompt,
-                status: 'pending_approval',
+                status: profile.role === 'student' ? 'pending_approval' : 'approved',
                 medical_considerations: aiResponse.medicalConsiderations,
                 equipment_used: gymEquipment.map(eq => eq.id),
-                is_active: false,
+                is_active: profile.role === 'student' ? false : true,
             })
             .select()
             .single();
@@ -338,6 +339,12 @@ IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después.
 
     } catch (error: any) {
         console.error('AI Generation Error:', error);
+        Sentry.captureException(error, {
+            extra: {
+                studentId: (await request.clone().json()).studentId,
+                context: 'AI Routine Generation'
+            }
+        });
         return NextResponse.json({
             error: error.message || 'Error generating routine'
         }, { status: 500 });
