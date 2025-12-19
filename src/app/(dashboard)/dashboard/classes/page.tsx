@@ -84,23 +84,23 @@ export default function StudentClassesPage() {
                             <div className="flex items-center gap-6">
                                 <div className="text-center">
                                     <p className="text-orange-500 font-bold uppercase text-xs">
-                                        {new Date(booking.booking_date).toLocaleDateString('es-AR', { weekday: 'short' })}
+                                        {new Date(booking.date).toLocaleDateString('es-AR', { weekday: 'short' })}
                                     </p>
                                     <p className="text-2xl font-black">
-                                        {new Date(booking.booking_date).getDate()}
+                                        {new Date(booking.date).getDate()}
                                     </p>
                                     <p className="text-gray-500 text-xs uppercase">
-                                        {new Date(booking.booking_date).toLocaleDateString('es-AR', { month: 'short' })}
+                                        {new Date(booking.date).toLocaleDateString('es-AR', { month: 'short' })}
                                     </p>
                                 </div>
                                 <div className="w-px h-12 bg-white/10 hidden md:block" />
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">{booking.classes?.activity_name || 'Clase'}</h3>
+                                    <h3 className="text-xl font-bold text-white">{booking.activity_name || 'Clase'}</h3>
                                     <p className="text-gray-400">
-                                        🕒 {booking.classes?.start_time.slice(0, 5)} • {booking.classes?.duration_minutes} min
+                                        🕒 {booking.start_time?.slice(0, 5)}
                                     </p>
                                     <p className="text-sm text-gray-400 mt-1 italic">
-                                        Con {booking.classes?.profiles?.full_name || 'Staff'}
+                                        Con {booking.coach_name || 'Staff'}
                                     </p>
                                 </div>
                             </div>

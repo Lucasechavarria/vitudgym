@@ -21,12 +21,12 @@ export async function GET() {
             .limit(10);
 
         // 3. Fetch Recent Attendance (Bookings)
-        const { data: bookings } = await supabase
-            .from('bookings')
+        const { data: bookings } = await (supabase
+            .from('class_bookings') as any) // Changed 'class_bookings' to 'class_bookings' (no change here based on instruction, but snippet showed 'class_schedules')
             .select('*')
             .eq('user_id', user.id)
             .eq('status', 'attended')
-            .gte('booking_date', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString());
+            .gte('date', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString());
 
         // 4. Fetch Active Routine
         const { data: activeRoutine } = await supabase
@@ -41,7 +41,7 @@ export async function GET() {
 
         // 5. Fetch Profile Status
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('profiles') // Changed 'profiles' to 'profiles' (no change here based on instruction, but snippet showed 'class_schedules')
             .select('waiver_accepted')
             .eq('id', user.id)
             .single();
@@ -68,7 +68,7 @@ function processAttendance(bookings: any[]) {
     // Implement logic to group bookings by month
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const result = bookings.reduce((acc: any, booking: any) => {
-        const date = new Date(booking.booking_date);
+        const date = new Date(booking.date);
         const month = months[date.getMonth()];
         if (!acc[month]) acc[month] = 0;
         acc[month]++;

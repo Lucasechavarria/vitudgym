@@ -1,9 +1,9 @@
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 
-type Booking = Database['public']['Tables']['bookings']['Row'];
-type BookingInsert = Database['public']['Tables']['bookings']['Insert'];
-type BookingUpdate = Database['public']['Tables']['bookings']['Update'];
+type Booking = Database['public']['Tables']['class_bookings']['Row'];
+type BookingInsert = Database['public']['Tables']['class_bookings']['Insert'];
+type BookingUpdate = Database['public']['Tables']['class_bookings']['Update'];
 
 /**
  * Service for managing bookings
@@ -17,7 +17,7 @@ export const bookingsService = {
             .from('user_bookings_detailed')
             .select('*')
             .eq('user_id', userId)
-            .order('booking_date', { ascending: false });
+            .order('date', { ascending: false });
 
         if (error) throw error;
         return data;
@@ -33,9 +33,9 @@ export const bookingsService = {
             .from('user_bookings_detailed')
             .select('*')
             .eq('user_id', userId)
-            .gte('booking_date', today)
+            .gte('date', today)
             .in('status', ['confirmed', 'waitlist'])
-            .order('booking_date')
+            .order('date')
             .order('start_time');
 
         if (error) throw error;
@@ -54,14 +54,14 @@ export const bookingsService = {
      * Get bookings for a specific class and date
      */
     async getClassBookings(classId: string, date: string) {
-        const { data, error } = await supabase
-            .from('bookings')
+        const { data, error } = await (supabase
+            .from('class_bookings') as any)
             .select(`
         *,
         user:profiles(id, full_name, email, avatar_url)
       `)
-            .eq('class_id', classId)
-            .eq('booking_date', date)
+            .eq('class_schedule_id', classId)
+            .eq('date', date)
             .order('created_at');
 
         if (error) throw error;
@@ -74,9 +74,9 @@ export const bookingsService = {
     async create(booking: BookingInsert) {
         // Check if class has available spots
         const { data: classData, error: classError } = await supabase
-            .from('classes')
+            .from('class_schedules')
             .select('max_capacity, current_capacity, waitlist_enabled')
-            .eq('id', booking.class_id)
+            .eq('id', booking.class_schedule_id)
             .single() as { data: any; error: any };
 
 
@@ -93,23 +93,21 @@ export const bookingsService = {
         // Get waitlist position if needed
         let waitlistPosition = null;
         if (isWaitlist) {
-            const { count } = await supabase
-                .from('bookings')
-                .select('*', { count: 'exact', head: true })
-                .eq('class_id', booking.class_id)
-                .eq('booking_date', booking.booking_date)
+            const { count } = await (supabase
+                .from('class_bookings')
+                .select('*', { count: 'exact', head: true }) as any)
+                .eq('class_schedule_id', booking.class_schedule_id)
+                .eq('date', booking.date)
                 .eq('is_waitlist', true);
 
             waitlistPosition = (count || 0) + 1;
         }
 
         const { data, error } = await (supabase
-            .from('bookings') as any)
+            .from('class_bookings') as any)
             .insert({
                 ...booking,
                 status: isWaitlist ? 'waitlist' : 'confirmed',
-                is_waitlist: isWaitlist,
-                waitlist_position: waitlistPosition,
             })
             .select()
             .single();
@@ -123,7 +121,7 @@ export const bookingsService = {
      */
     async cancel(bookingId: string) {
         const { data, error } = await (supabase
-            .from('bookings') as any)
+            .from('class_bookings') as any)
             .update({ status: 'cancelled' })
             .eq('id', bookingId)
             .select()
@@ -134,7 +132,7 @@ export const bookingsService = {
 
         // Promote waitlist if applicable
         if (data.status === 'confirmed') {
-            await this.promoteFromWaitlist(data.class_id, data.booking_date);
+            await this.promoteFromWaitlist(data.class_schedule_id, data.date);
         }
 
         return data as Booking;
@@ -145,7 +143,7 @@ export const bookingsService = {
      */
     async checkIn(bookingId: string, checkedInBy: string) {
         const { data, error } = await (supabase
-            .from('bookings') as any)
+            .from('class_bookings') as any)
             .update({
                 status: 'attended',
                 checked_in_at: new Date().toISOString(),
@@ -163,15 +161,15 @@ export const bookingsService = {
      * Promote first person from waitlist
      */
     async promoteFromWaitlist(classId: string, date: string) {
-        const { data: waitlistBookings, error } = await supabase
-            .from('bookings')
+        const { data: waitlistBookings, error } = await (supabase
+            .from('class_bookings') as any)
             .select('*')
-            .eq('class_id', classId)
-            .eq('booking_date', date)
+            .eq('class_schedule_id', classId)
+            .eq('date', date)
             .eq('is_waitlist', true)
             .order('waitlist_position')
-            .order('waitlist_position')
-            .limit(1) as { data: any[]; error: any };
+            .limit(1);
+
 
         if (error) throw error;
         if (!waitlistBookings || waitlistBookings.length === 0) return;
@@ -179,7 +177,7 @@ export const bookingsService = {
         const firstWaitlist = waitlistBookings[0];
 
         await (supabase
-            .from('bookings') as any)
+            .from('class_bookings') as any)
             .update({
                 status: 'confirmed',
                 is_waitlist: false,
@@ -188,19 +186,18 @@ export const bookingsService = {
             .eq('id', firstWaitlist.id);
 
         // Update positions for remaining waitlist
-        const { data: remaining } = await supabase
-            .from('bookings')
+        const { data: remaining } = await (supabase
+            .from('class_bookings') as any)
             .select('*')
-            .eq('class_id', classId)
-            .eq('booking_date', date)
+            .eq('class_schedule_id', classId)
+            .eq('date', date)
             .eq('is_waitlist', true)
-            .eq('is_waitlist', true)
-            .order('waitlist_position') as { data: any[]; error: any };
+            .order('waitlist_position');
 
         if (remaining) {
             for (let i = 0; i < remaining.length; i++) {
                 await (supabase
-                    .from('bookings') as any)
+                    .from('class_bookings') as any)
                     .update({ waitlist_position: i + 1 })
                     .eq('id', remaining[i].id);
             }
@@ -211,12 +208,12 @@ export const bookingsService = {
      * Check if user has already booked this class
      */
     async hasUserBooked(userId: string, classId: string, date: string) {
-        const { data, error } = await supabase
-            .from('bookings')
+        const { data, error } = await (supabase
+            .from('class_bookings') as any)
             .select('id')
             .eq('user_id', userId)
-            .eq('class_id', classId)
-            .eq('booking_date', date)
+            .eq('class_schedule_id', classId)
+            .eq('date', date)
             .in('status', ['confirmed', 'waitlist'])
             .maybeSingle();
 

@@ -12,18 +12,39 @@ interface User {
     role: string;
     membershipStatus: string;
     membershipEnds: string | null;
+    assigned_coach_id?: string;
     [key: string]: any; // Allow other profile fields
+}
+
+interface Coach {
+    id: string;
+    full_name: string;
+    email: string;
 }
 
 export default function UsersPage() {
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
+    const [coaches, setCoaches] = useState<Coach[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         fetchUsers();
+        fetchCoaches();
     }, []);
+
+    const fetchCoaches = async () => {
+        try {
+            const res = await fetch('/api/admin/coaches/list');
+            const data = await res.json();
+            if (data.coaches) {
+                setCoaches(data.coaches);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -59,13 +80,31 @@ export default function UsersPage() {
         }
     };
 
-    const handleActivateMembership = async (uid: string) => {
-        if (!confirm('¿Activar membresía por 30 días para este usuario?')) return;
-
+    const handleAssignCoach = async (studentId: string, coachId: string | null) => {
         setLoading(true);
         try {
-            // Usar el endpoint de activacion manual creado
-            const response = await fetch(`/api/admin/users/${uid}/activate`, {
+            const response = await fetch(`/api/admin/users/${studentId}/assign-coach`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ coachId: coachId === "" ? null : coachId }),
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+
+            toast.success('Coach asignado correctamente');
+            setUsers(users.map(u => u.id === studentId ? { ...u, assigned_coach_id: coachId === "" ? undefined : coachId } : u));
+        } catch (error: any) {
+            toast.error('Error asignando coach: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleActivateMembership = async (userId: string) => {
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/activate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ days: 30 }),
@@ -74,9 +113,12 @@ export default function UsersPage() {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
 
-            toast.success('Membresía activada exitosamente');
-            // Refresh list
-            fetchUsers();
+            toast.success('Membresía activada correctamente');
+            setUsers(users.map(u => u.id === userId ? {
+                ...u,
+                membershipStatus: 'active',
+                membershipEnds: data.newEndDate
+            } : u));
         } catch (error: any) {
             toast.error('Error activando membresía: ' + error.message);
         } finally {
@@ -130,76 +172,88 @@ export default function UsersPage() {
                     <table className="w-full text-left">
                         <thead className="bg-[#1c1c1e] text-gray-400 text-sm uppercase tracking-wider">
                             <tr>
-                                <th className="p-4 font-medium">Usuario</th>
-                                <th className="p-4 font-medium">Email</th>
-                                <th className="p-4 font-medium">Rol</th>
-                                <th className="p-4 font-medium">Membresía</th>
-                                <th className="p-4 font-medium">Acciones</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Usuario</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Rol</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Membresía</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Coach Asignado</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#3a3a3c]">
                             {filteredUsers.map((user) => (
                                 <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                                    <td className="p-4">
+                                    <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">
-                                                {user.name.charAt(0).toUpperCase()}
+                                                {user.name?.charAt(0).toUpperCase() || 'U'}
                                             </div>
-                                            <div className="font-medium text-white">{user.name}</div>
+                                            <div>
+                                                <div className="font-medium text-white">{user.name}</div>
+                                                <div className="text-xs text-gray-500">{user.email}</div>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-gray-300">{user.email}</td>
-                                    <td className="p-4">
+                                    <td className="px-6 py-4">
                                         <select
-                                            className="bg-[#1c1c1e] border border-[#3a3a3c] rounded px-3 py-1.5 text-sm text-gray-300 focus:border-purple-500 outline-none hover:bg-[#2c2c2e] transition-colors"
+                                            className="bg-[#1c1c1e] border border-[#3a3a3c] rounded px-3 py-1.5 text-xs text-gray-300 focus:border-purple-500 outline-none hover:bg-[#2c2c2e] transition-colors"
                                             value={user.role}
                                             onChange={(e) => handleRoleUpdate(user.id, e.target.value)}
                                             disabled={loading}
                                         >
-                                            <option value="user">Usuario</option>
+                                            <option value="member">Miembro</option>
                                             <option value="coach">Profesor</option>
                                             <option value="admin">Admin</option>
                                             <option value="superadmin">SuperAdmin</option>
                                         </select>
                                     </td>
-                                    <td className="p-4">
-                                        <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase
-                                            ${user.membershipStatus === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}
-                                        `}>
-                                            {user.membershipStatus === 'active' ? '✓ Activo' : '✗ Inactivo'}
-                                        </span>
-                                        {user.membershipEnds && (
-                                            <div className="text-xs text-gray-500 mt-1">
-                                                Vence: {new Date(user.membershipEnds).toLocaleDateString('es-AR')}
-                                            </div>
+                                    <td className="px-6 py-4">
+                                        <div className="space-y-1">
+                                            <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${user.membershipStatus === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                                'bg-red-500/20 text-red-400 border border-red-500/30'
+                                                }`}>
+                                                {user.membershipStatus === 'active' ? '✓ Activo' : '✗ Inactivo'}
+                                            </span>
+                                            {user.membershipEnds && (
+                                                <div className="text-[9px] text-gray-500 font-mono">
+                                                    Vence: {new Date(user.membershipEnds).toLocaleDateString()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {user.role === 'member' ? (
+                                            <select
+                                                className="bg-[#1c1c1e] border border-[#3a3a3c] rounded px-3 py-1.5 text-xs text-gray-400 focus:border-purple-500 outline-none hover:bg-[#2c2c2e] transition-colors max-w-[150px]"
+                                                value={user.assigned_coach_id || ""}
+                                                onChange={(e) => handleAssignCoach(user.id, e.target.value)}
+                                                disabled={loading}
+                                            >
+                                                <option value="">Sin Asignar</option>
+                                                {coaches.map(c => (
+                                                    <option key={c.id} value={c.id}>
+                                                        {c.full_name || 'Coach'}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <span className="text-[10px] text-gray-600 italic">No aplica</span>
                                         )}
                                     </td>
-                                    <td className="p-4">
-                                        <div className="flex gap-2">
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-2">
                                             <button
                                                 onClick={() => { setSelectedUser(user); setIsModalOpen(true); }}
-                                                className="px-3 py-1.5 bg-purple-600/20 text-purple-400 hover:bg-purple-600 hover:text-white rounded-lg text-xs font-medium border border-purple-600/30 transition-all"
-                                                title="Ver Ficha Técnica Completa"
+                                                className="px-3 py-1.5 bg-purple-600/20 text-purple-400 hover:bg-purple-600 hover:text-white rounded-lg text-xs font-bold border border-purple-600/30 transition-all"
+                                                title="Ver Ficha"
                                             >
-                                                📄 Ver Ficha
+                                                📄
                                             </button>
                                             <button
                                                 onClick={() => handleActivateMembership(user.id)}
-                                                className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-medium border border-green-600/30 transition-all"
-                                                title="Activar manualmente por 30 días"
+                                                className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold border border-green-600/30 transition-all"
+                                                title="Renovar Membresía"
                                             >
-                                                ✓ Activar
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    if (confirm('¿Estás seguro de eliminar este usuario?')) {
-                                                        toast.error('Funcionalidad en desarrollo');
-                                                    }
-                                                }}
-                                                className="px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg text-xs font-medium border border-red-600/30 transition-all"
-                                                title="Eliminar usuario"
-                                            >
-                                                🗑️
+                                                💳
                                             </button>
                                         </div>
                                     </td>
@@ -225,6 +279,6 @@ export default function UsersPage() {
                 onClose={() => { setIsModalOpen(false); setSelectedUser(null); }}
                 user={selectedUser}
             />
-        </div>
+        </div >
     );
 }

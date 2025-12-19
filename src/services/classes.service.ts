@@ -1,9 +1,9 @@
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 
-type Class = Database['public']['Tables']['classes']['Row'];
-type ClassInsert = Database['public']['Tables']['classes']['Insert'];
-type ClassUpdate = Database['public']['Tables']['classes']['Update'];
+type Class = Database['public']['Tables']['class_schedules']['Row'];
+type ClassInsert = Database['public']['Tables']['class_schedules']['Insert'];
+type ClassUpdate = Database['public']['Tables']['class_schedules']['Update'];
 type ClassWithAvailability = Database['public']['Views']['classes_with_availability']['Row'];
 
 /**
@@ -58,7 +58,7 @@ export const classesService = {
      */
     async getByCoach(coachId: string) {
         const { data, error } = await supabase
-            .from('classes')
+            .from('class_schedules')
             .select(`
         *,
         activity:activities(*)
@@ -77,7 +77,7 @@ export const classesService = {
      */
     async getById(id: string) {
         const { data, error } = await supabase
-            .from('classes')
+            .from('class_schedules')
             .select(`
         *,
         activity:activities(*),
@@ -95,7 +95,7 @@ export const classesService = {
      */
     async create(classData: ClassInsert) {
         const { data, error } = await (supabase
-            .from('classes') as any)
+            .from('class_schedules') as any)
             .insert(classData)
             .select()
             .single();
@@ -109,7 +109,7 @@ export const classesService = {
      */
     async update(id: string, updates: ClassUpdate) {
         const { data, error } = await (supabase
-            .from('classes') as any)
+            .from('class_schedules') as any)
             .update(updates)
             .eq('id', id)
             .select()
@@ -124,7 +124,7 @@ export const classesService = {
      */
     async delete(id: string) {
         const { error } = await (supabase
-            .from('classes') as any)
+            .from('class_schedules') as any)
             .delete()
             .eq('id', id);
 
@@ -136,7 +136,7 @@ export const classesService = {
      */
     async hasAvailableSpots(classId: string) {
         const { data, error } = await supabase
-            .from('classes')
+            .from('class_schedules')
             .select('max_capacity, current_capacity')
             .eq('id', classId)
             .single() as { data: any; error: any };

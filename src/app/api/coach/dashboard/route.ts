@@ -38,11 +38,11 @@ export async function GET() {
         const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
         const { data: upcomingClasses } = await supabase
-            .from('classes')
+            .from('class_schedules')
             .select(`
                 *,
                 activities (name, image_url),
-                bookings (count)
+                class_bookings (count)
             `)
             .gte('start_time', now.toISOString()) // Assuming start_time is timestamp/timestamptz
             .lte('start_time', tomorrow.toISOString())

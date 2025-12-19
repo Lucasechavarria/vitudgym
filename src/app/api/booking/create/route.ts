@@ -75,8 +75,8 @@ export async function POST(request: Request) {
             // Crear la reserva usando el servicio
             const booking = await bookingsService.create({
                 user_id: user!.id,
-                class_id: classId,
-                booking_date: date
+                class_schedule_id: classId,
+                date: date
             });
 
             return NextResponse.json({
@@ -91,11 +91,11 @@ export async function POST(request: Request) {
         } else if (action === 'cancel') {
             // Buscar la reserva del usuario para esta clase y fecha
             const { data: bookings } = await supabase!
-                .from('bookings')
+                .from('class_bookings')
                 .select('id')
                 .eq('user_id', user!.id)
-                .eq('class_id', classId)
-                .eq('booking_date', date)
+                .eq('class_schedule_id', classId)
+                .eq('date', date)
                 .in('status', ['confirmed', 'waitlist'])
                 .limit(1);
 

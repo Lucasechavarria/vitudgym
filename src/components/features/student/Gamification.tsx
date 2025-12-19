@@ -5,32 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { getRankByPoints, getNextRank } from '@/lib/constants/gamification';
 
-// Mock Challenges (keep mock for now as API/DB for challenges is not fully implemented)
-const CHALLENGES = [
-    {
-        id: 1,
-        name: 'Desafío Sentadilla ⚔️',
-        description: 'Mayor peso en 1RM (Aprobado por Coach)',
-        participants: 8,
-        endsIn: '2 días',
-        prize: '🏆 Badge exclusivo',
-        status: 'active',
-        type: 'open',
-        leader: 'Carlos Ruiz - 150kg',
-    },
-    {
-        id: 2,
-        name: 'Duelo de Plancha ⏱️',
-        description: 'Reto personal: Quién aguanta más tiempo.',
-        participants: 2,
-        endsIn: '5 días',
-        prize: '⭐ 200 puntos',
-        status: 'active',
-        type: 'individual',
-        opponent: 'Ana Martínez',
-        leader: 'Tú - 4:20 min',
-    },
-];
+interface Challenge {
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    status: string;
+    points_prize: number;
+    participants_count: number;
+    is_participant?: boolean;
+}
 
 interface Achievement {
     id: number;
@@ -59,6 +43,7 @@ export function Gamification() {
     const [myStats, setMyStats] = useState({ points: 0, current_streak: 0, level: 1 });
     const [myAchievements, setMyAchievements] = useState<Achievement[]>([]);
     const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+    const [challenges, setChallenges] = useState<Challenge[]>([]);
 
     useEffect(() => {
         fetchGamificationData();
@@ -66,17 +51,44 @@ export function Gamification() {
 
     const fetchGamificationData = async () => {
         try {
-            const res = await fetch('/api/gamification');
-            const data = await res.json();
+            const [gamificationRes, challengesRes] = await Promise.all([
+                fetch('/api/gamification'),
+                fetch('/api/challenges')
+            ]);
 
-            if (data.stats) setMyStats(data.stats);
-            if (data.achievements) setMyAchievements(data.achievements);
-            if (data.leaderboard) setLeaderboard(data.leaderboard);
+            const gamificationData = await gamificationRes.json();
+            const challengesData = await challengesRes.json();
+
+            if (gamificationData.stats) setMyStats(gamificationData.stats);
+            if (gamificationData.achievements) setMyAchievements(gamificationData.achievements);
+            if (gamificationData.leaderboard) setLeaderboard(gamificationData.leaderboard);
+
+            if (challengesData.challenges) setChallenges(challengesData.challenges);
         } catch (error) {
             console.error(error);
             toast.error('Error cargando datos de gamificación');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleJoinChallenge = async (challengeId: string) => {
+        try {
+            const res = await fetch('/api/challenges/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ challengeId })
+            });
+
+            if (res.ok) {
+                toast.success('¡Te has unido al desafío! ⚔️');
+                fetchGamificationData();
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'No se pudo unir al desafío');
+            }
+        } catch (error) {
+            toast.error('Error al unirse');
         }
     };
 
@@ -391,7 +403,12 @@ export function Gamification() {
                     </div>
 
                     <div className="space-y-4">
-                        {CHALLENGES.map((challenge) => (
+                        {challenges.length === 0 && (
+                            <div className="text-center py-10 bg-white/5 rounded-2xl border border-dashed border-white/10">
+                                <p className="text-gray-500">No hay desafíos activos en este momento.</p>
+                            </div>
+                        )}
+                        {challenges.map((challenge) => (
                             <div key={challenge.id} className="p-6 rounded-xl border bg-white/5 border-white/10 hover:border-purple-500/50 transition-all relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-2">
                                     <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tighter ${challenge.type === 'open' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'
@@ -402,7 +419,7 @@ export function Gamification() {
 
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <h4 className="text-xl font-bold text-white mb-1">{challenge.name}</h4>
+                                        <h4 className="text-xl font-bold text-white mb-1">{challenge.title}</h4>
                                         <p className="text-sm text-gray-400">{challenge.description}</p>
                                     </div>
                                 </div>
@@ -410,20 +427,27 @@ export function Gamification() {
                                 <div className="grid grid-cols-2 gap-4 mb-6">
                                     <div className="bg-black/20 p-3 rounded-lg border border-white/5">
                                         <p className="text-[10px] text-gray-500 uppercase font-black">Participantes</p>
-                                        <p className="text-white font-bold">{challenge.participants}</p>
+                                        <p className="text-white font-bold">{challenge.participants_count}</p>
                                     </div>
                                     <div className="bg-black/20 p-3 rounded-lg border border-white/5">
-                                        <p className="text-[10px] text-gray-500 uppercase font-black">Líder Actual</p>
-                                        <p className="text-white font-bold truncate text-xs">{challenge.leader}</p>
+                                        <p className="text-[10px] text-gray-500 uppercase font-black">Premio</p>
+                                        <p className="text-white font-bold truncate text-xs">{challenge.points_prize} XP</p>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-2">
                                     <button className="flex-1 px-4 py-2 bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-white rounded-lg transition-all font-bold text-sm">
-                                        Ver Progreso de Todos
+                                        Ver Detalles
                                     </button>
-                                    {challenge.type === 'open' && (
-                                        <button className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg transition-all font-bold text-sm">
+                                    {challenge.is_participant ? (
+                                        <button disabled className="flex-1 px-4 py-2 bg-green-500/20 text-green-400 rounded-lg font-bold text-sm cursor-default">
+                                            ✅ Ya participas
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleJoinChallenge(challenge.id)}
+                                            className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg transition-all font-bold text-sm"
+                                        >
                                             Unirse
                                         </button>
                                     )}

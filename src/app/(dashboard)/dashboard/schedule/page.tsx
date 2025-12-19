@@ -69,8 +69,8 @@ export default function SchedulePage() {
 
             await bookingsService.create({
                 user_id: user.id,
-                class_id: classId,
-                booking_date: dateStr
+                class_schedule_id: classId,
+                date: dateStr
             });
 
             toast.success('Reserva confirmada');

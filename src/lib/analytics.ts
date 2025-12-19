@@ -82,7 +82,7 @@ export const trackBooking = (classId: string, className: string) => {
         category: 'conversion',
         label: className,
         value: 1,
-        class_id: classId,
+        class_schedule_id: classId,
     });
 };
 

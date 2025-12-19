@@ -19,8 +19,8 @@ export async function GET(req: Request) {
 
         // 2. Fetch Attendance Data
         let attendanceQuery = supabase
-            .from('bookings')
-            .select('booking_date, status')
+            .from('class_bookings')
+            .select('date, status')
             .in('status', ['attended', 'confirmed', 'no_show']);
 
         if (studentId && viewMode === 'individual') {
@@ -45,6 +45,13 @@ export async function GET(req: Request) {
 
         // 4. Fetch Training Volume (Prescribed)
         let volumeData = [];
+        const { data: upcomingClasses } = await supabase
+            .from('class_schedules')
+            .select(`
+                *,
+                activities (name, image_url),
+                class_bookings (count)
+            `);
         let routinesQuery = supabase
             .from('routines')
             .select(`
@@ -102,7 +109,7 @@ function processAttendance(bookings: any[]) {
     const currentYear = new Date().getFullYear();
 
     const result = bookings.reduce((acc: any, booking: any) => {
-        const date = new Date(booking.booking_date);
+        const date = new Date(booking.date);
         if (date.getFullYear() !== currentYear) return acc;
 
         const month = months[date.getMonth()];

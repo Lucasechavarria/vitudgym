@@ -15,6 +15,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     superadmin: [
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
+        { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
         { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
         { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
@@ -24,6 +25,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     admin: [
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
+        { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
         { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
         { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
@@ -76,7 +78,7 @@ export function UniversalSidebar({
 
     // Determine nav items based on path first, then fallback to role
     let viewRole = role;
-    
+
     // For admin and superadmin, always keep their role menu unless they explicitly want to see another view
     // (though for now, standardizing to their primary role menu as requested)
     if (role === 'superadmin' || role === 'admin') {
