@@ -48,12 +48,18 @@ export default function StudentProfilePage() {
 
             const emergencyContact = (profile.emergency_contact as any) || {};
 
+            // Validar que gender sea uno de los valores permitidos
+            const validGenders: Array<'male' | 'female' | 'other' | 'prefer_not_to_say'> = ['male', 'female', 'other', 'prefer_not_to_say'];
+            const gender = validGenders.includes(profile.gender as any)
+                ? (profile.gender as 'male' | 'female' | 'other' | 'prefer_not_to_say')
+                : 'prefer_not_to_say';
+
             setProfileData({
                 full_name: profile.full_name || '',
                 email: user?.email || '',
                 phone: profile.phone || '',
                 date_of_birth: profile.date_of_birth || '',
-                gender: profile.gender || 'prefer_not_to_say',
+                gender,
                 emergency_contact_name: emergencyContact.full_name || '',
                 emergency_contact_phone: emergencyContact.phone || ''
             });
