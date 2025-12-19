@@ -491,11 +491,15 @@ export type Database = {
                     created_at: string | null
                     daily_calories: number | null
                     fats_grams: number | null
+                    general_guidelines: string | null
                     id: string
                     is_active: boolean | null
                     meals: Json | null
                     protein_grams: number | null
+                    restrictions: string[] | null
+                    supplements: Json | null
                     user_id: string | null
+                    water_liters: number | null
                 }
                 Insert: {
                     carbs_grams?: number | null
@@ -503,11 +507,15 @@ export type Database = {
                     created_at?: string | null
                     daily_calories?: number | null
                     fats_grams?: number | null
+                    general_guidelines?: string | null
                     id?: string
                     is_active?: boolean | null
                     meals?: Json | null
                     protein_grams?: number | null
+                    restrictions?: string[] | null
+                    supplements?: Json | null
                     user_id?: string | null
+                    water_liters?: number | null
                 }
                 Update: {
                     carbs_grams?: number | null
@@ -515,11 +523,15 @@ export type Database = {
                     created_at?: string | null
                     daily_calories?: number | null
                     fats_grams?: number | null
+                    general_guidelines?: string | null
                     id?: string
                     is_active?: boolean | null
                     meals?: Json | null
                     protein_grams?: number | null
+                    restrictions?: string[] | null
+                    supplements?: Json | null
                     user_id?: string | null
+                    water_liters?: number | null
                 }
                 Relationships: [
                     {
