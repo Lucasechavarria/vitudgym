@@ -1,124 +1,9 @@
 /** @type {import('next').NextConfig} */
 const withPWA = require('next-pwa')({
   dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  runtimeCaching: [
-    {
-      urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'google-fonts-webfonts',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
-        },
-      },
-    },
-    {
-      urlPattern: /^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'google-fonts-stylesheets',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
-        },
-      },
-    },
-    {
-      urlPattern: /\/api\/student\/dashboard/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'api-dashboard-cache',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-        networkTimeoutSeconds: 10, // Fallback to cache if network takes longer than 10s
-      },
-    },
-    {
-      urlPattern: /\/api\/routines\/.*/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'api-routines-cache',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-        networkTimeoutSeconds: 10,
-      },
-    },
-    {
-      urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-font-assets',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
-        },
-      },
-    },
-    {
-      urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-image-assets',
-        expiration: {
-          maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /\.(?:js)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-js-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /\.(?:css|less)$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'static-style-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /\/_next\/image\?url=.+$/i,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'next-image',
-        expiration: {
-          maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-    {
-      urlPattern: /\.(?:mp3|wav|ogg)$/i,
-      handler: 'CacheFirst',
-      options: {
-        rangeRequests: true,
-        cacheName: 'static-audio-assets',
-        expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
-  ],
 });
 
 const nextConfig = {
@@ -152,8 +37,6 @@ const nextConfig = {
     } : false,
   },
 
-
-
   // Headers for Security and Performance
   async headers() {
     return [
@@ -184,7 +67,6 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
           },
-          // No Cross-Origin-Opener-Policy para permitir Firebase Auth popups
         ],
       },
       {
@@ -201,11 +83,11 @@ const nextConfig = {
 
   // Experimental Features
   experimental: {
-    // optimizeCss: true, // Deshabilitado temporalmente - requiere 'critters'
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
+    turbopack: {}, // Helps stabilize workers in limited environments
   },
 
-  // Bundle Analyzer (solo en análisis)
+  // Bundle Analyzer
   ...(process.env.ANALYZE === 'true' && {
     webpack: (config, { isServer }) => {
       if (!isServer) {
@@ -223,4 +105,22 @@ const nextConfig = {
   }),
 };
 
-module.exports = withPWA(nextConfig);
+// Sentry Wrapper
+const { withSentryConfig } = require("@sentry/nextjs");
+
+module.exports = withSentryConfig(
+  withPWA(nextConfig),
+  {
+    silent: true,
+    org: "virtud-gym",
+    project: "vitud-gym-frontend",
+  },
+  {
+    widenClientFileUpload: true,
+    transpileClientSDK: true,
+    tunnelRoute: "/monitoring",
+    hideSourceMaps: true,
+    disableLogger: true,
+    automaticVercelMonitors: true,
+  }
+);

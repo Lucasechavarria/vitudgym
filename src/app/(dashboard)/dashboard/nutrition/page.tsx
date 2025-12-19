@@ -65,7 +65,7 @@ export default function StudentNutritionPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+            <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
                 <div className="text-white">Cargando plan nutricional...</div>
             </div>
         );
@@ -73,9 +73,9 @@ export default function StudentNutritionPage() {
 
     if (!nutritionPlan) {
         return (
-            <div className="min-h-screen bg-gray-900 p-6">
+            <div className="min-h-screen bg-[#0a0a0a] p-6">
                 <div className="max-w-4xl mx-auto">
-                    <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+                    <div className="bg-[#1c1c1e] rounded-lg p-12 text-center border border-white/10">
                         <div className="text-6xl mb-4">🍎</div>
                         <h2 className="text-2xl font-bold text-white mb-4">No tienes un plan nutricional asignado</h2>
                         <p className="text-gray-400 mb-6">
@@ -98,7 +98,7 @@ export default function StudentNutritionPage() {
     const fatsPercentage = getMacroPercentage(nutritionPlan.fats_grams, nutritionPlan.daily_calories, 9);
 
     return (
-        <div className="min-h-screen bg-gray-900 p-4 md:p-6">
+        <div className="min-h-screen bg-[#0a0a0a] p-4 md:p-6 text-white">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">

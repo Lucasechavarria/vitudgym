@@ -11,10 +11,10 @@ export async function GET(request: Request) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        let query = supabase.from('class_bookings').select('*').eq('user_id', user.id);
+        let query = supabase.from('bookings').select('*').eq('user_id', user.id);
 
         if (scheduleId) {
-            query = query.eq('class_schedule_id', scheduleId);
+            query = query.eq('class_id', scheduleId);
         }
 
         const { data, error } = await query;
@@ -36,11 +36,11 @@ export async function POST(request: Request) {
 
         // Check if already booked
         const { data: existing } = await supabase
-            .from('class_bookings')
+            .from('bookings')
             .select('*')
             .eq('user_id', user.id)
-            .eq('class_schedule_id', schedule_id)
-            .eq('date', date)
+            .eq('class_id', schedule_id)
+            .eq('booking_date', date)
             .single();
 
         if (existing) {
@@ -48,12 +48,12 @@ export async function POST(request: Request) {
         }
 
         const { data, error } = await supabase
-            .from('class_bookings')
+            .from('bookings')
             .insert({
                 user_id: user.id,
-                class_schedule_id: schedule_id,
-                date: date,
-                status: 'booked'
+                class_id: schedule_id,
+                booking_date: date,
+                status: 'confirmed'
             })
             .select()
             .single();
@@ -102,7 +102,7 @@ export async function DELETE(request: Request) {
         if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
         const { error } = await supabase
-            .from('class_bookings')
+            .from('bookings')
             .delete()
             .eq('id', id)
             .eq('user_id', user.id); // Ensure user owns booking
