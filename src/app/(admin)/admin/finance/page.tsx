@@ -32,16 +32,36 @@ export default function FinancePage() {
         categoria: 'Variable'
     });
 
-    const handleAddExpense = () => {
+    const handleAddExpense = async () => {
         if (!newExpense.concepto || !newExpense.monto || !newExpense.fecha) {
             toast.error('Completa todos los campos');
             return;
         }
 
+        try {
+            const res = await fetch('/api/admin/payments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    concept: newExpense.concepto,
+                    amount: -Math.abs(parseFloat(newExpense.monto)), // Gasto siempre negativo
+                    status: 'approved',
+                    payment_method: 'manual',
+                    payment_provider: 'internal',
+                    notes: `Gasto - Categoría: ${newExpense.categoria}`,
+                    metadata: { category: newExpense.categoria, expense_date: newExpense.fecha }
+                })
+            });
 
-        toast.success('Gasto registrado exitosamente');
-        setShowExpenseModal(false);
-        setNewExpense({ concepto: '', monto: '', fecha: '', categoria: 'Variable' });
+            if (!res.ok) throw new Error('Error al guardar');
+
+            toast.success('Gasto registrado exitosamente');
+            setShowExpenseModal(false);
+            setNewExpense({ concepto: '', monto: '', fecha: '', categoria: 'Variable' });
+            // Ideally re-fetch data here if we had a GET for expenses
+        } catch (error) {
+            toast.error('Error al registrar gasto');
+        }
     };
 
     return (

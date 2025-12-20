@@ -71,7 +71,11 @@ export default function AdminActivitiesPage() {
             const res = await fetch('/api/admin/activities', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+                body: JSON.stringify({
+                    ...body,
+                    category: 'Fitness', // Default category
+                    type: 'CLASS'
+                })
             });
 
             if (!res.ok) throw new Error('Error al guardar');

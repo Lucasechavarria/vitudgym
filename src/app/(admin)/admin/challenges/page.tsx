@@ -57,10 +57,16 @@ export default function AdminChallengesPage() {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const payload = {
+                ...newChallenge,
+                end_date: newChallenge.end_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                rules: newChallenge.rules || 'Reglas estándar del gimnasio'
+            };
+
             const res = await fetch('/api/admin/challenges', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newChallenge)
+                body: JSON.stringify(payload)
             });
             if (res.ok) {
                 toast.success('Desafío creado');
