@@ -145,10 +145,8 @@ CREATE POLICY "gym_equipment_all" ON public.gym_equipment FOR ALL TO authenticat
 USING (get_my_role() IN ('superadmin', 'admin'));
 
 /* 
-  11. POLÍTICAS PARA: achievements / challenges
+  11. POLÍTICAS PARA: challenges (REFINADAS)
 */
--- Asumimos que la tabla de desafíos se llama 'challenges' si existe, 
--- basándonos en la estructura de las APIs detectadas.
 DO $$
 BEGIN
     IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'challenges') THEN
@@ -156,11 +154,21 @@ BEGIN
         EXECUTE 'CREATE POLICY "challenges_read" ON public.challenges FOR SELECT TO authenticated USING (true)';
         
         DROP POLICY IF EXISTS "challenges_insert" ON public.challenges;
-        EXECUTE 'CREATE POLICY "challenges_insert" ON public.challenges FOR INSERT TO authenticated WITH CHECK (true)';
+        -- Aseguramos que el creador sea el usuario autenticado
+        EXECUTE 'CREATE POLICY "challenges_insert" ON public.challenges FOR INSERT TO authenticated WITH CHECK (created_by = auth.uid())';
         
         DROP POLICY IF EXISTS "challenges_manage" ON public.challenges;
         EXECUTE 'CREATE POLICY "challenges_manage" ON public.challenges FOR ALL TO authenticated USING (get_my_role() IN (''superadmin'', ''admin'', ''coach''))';
     END IF;
 END $$;
-
+/* 
+  12. POLÍTICAS PARA: user_goals (AÑADIDO - CRÍTICO)
+*/
+DROP POLICY IF EXISTS "user_goals_read" ON public.user_goals;
+CREATE POLICY "user_goals_read" ON public.user_goals FOR SELECT TO authenticated
+USING (user_id = auth.uid() OR get_my_role() IN ('superadmin', 'admin', 'coach'));
+DROP POLICY IF EXISTS "user_goals_all" ON public.user_goals;
+CREATE POLICY "user_goals_all" ON public.user_goals FOR ALL TO authenticated
+USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
 COMMIT;
