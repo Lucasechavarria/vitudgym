@@ -54,10 +54,9 @@ export async function POST(req: Request) {
                 title,
                 description,
                 type: type || 'open',
-                points_prize: points_prize || 100,
-                creator_id: user.id,
-                status: 'pending', // Requiere aprobación de coach/admin para ser visible a todos
-                target_user_id: target_student_id || null, // Para duelos individuales
+                points_reward: points_prize || 100,
+                created_by: user.id,
+                status: 'pending', // Requiere aprobación de coach/admin
                 end_date: endDate.toISOString()
             })
             .select()
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
             .insert({
                 challenge_id: data.id,
                 user_id: user.id,
-                status: 'active'
+                status: 'enrolled'
             });
 
         return NextResponse.json({ success: true, challenge: data });

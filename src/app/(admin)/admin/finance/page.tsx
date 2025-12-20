@@ -24,6 +24,8 @@ const MOCK_EXPENSES = [
 ];
 
 export default function FinancePage() {
+    const [payments, setPayments] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [newExpense, setNewExpense] = useState({
         concepto: '',
@@ -32,19 +34,79 @@ export default function FinancePage() {
         categoria: 'Variable'
     });
 
+    React.useEffect(() => {
+        fetchPayments();
+    }, []);
+
+    const fetchPayments = async () => {
+        try {
+            const res = await fetch('/api/admin/payments');
+            const data = await res.json();
+            if (data.payments) {
+                setPayments(data.payments);
+            }
+        } catch (error) {
+            toast.error('Error al cargar finanzas');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Procesar datos para estadísticas
+    const totalIncome = payments
+        .filter(p => p.amount > 0 && p.status === 'approved')
+        .reduce((sum, p) => sum + Number(p.amount), 0);
+
+    const totalExpenses = Math.abs(payments
+        .filter(p => p.amount < 0)
+        .reduce((sum, p) => sum + Number(p.amount), 0));
+
+    const netBalance = totalIncome - totalExpenses;
+
+    // Procesar datos para gráfico de barras (Categorías)
+    const categoryTotals = payments
+        .filter(p => p.amount < 0)
+        .reduce((acc: any, p) => {
+            const cat = p.metadata?.category || 'Otros';
+            acc[cat] = (acc[cat] || 0) + Math.abs(Number(p.amount));
+            return acc;
+        }, {});
+
+    const barChartData = Object.entries(categoryTotals).map(([cat, val]) => ({
+        categoria: cat,
+        valor: val
+    }));
+
+    // Procesar datos para gráfico de líneas (Mensual)
+    const monthlyData = payments.reduce((acc: any, p) => {
+        const date = new Date(p.created_at);
+        const monthKey = date.toLocaleString('es-AR', { month: 'short' });
+        if (!acc[monthKey]) acc[monthKey] = { month: monthKey, ingresos: 0, gastos: 0 };
+
+        if (p.amount > 0 && p.status === 'approved') {
+            acc[monthKey].ingresos += Number(p.amount);
+        } else if (p.amount < 0) {
+            acc[monthKey].gastos += Math.abs(Number(p.amount));
+        }
+        return acc;
+    }, {});
+
+    const lineChartData = Object.values(monthlyData);
+
     const handleAddExpense = async () => {
         if (!newExpense.concepto || !newExpense.monto || !newExpense.fecha) {
             toast.error('Completa todos los campos');
             return;
         }
 
+        const toastId = toast.loading('Registrando gasto...');
         try {
             const res = await fetch('/api/admin/payments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     concept: newExpense.concepto,
-                    amount: -Math.abs(parseFloat(newExpense.monto)), // Gasto siempre negativo
+                    amount: -Math.abs(parseFloat(newExpense.monto)),
                     status: 'approved',
                     payment_method: 'manual',
                     payment_provider: 'internal',
@@ -57,14 +119,19 @@ export default function FinancePage() {
 
             if (!res.ok) throw new Error(data.error || 'Error al guardar');
 
-            toast.success('Gasto registrado exitosamente');
+            toast.success('Gasto registrado exitosamente', { id: toastId });
             setShowExpenseModal(false);
             setNewExpense({ concepto: '', monto: '', fecha: '', categoria: 'Variable' });
+            fetchPayments();
         } catch (error: any) {
             console.error('Add expense error:', error);
-            toast.error(error.message || 'Error al registrar gasto');
+            toast.error(error.message || 'Error al registrar gasto', { id: toastId });
         }
     };
+
+    if (loading) {
+        return <div className="p-20 text-center text-white">Cargando datos financieros...</div>;
+    }
 
     return (
         <motion.div
@@ -91,10 +158,10 @@ export default function FinancePage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                    { label: 'Ingresos Totales', value: '$50,000', trend: '+12%', color: 'text-green-500', icon: '📈' },
-                    { label: 'Gastos Totales', value: '$20,000', trend: '-5%', color: 'text-red-500', icon: '📉' },
-                    { label: 'Balance Neto', value: '$30,000', trend: '+18%', color: 'text-blue-500', icon: '💵' },
-                    { label: 'Tasa de Retención', value: '94%', trend: '+2%', color: 'text-purple-500', icon: '🎯' },
+                    { label: 'Ingresos Totales', value: `$${totalIncome.toLocaleString()}`, trend: '', color: 'text-green-500', icon: '📈' },
+                    { label: 'Gastos Totales', value: `$${totalExpenses.toLocaleString()}`, trend: '', color: 'text-red-500', icon: '📉' },
+                    { label: 'Balance Neto', value: `$${netBalance.toLocaleString()}`, trend: '', color: 'text-blue-500', icon: '💵' },
+                    { label: 'Tasa de Retención', value: '94%', trend: '', color: 'text-purple-500', icon: '🎯' }, // Keep mock for now or calculate if possible
                 ].map((stat, i) => (
                     <motion.div
                         key={i}
@@ -119,7 +186,7 @@ export default function FinancePage() {
                 <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                     <h3 className="text-xl font-bold text-white mb-4">📊 Ingresos vs Gastos</h3>
                     <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={MOCK_REVENUE_DATA}>
+                        <LineChart data={lineChartData.length > 0 ? lineChartData : [{ month: '---', ingresos: 0, gastos: 0 }]}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3c" />
                             <XAxis dataKey="month" stroke="#888" />
                             <YAxis stroke="#888" />
@@ -138,12 +205,7 @@ export default function FinancePage() {
                 <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                     <h3 className="text-xl font-bold text-white mb-4">🎯 Gastos por Categoría</h3>
                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={[
-                            { categoria: 'Fijo', valor: 14500 },
-                            { categoria: 'Variable', valor: 1200 },
-                            { categoria: 'Marketing', valor: 800 },
-                            { categoria: 'Inversión', valor: 3500 },
-                        ]}>
+                        <BarChart data={barChartData.length > 0 ? barChartData : [{ categoria: '---', valor: 0 }]}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3c" />
                             <XAxis dataKey="categoria" stroke="#888" />
                             <YAxis stroke="#888" />
@@ -160,21 +222,18 @@ export default function FinancePage() {
             <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                 <h3 className="text-xl font-bold text-white mb-4">💳 Transacciones Recientes</h3>
                 <div className="space-y-3">
-                    {[
-                        { user: 'Juan Pérez', amount: '$120', type: 'Pago Mensual', date: 'Hace 2 horas', isIncome: true },
-                        { user: 'María González', amount: '$85', type: 'Clase Individual', date: 'Hace 5 horas', isIncome: true },
-                        { user: 'Proveedor XYZ', amount: '-$350', type: 'Equipamiento', date: 'Ayer', isIncome: false },
-                    ].map((tx, i) => (
+                    {payments.slice(0, 5).map((tx, i) => (
                         <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all">
                             <div>
-                                <p className="font-bold text-white">{tx.user}</p>
-                                <p className="text-xs text-gray-400">{tx.type} • {tx.date}</p>
+                                <p className="font-bold text-white">{tx.user_name || tx.concept}</p>
+                                <p className="text-xs text-gray-400">{tx.concept} • {new Date(tx.created_at).toLocaleDateString()}</p>
                             </div>
-                            <p className={`text-lg font-bold ${tx.isIncome ? 'text-green-400' : 'text-red-400'}`}>
-                                {tx.amount}
+                            <p className={`text-lg font-bold ${Number(tx.amount) > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {Number(tx.amount) > 0 ? '+' : ''}${Math.abs(Number(tx.amount)).toLocaleString()}
                             </p>
                         </div>
                     ))}
+                    {payments.length === 0 && <p className="text-center text-gray-500 py-4">No hay transacciones registradas.</p>}
                 </div>
             </div>
 
@@ -192,18 +251,23 @@ export default function FinancePage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {MOCK_EXPENSES.map(expense => (
+                            {payments.filter(p => Number(p.amount) < 0).map(expense => (
                                 <tr key={expense.id} className="hover:bg-white/5 transition-colors">
-                                    <td className="p-3 text-white font-medium">{expense.concepto}</td>
+                                    <td className="p-3 text-white font-medium">{expense.concept}</td>
                                     <td className="p-3">
                                         <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs font-bold">
-                                            {expense.categoria}
+                                            {expense.metadata?.category || 'General'}
                                         </span>
                                     </td>
-                                    <td className="p-3 text-gray-400">{new Date(expense.fecha).toLocaleDateString('es-AR')}</td>
-                                    <td className="p-3 text-right text-red-400 font-bold">-${expense.monto}</td>
+                                    <td className="p-3 text-gray-400">{new Date(expense.created_at).toLocaleDateString('es-AR')}</td>
+                                    <td className="p-3 text-right text-red-400 font-bold">-${Math.abs(Number(expense.amount)).toLocaleString()}</td>
                                 </tr>
                             ))}
+                            {payments.filter(p => Number(p.amount) < 0).length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="p-10 text-center text-gray-500 italic">No hay gastos registrados aún.</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

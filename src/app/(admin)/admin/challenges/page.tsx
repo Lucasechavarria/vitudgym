@@ -17,7 +17,7 @@ interface Challenge {
     description: string;
     type: string;
     status: string;
-    points_prize: number;
+    points_reward: number; // Updated name
     participants_count?: number;
     participants?: Participant[];
 }
@@ -34,7 +34,7 @@ export default function AdminChallengesPage() {
         description: '',
         rules: '',
         type: 'open',
-        points_prize: 100,
+        points_prize: 100, // We keep this in state for the form
         end_date: ''
     });
 
@@ -85,18 +85,27 @@ export default function AdminChallengesPage() {
         }
     };
 
-    const handleJudge = async (challengeId: string, winnerId: string) => {
-        if (!confirm('¿Confirmar ganador y otorgar puntos?')) return;
+    const handleJudge = async (challengeId: string, winnerId: string, status: string = 'finished') => {
+        const confirmMsg = status === 'active'
+            ? '¿Quieres reiniciar este desafío? El ganador actual será borrado y todos los participantes podrán competir de nuevo.'
+            : (winnerId ? '¿Confirmar ganador y otorgar puntos?' : '¿Finalizar este desafío sin un ganador?');
+
+        if (!confirm(confirmMsg)) return;
+
         try {
             const res = await fetch(`/api/admin/challenges/${challengeId}/judge`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ winnerId, status: 'finished' })
+                body: JSON.stringify({ winnerId, status })
             });
+
             if (res.ok) {
-                toast.success('Arbitraje completado');
+                toast.success(status === 'active' ? 'Desafío reiniciado' : 'Arbitraje completado');
                 fetchChallenges();
                 setSelectedChallenge(null);
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Error en la operación');
             }
         } catch (error) {
             toast.error('Error al arbitrar');
@@ -127,16 +136,27 @@ export default function AdminChallengesPage() {
                         </div>
                         <p className="text-gray-400 text-sm line-clamp-2">{c.description}</p>
                         <div className="flex justify-between text-xs text-gray-500 font-mono">
-                            <span>Premio: {c.points_prize} XP</span>
+                            <span>Premio: {c.points_reward} XP</span>
                             <span>Tipo: {c.type === 'open' ? '🌎 Abierto' : '⚔️ Duelo'}</span>
                         </div>
 
-                        <button
-                            onClick={() => setSelectedChallenge(c)}
-                            className="w-full py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-sm font-bold transition-all"
-                        >
-                            Ver Participantes & Juzgar
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setSelectedChallenge(c)}
+                                className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-sm font-bold transition-all"
+                            >
+                                {c.status === 'finished' ? 'Ver Resultados' : 'Participantes & Arbitraje'}
+                            </button>
+                            {c.status === 'finished' && (
+                                <button
+                                    onClick={() => handleJudge(c.id, '', 'active')}
+                                    className="px-3 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg text-sm font-bold hover:bg-purple-600 hover:text-white transition-all"
+                                    title="Reiniciar Desafío"
+                                >
+                                    🔄
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
@@ -150,24 +170,41 @@ export default function AdminChallengesPage() {
                             animate={{ scale: 1, opacity: 1 }}
                             className="bg-[#1c1c1e] max-w-2xl w-full rounded-2xl border border-white/10 p-8"
                         >
-                            <h2 className="text-2xl font-bold text-white mb-4">Mesa de Arbitraje: {selectedChallenge.title}</h2>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-2xl font-bold text-white">
+                                    {selectedChallenge.status === 'finished' ? 'Resultados del Desafío' : 'Mesa de Arbitraje'}: {selectedChallenge.title}
+                                </h2>
+                                {selectedChallenge.status === 'finished' && (
+                                    <span className="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-black uppercase">Finalizado</span>
+                                )}
+                            </div>
 
                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                                <p className="text-gray-500 text-sm">Lista de atletas compitiendo:</p>
+                                <p className="text-gray-500 text-sm">
+                                    {selectedChallenge.status === 'finished' ? 'Atletas que participaron:' : 'Lista de atletas compitiendo:'}
+                                </p>
                                 <div className="space-y-2">
                                     {selectedChallenge.participants && selectedChallenge.participants.length > 0 ? (
                                         selectedChallenge.participants.map((p: any) => (
-                                            <div key={p.user_id} className="p-4 bg-white/5 rounded-xl border border-white/5 flex justify-between items-center group hover:bg-white/10 transition-all">
+                                            <div key={p.user_id} className={`p-4 rounded-xl border flex justify-between items-center group transition-all ${p.status === 'winner'
+                                                    ? 'bg-yellow-600/20 border-yellow-500/50'
+                                                    : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                                }`}>
                                                 <div>
-                                                    <span className="text-white font-bold block">{p.user?.full_name || 'Atleta Anónimo'}</span>
+                                                    <span className="text-white font-bold flex items-center gap-2">
+                                                        {p.user?.full_name || 'Atleta Anónimo'}
+                                                        {p.status === 'winner' && <span className="text-yellow-500 text-sm">🏆 Ganador</span>}
+                                                    </span>
                                                     <span className="text-[10px] text-gray-500 font-mono">Score: {p.current_score || '0'}</span>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleJudge(selectedChallenge.id, p.user_id)}
-                                                    className="px-4 py-2 bg-green-600/20 text-green-400 border border-green-500/30 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-all"
-                                                >
-                                                    Declarar Ganador 🏆
-                                                </button>
+                                                {selectedChallenge.status === 'active' && (
+                                                    <button
+                                                        onClick={() => handleJudge(selectedChallenge.id, p.user_id)}
+                                                        className="px-4 py-2 bg-green-600/20 text-green-400 border border-green-500/30 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-all"
+                                                    >
+                                                        Declarar Ganador 🏆
+                                                    </button>
+                                                )}
                                             </div>
                                         ))
                                     ) : (
@@ -185,12 +222,22 @@ export default function AdminChallengesPage() {
                                 >
                                     Cerrar
                                 </button>
-                                <button
-                                    onClick={() => handleJudge(selectedChallenge.id, '')}
-                                    className="flex-1 py-3 bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl font-bold"
-                                >
-                                    Finalizar sin Ganador
-                                </button>
+                                {selectedChallenge.status === 'active' && (
+                                    <button
+                                        onClick={() => handleJudge(selectedChallenge.id, '')}
+                                        className="flex-1 py-3 bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl font-bold"
+                                    >
+                                        Finalizar sin Ganador
+                                    </button>
+                                )}
+                                {selectedChallenge.status === 'finished' && (
+                                    <button
+                                        onClick={() => handleJudge(selectedChallenge.id, '', 'active')}
+                                        className="flex-1 py-3 bg-purple-600 rounded-xl text-white font-bold"
+                                    >
+                                        Reiniciar Desafío 🔄
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     </div>

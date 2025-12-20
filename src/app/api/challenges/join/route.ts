@@ -14,7 +14,12 @@ export async function POST(
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { id: challengeId } = await params;
+        const body = await request.json();
+        const { challengeId } = body;
+
+        if (!challengeId) {
+            return NextResponse.json({ error: 'ID de desafío es requerido' }, { status: 400 });
+        }
 
         // Verificar si ya participa
         const { data: existing } = await supabase
@@ -33,7 +38,7 @@ export async function POST(
             .insert({
                 challenge_id: challengeId,
                 user_id: user.id,
-                status: 'joined'
+                status: 'enrolled'
             })
             .select()
             .single();
