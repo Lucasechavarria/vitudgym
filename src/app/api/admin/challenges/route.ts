@@ -16,13 +16,13 @@ export async function POST(request: Request) {
         const { data, error: dbError } = await supabase!
             .from('challenges')
             .insert({
-                creator_id: user.id,
+                created_by: user.id,
                 judge_id: user.id, // Admin creator is the default judge
                 title,
                 description,
                 rules: rules || 'Reglas estándar del gimnasio',
                 type,
-                points_prize,
+                points_reward: points_prize, // Match points_reward from supabase.ts
                 end_date,
                 status: 'active' // Set to active by default as requested
             })
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
             .from('challenges')
             .select(`
                 *,
-                creator:profiles!challenges_creator_id_fkey(full_name),
+                creator:profiles!challenges_created_by_fkey(full_name),
                 judge:profiles!challenges_judge_id_fkey(full_name),
                 participants:challenge_participants(
                     user_id,
