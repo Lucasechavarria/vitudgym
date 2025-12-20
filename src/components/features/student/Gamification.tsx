@@ -477,13 +477,42 @@ export function Gamification() {
                             </h2>
                             <p className="text-gray-400 text-sm mb-6">Reta a tus compañeros y sube en el ranking.</p>
 
-                            <form className="space-y-4" onSubmit={(e) => {
+                            <form className="space-y-4" onSubmit={async (e) => {
                                 e.preventDefault();
-                                const msg = challengeType === 'individual'
-                                    ? `¡Duelo enviado a ${targetStudent || 'tu compañero'}! Esperando aceptación.`
-                                    : '¡Desafío propuesto! Todos podrán unirse una vez el coach lo apruebe.';
-                                toast.success(msg);
-                                setShowCreateChallenge(false);
+                                const formData = new FormData(e.currentTarget);
+                                const title = formData.get('title') as string;
+                                const description = formData.get('description') as string;
+                                const duration = parseInt(formData.get('duration') as string);
+                                const points = parseInt(formData.get('points') as string);
+
+                                setLoading(true);
+                                try {
+                                    const res = await fetch('/api/challenges', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            title,
+                                            description,
+                                            type: challengeType,
+                                            original_duration_days: duration,
+                                            points_prize: points,
+                                            target_student_id: challengeType === 'individual' ? targetStudent : null
+                                        })
+                                    });
+
+                                    if (!res.ok) throw new Error();
+
+                                    toast.success(challengeType === 'individual'
+                                        ? '¡Duelo enviado! Esperando aceptación.'
+                                        : '¡Desafío propuesto! Pendiente de aprobación.');
+
+                                    setShowCreateChallenge(false);
+                                    fetchGamificationData();
+                                } catch (error) {
+                                    toast.error('Error al crear el desafío');
+                                } finally {
+                                    setLoading(false);
+                                }
                             }}>
                                 <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-xl border border-white/5 mb-4">
                                     <button
@@ -525,6 +554,7 @@ export function Gamification() {
                                 <div>
                                     <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nombre del Desafío</label>
                                     <input
+                                        name="title"
                                         required
                                         placeholder={challengeType === 'individual' ? "Ej: Duelo de dominadas" : "Ej: Desafío mensual de asistencia"}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all text-white"
@@ -534,6 +564,7 @@ export function Gamification() {
                                 <div>
                                     <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Reglas / Meta</label>
                                     <textarea
+                                        name="description"
                                         required
                                         placeholder="Define cómo se gana..."
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all h-24 resize-none text-white"
@@ -543,11 +574,11 @@ export function Gamification() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Duración (días)</label>
-                                        <input type="number" defaultValue={7} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white" />
+                                        <input name="duration" type="number" defaultValue={7} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Premio sugerido (XP)</label>
-                                        <input type="number" defaultValue={500} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white" />
+                                        <input name="points" type="number" defaultValue={500} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white" />
                                     </div>
                                 </div>
 
@@ -561,9 +592,10 @@ export function Gamification() {
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20 text-sm"
+                                        disabled={loading}
+                                        className="flex-1 px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20 text-sm disabled:opacity-50"
                                     >
-                                        {challengeType === 'individual' ? 'Enviar Duelo' : 'Crear Desafío'}
+                                        {loading ? 'Creando...' : (challengeType === 'individual' ? 'Enviar Duelo' : 'Crear Desafío')}
                                     </button>
                                 </div>
                             </form>

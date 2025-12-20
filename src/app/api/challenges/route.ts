@@ -25,3 +25,59 @@ export async function GET() {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+/**
+ * POST /api/challenges
+ * Crea un nuevo desafío propuesto por un alumno
+ */
+export async function POST(req: Request) {
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+
+        const body = await req.json();
+        const { title, description, type, points_prize, target_student_id, original_duration_days } = body;
+
+        // Validaciones básicas
+        if (!title || !description) {
+            return NextResponse.json({ error: 'Título y descripción son requeridos' }, { status: 400 });
+        }
+
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + (original_duration_days || 7));
+
+        const { data, error } = await supabase
+            .from('challenges')
+            .insert({
+                title,
+                description,
+                type: type || 'open',
+                points_prize: points_prize || 100,
+                creator_id: user.id,
+                status: 'pending', // Requiere aprobación de coach/admin para ser visible a todos
+                target_user_id: target_student_id || null, // Para duelos individuales
+                end_date: endDate.toISOString()
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        // Auto-unir al creador al desafío
+        await supabase
+            .from('challenge_participants')
+            .insert({
+                challenge_id: data.id,
+                user_id: user.id,
+                status: 'active'
+            });
+
+        return NextResponse.json({ success: true, challenge: data });
+
+    } catch (error: any) {
+        console.error('Create Challenge Error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}

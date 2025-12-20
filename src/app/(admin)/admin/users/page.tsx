@@ -207,18 +207,24 @@ export default function UsersPage() {
                                         </select>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="space-y-1">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${user.membershipStatus === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                                'bg-red-500/20 text-red-400 border border-red-500/30'
-                                                }`}>
-                                                {user.membershipStatus === 'active' ? '✓ Activo' : '✗ Inactivo'}
+                                        {['admin', 'superadmin', 'coach'].includes(user.role) ? (
+                                            <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                                🛡️ Staff
                                             </span>
-                                            {user.membershipEnds && (
-                                                <div className="text-[9px] text-gray-500 font-mono">
-                                                    Vence: {new Date(user.membershipEnds).toLocaleDateString()}
-                                                </div>
-                                            )}
-                                        </div>
+                                        ) : (
+                                            <div className="space-y-1">
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${user.membershipStatus === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                                    'bg-red-500/20 text-red-400 border border-red-500/30'
+                                                    }`}>
+                                                    {user.membershipStatus === 'active' ? '✓ Activo' : '✗ Inactivo'}
+                                                </span>
+                                                {user.membershipEnds && (
+                                                    <div className="text-[9px] text-gray-500 font-mono">
+                                                        Vence: {new Date(user.membershipEnds).toLocaleDateString()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4">
                                         {user.role === 'member' ? (
@@ -248,13 +254,17 @@ export default function UsersPage() {
                                             >
                                                 📄
                                             </button>
-                                            <button
-                                                onClick={() => handleActivateMembership(user.id)}
-                                                className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold border border-green-600/30 transition-all"
-                                                title="Renovar Membresía"
-                                            >
-                                                💳
-                                            </button>
+
+                                            {/* Solo mostrar renovación para miembros */}
+                                            {!['admin', 'superadmin', 'coach'].includes(user.role) && (
+                                                <button
+                                                    onClick={() => handleActivateMembership(user.id)}
+                                                    className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold border border-green-600/30 transition-all"
+                                                    title="Renovar Membresía"
+                                                >
+                                                    💳
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
