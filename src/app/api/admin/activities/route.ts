@@ -38,7 +38,8 @@ export async function POST(req: Request) {
                     description: body.description,
                     color: body.color || '#3b82f6',
                     duration_minutes: body.duration_minutes || 60,
-                    type: 'CLASS', // Default type
+                    type: body.type || 'CLASS',
+                    category: body.category || 'General',
                     is_active: true
                 }
             ])
@@ -70,6 +71,8 @@ export async function PUT(req: Request) {
                 description: body.description,
                 color: body.color,
                 duration_minutes: body.duration_minutes,
+                type: body.type,
+                category: body.category,
                 is_active: body.is_active
             })
             .eq('id', body.id)

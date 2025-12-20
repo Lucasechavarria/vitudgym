@@ -20,11 +20,11 @@ export async function POST(request: Request) {
                 judge_id: user.id, // Admin creator is the default judge
                 title,
                 description,
-                rules,
+                rules: rules || 'Reglas estándar del gimnasio',
                 type,
                 points_prize,
                 end_date,
-                status: 'pending' // Should be approved/activated by admin
+                status: 'active' // Set to active by default as requested
             })
             .select()
             .single();
