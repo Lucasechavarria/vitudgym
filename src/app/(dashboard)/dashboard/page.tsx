@@ -26,6 +26,11 @@ export default function StudentDashboard() {
   const { progress, attendance, routine, profile } = data;
   const latestProgress = progress[progress.length - 1];
 
+  // Membership Expiration Logic
+  const membershipEndDate = profile?.membership_end_date ? new Date(profile.membership_end_date) : null;
+  const isExpiringSoon = membershipEndDate && (membershipEndDate.getTime() - Date.now()) < 7 * 24 * 60 * 60 * 1000;
+  const daysRemaining = membershipEndDate ? Math.ceil((membershipEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+
   const chartData = progress.length > 0 ? progress.map((p: any) => ({
     week: new Date(p.recorded_at).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
     peso: p.weight,
@@ -60,6 +65,31 @@ export default function StudentDashboard() {
       <DashboardHeader gender={profile?.gender} itemVariants={itemVariants} />
 
       <WaiverWarning waiverAccepted={profile?.waiver_accepted} />
+
+      {isExpiringSoon && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="text-white font-bold">Tu membresía vence pronto</p>
+              <p className="text-red-400 text-sm">
+                {daysRemaining! <= 0
+                  ? 'Tu membresía ha vencido. Por favor, realiza el pago para continuar.'
+                  : `Quedan ${daysRemaining} días para el vencimiento.`}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/payments"
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+          >
+            Renovar Ahora
+          </Link>
+        </motion.div>
+      )}
 
       <StatsOverview stats={stats} itemVariants={itemVariants} />
 

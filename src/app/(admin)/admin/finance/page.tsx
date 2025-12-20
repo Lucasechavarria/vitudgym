@@ -53,13 +53,15 @@ export default function FinancePage() {
                 })
             });
 
-            if (!res.ok) throw new Error('Error al guardar');
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Error al guardar');
 
             toast.success('Gasto registrado exitosamente');
             setShowExpenseModal(false);
             setNewExpense({ concepto: '', monto: '', fecha: '', categoria: 'Variable' });
-            // Ideally re-fetch data here if we had a GET for expenses
         } catch (error: any) {
+            console.error('Add expense error:', error);
             toast.error(error.message || 'Error al registrar gasto');
         }
     };

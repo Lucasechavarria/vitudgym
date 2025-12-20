@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
@@ -9,24 +10,42 @@ export default async function AdminDashboard() {
     const { data: profiles } = await supabase
         .from('profiles')
         .select('id, role, membership_status')
-        .in('role', ['student', 'user']);
+        .in('role', ['member', 'student', 'user']);
 
     const activeMembers = profiles?.filter(p => p.membership_status === 'active').length || 0;
-    const totalUsers = profiles?.length || 0;
+    const totalUsers = profiles?.filter(p => p.role !== 'admin' && p.role !== 'superadmin').length || 0;
 
-    // Fetch recent activity (simplified - using profiles as proxy)
+    // Fetch Classes for Today
+    const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
+    const { count: classesToday } = await supabase
+        .from('classes')
+        .select('*', { count: 'exact', head: true })
+        .eq('day_of_week', today)
+        .eq('is_active', true);
+
+    // Fetch Expiring Memberships
+    const { data: expiringMemberships } = await supabase
+        .from('profiles')
+        .select('full_name, membership_end_date')
+        .eq('membership_status', 'active')
+        .lte('membership_end_date', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
+        .order('membership_end_date', { ascending: true })
+        .limit(5);
+
+
+    const stats = [
+        { title: 'Socios Activos', value: activeMembers.toString(), trend: '+12%', icon: '👥' },
+        { title: 'Total Usuarios', value: totalUsers.toString(), trend: `${totalUsers} total`, icon: '💰' },
+        { title: 'Clases Hoy', value: (classesToday || 0).toString(), trend: 'Active', icon: '📅' },
+        { title: 'Retención', value: '94%', trend: '+1%', icon: '📈' },
+    ];
+
+    // Fetch recent activity
     const { data: recentProfiles } = await supabase
         .from('profiles')
         .select('full_name, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
-
-    const stats = [
-        { title: 'Socios Activos', value: activeMembers.toString(), trend: '+12%', icon: '👥' },
-        { title: 'Total Usuarios', value: totalUsers.toString(), trend: `${totalUsers} total`, icon: '💰' },
-        { title: 'Clases Hoy', value: '24', trend: 'Active', icon: '📅' },
-        { title: 'Retención', value: '94%', trend: '+1%', icon: '📈' },
-    ];
 
     return (
         <div className="space-y-8">
@@ -53,6 +72,27 @@ export default async function AdminDashboard() {
                                 <span className="text-xs text-gray-500">
                                     {new Date(profile.created_at).toLocaleDateString('es-AR')}
                                 </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-[#2c2c2e] rounded-2xl p-6 border border-[#3a3a3c]">
+                    <h3 className="text-lg font-bold mb-4 text-white">Membresías por Vencer (Próximos 7 días)</h3>
+                    <div className="space-y-4">
+                        {expiringMemberships?.length === 0 && <p className="text-gray-500 text-sm">No hay membresías por vencer pronto.</p>}
+                        {expiringMemberships?.map((m, i) => (
+                            <div key={i} className="flex items-center justify-between p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-white">{m.full_name}</span>
+                                    <span className="text-xs text-red-400">Vence: {new Date(m.membership_end_date).toLocaleDateString('es-AR')}</span>
+                                </div>
+                                <Link
+                                    href={`/admin/users?search=${m.full_name}`}
+                                    className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded transition-colors"
+                                >
+                                    Ver Info
+                                </Link>
                             </div>
                         ))}
                     </div>

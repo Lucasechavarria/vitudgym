@@ -78,12 +78,15 @@ export default function AdminActivitiesPage() {
                 })
             });
 
-            if (!res.ok) throw new Error('Error al guardar');
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Error al guardar');
 
             toast.success(editingActivity ? 'Actividad actualizada' : 'Actividad creada');
             setIsModalOpen(false);
             fetchActivities();
         } catch (error: any) {
+            console.error('Save activity error:', error);
             toast.error(error.message || 'Ocurrió un error al guardar la actividad');
         }
     };

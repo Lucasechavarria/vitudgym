@@ -56,6 +56,7 @@ export default function AdminChallengesPage() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
+        const toastId = toast.loading('Creando desafío...');
         try {
             const payload = {
                 ...newChallenge,
@@ -68,13 +69,19 @@ export default function AdminChallengesPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+
+            const data = await res.json();
+
             if (res.ok) {
-                toast.success('Desafío creado');
+                toast.success('Desafío creado', { id: toastId });
                 setShowCreate(false);
                 fetchChallenges();
+            } else {
+                throw new Error(data.error || 'Error al crear desafío');
             }
         } catch (error: any) {
-            toast.error(error.message || 'Error al crear desafío');
+            console.error('Create challenge error:', error);
+            toast.error(error.message || 'Error al crear desafío', { id: toastId });
         }
     };
 
@@ -199,7 +206,7 @@ export default function AdminChallengesPage() {
                             animate={{ scale: 1, opacity: 1 }}
                             className="bg-[#1c1c1e] max-w-md w-full rounded-2xl border border-white/10 p-8"
                         >
-                            <h2 className="text-2xl font-bold text-white mb-6">Nuevo Desafío Real</h2>
+                            <h2 className="text-2xl font-bold text-white mb-6">Nuevo Desafío</h2>
                             <form onSubmit={handleCreate} className="space-y-4">
                                 <input
                                     required
