@@ -83,8 +83,8 @@ export default function AdminActivitiesPage() {
             toast.success(editingActivity ? 'Actividad actualizada' : 'Actividad creada');
             setIsModalOpen(false);
             fetchActivities();
-        } catch (error) {
-            toast.error('Ocurrió un error');
+        } catch (error: any) {
+            toast.error(error.message || 'Ocurrió un error al guardar la actividad');
         }
     };
 

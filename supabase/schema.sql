@@ -37,6 +37,7 @@ CREATE TABLE profiles (
     membership_end_date TIMESTAMP WITH TIME ZONE,
     
     -- Metadata
+    assigned_coach_id UUID REFERENCES profiles(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -122,7 +123,7 @@ CREATE TABLE bookings (
 
 CREATE TABLE payments (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE, -- Nullable for admin expenses
     
     -- Payment details
     amount DECIMAL(10, 2) NOT NULL,

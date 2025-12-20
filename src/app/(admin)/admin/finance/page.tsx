@@ -59,8 +59,8 @@ export default function FinancePage() {
             setShowExpenseModal(false);
             setNewExpense({ concepto: '', monto: '', fecha: '', categoria: 'Variable' });
             // Ideally re-fetch data here if we had a GET for expenses
-        } catch (error) {
-            toast.error('Error al registrar gasto');
+        } catch (error: any) {
+            toast.error(error.message || 'Error al registrar gasto');
         }
     };
 

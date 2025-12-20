@@ -73,8 +73,8 @@ export default function AdminChallengesPage() {
                 setShowCreate(false);
                 fetchChallenges();
             }
-        } catch (error) {
-            toast.error('Error al crear desafío');
+        } catch (error: any) {
+            toast.error(error.message || 'Error al crear desafío');
         }
     };
 
