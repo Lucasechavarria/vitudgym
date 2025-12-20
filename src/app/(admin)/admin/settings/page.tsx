@@ -280,9 +280,12 @@ export default function SettingsPage() {
                         <div className="space-y-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-2xl font-bold text-white">🏋️ Stock de Equipamiento</h2>
-                                <button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
-                                    + Agregar Máquina
-                                </button>
+                                <a
+                                    href="/admin/equipment"
+                                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                                >
+                                    + Gestionar Inventario
+                                </a>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

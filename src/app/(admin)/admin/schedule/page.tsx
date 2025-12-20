@@ -37,7 +37,15 @@ interface Coach {
     last_name: string;
 }
 
-const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_INDEX_MAP: Record<number, string> = {
+    1: 'Lunes',
+    2: 'Martes',
+    3: 'Miércoles',
+    4: 'Jueves',
+    5: 'Viernes',
+    6: 'Sábado'
+};
 
 export default function AdminSchedulePage() {
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
@@ -52,9 +60,9 @@ export default function AdminSchedulePage() {
         activity_id: '',
         coach_id: '', // Optional
         teacher_text: '', // Optional fallback
-        day_of_week: 1,
-        start_time: '08:00',
-        end_time: '09:00',
+        day_of_week: 1, // Default Lunes
+        start_time: '09:00',
+        end_time: '10:00',
         is_active: true
     });
 
@@ -140,6 +148,20 @@ export default function AdminSchedulePage() {
             // Basic validation
             if (!formData.activity_id) return toast.error('Selecciona una actividad');
 
+            // Time range validation
+            const startHour = parseInt(formData.start_time.split(':')[0]);
+            const endHour = parseInt(formData.end_time.split(':')[0]);
+
+            const isWeekDay = formData.day_of_week >= 1 && formData.day_of_week <= 5;
+            const isSaturday = formData.day_of_week === 6;
+
+            if (isWeekDay && (startHour < 9 || endHour > 23)) {
+                return toast.error('Horario permitido Lunes-Viernes: 09:00 a 23:00');
+            }
+            if (isSaturday && (startHour < 9 || endHour > 18)) {
+                return toast.error('Horario permitido Sábados: 09:00 a 18:00');
+            }
+
             const body = {
                 ...formData,
                 profile_id: formData.coach_id || null // Map coach_id to profile_id for DB
@@ -175,8 +197,10 @@ export default function AdminSchedulePage() {
 
     // Helper to get items for a specific day
     const getItemsForDay = (dayIndex: number) => {
+        // dayIndex comes from 0-5 (Lunes-Sábado), but DB uses 1-6
+        const dbDayIndex = dayIndex + 1;
         return schedule
-            .filter(item => item.day_of_week === dayIndex)
+            .filter(item => item.day_of_week === dbDayIndex)
             .sort((a, b) => a.start_time.localeCompare(b.start_time));
     };
 
@@ -270,8 +294,8 @@ export default function AdminSchedulePage() {
                                             onChange={e => setFormData({ ...formData, day_of_week: Number(e.target.value) })}
                                             className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
                                         >
-                                            {DAYS.map((day, i) => (
-                                                <option key={i} value={i}>{day}</option>
+                                            {Object.entries(DAY_INDEX_MAP).map(([val, label]) => (
+                                                <option key={val} value={val}>{label}</option>
                                             ))}
                                         </select>
                                     </div>
