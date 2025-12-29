@@ -1,0 +1,66 @@
+/* Estilos para contenido seguro */
+
+/* Deshabilitar selección de texto */
+.secure-content {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    /* Deshabilitar menú contextual */
+    -webkit-touch-callout: none;
+}
+
+/* Deshabilitar drag & drop de imágenes y videos */
+.secure-content img,
+.secure-content video {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+
+/* Animación para warning toast */
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+}
+
+/* Watermark overlay pattern */
+.secure-watermark-container {
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 100px,
+        rgba(255, 100, 0, 0.02) 100px,
+        rgba(255, 100, 0, 0.02) 200px
+    );
+}
+
+/* Protección adicional contra print */
+@media print {
+    .secure-content {
+        display: none !important;
+    }
+    
+    body::before {
+        content: "Este contenido no puede ser impreso por razones de seguridad. Consulta con tu coach.";
+        display: block;
+        text-align: center;
+        padding: 50px;
+        font-size: 24px;
+        color: #ff0000;
+    }
+}

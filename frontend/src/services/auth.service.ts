@@ -1,0 +1,170 @@
+import { supabase } from '@/lib/supabase/client';
+import { Database } from '@/types/supabase';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
+
+/**
+ * Authentication service using Supabase Auth
+ */
+export const authService = {
+    /**
+     * Sign up with email and password
+     */
+    /**
+     * Sign up with email and password
+     */
+    async signUp(email: string, password: string, firstName: string, lastName: string) {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    first_name: firstName,
+                    last_name: lastName,
+                    full_name: `${firstName} ${lastName}`.trim(), // Keep full_name for compatibility
+                },
+            },
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    /**
+     * Sign in with email and password
+     */
+    async signIn(email: string, password: string) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    /**
+     * Sign in with Google
+     */
+    async signInWithGoogle() {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    /**
+     * Sign out
+     */
+    async signOut() {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+    },
+
+    /**
+     * Get current session
+     */
+    async getSession() {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        return session;
+    },
+
+    /**
+     * Get current user
+     */
+    async getCurrentUser() {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        return user;
+    },
+
+    /**
+     * Get user profile
+     */
+    async getUserProfile(userId?: string) {
+        const id = userId || (await this.getCurrentUser())?.id;
+        if (!id) throw new Error('No user ID provided');
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        return data as Profile;
+    },
+
+    /**
+     * Update user profile
+     */
+    async updateProfile(userId: string, updates: Partial<Profile>) {
+        const { data, error } = await (supabase
+            .from('profiles') as any)
+            .update(updates)
+            .eq('id', userId)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data as Profile;
+    },
+
+    /**
+     * Reset password
+     */
+    async resetPassword(email: string) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`,
+        });
+
+        if (error) throw error;
+    },
+
+    /**
+     * Update password
+     */
+    async updatePassword(newPassword: string) {
+        const { error } = await supabase.auth.updateUser({
+            password: newPassword,
+        });
+
+        if (error) throw error;
+    },
+
+    /**
+     * Check if user has role
+     */
+    async hasRole(role: string | string[]) {
+        const profile = await this.getUserProfile();
+        const roles = Array.isArray(role) ? role : [role];
+        return roles.includes(profile.role);
+    },
+
+    /**
+     * Check if user is admin
+     */
+    async isAdmin() {
+        return this.hasRole(['admin', 'superadmin']);
+    },
+
+    /**
+     * Check if user is coach
+     */
+    async isCoach() {
+        return this.hasRole(['coach', 'admin', 'superadmin']);
+    },
+
+    /**
+     * Listen to auth state changes
+     */
+    onAuthStateChange(callback: (event: string, session: any) => void) {
+        return supabase.auth.onAuthStateChange(callback);
+    },
+};
