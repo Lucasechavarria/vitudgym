@@ -1,6 +1,6 @@
 
 import { model, genAI } from '@/lib/config/gemini';
-import { GYM_EQUIPMENT } from '@/lib/constants';
+import { GYM_EQUIPMENT, MOCK_STUDENTS } from '@/lib/constants';
 
 /**
  * Parámetros para generar una rutina
@@ -75,10 +75,45 @@ export class AIService {
   }
 
   /**
-   * Alias para compatibilidad
+   * Genera una rutina basada en parámetros o un prompt directo.
+   * Para compatibilidad con los tests y la API.
    */
-  async generateRoutine(prompt: string): Promise<any> {
+  async generateRoutine(input: RoutineParams | string): Promise<any> {
+    if (typeof input === 'string') {
+      return this.generateRoutineFromPrompt(input);
+    }
+
+    // Si es un objeto RoutineParams, construir el prompt
+    const studentContext = this.getStudentContext(input.studentId);
+    const medicalHistory = this.getMedicalHistory(input.studentId);
+    const prompt = this.buildPrompt(studentContext, medicalHistory, input.coachNotes);
+
     return this.generateRoutineFromPrompt(prompt);
+  }
+
+  /**
+   * Obtiene información básica del alumno para el contexto de la IA.
+   * Por ahora usa MOCK_STUDENTS, debería usar Supabase en producción.
+   */
+  private getStudentContext(studentId: string): string {
+    const student = MOCK_STUDENTS[studentId as keyof typeof MOCK_STUDENTS];
+    if (!student) return "Alumno: Demo (sin historial previo)";
+
+    return `Alumno: ${student.nombre}, Edad: ${student.edad} años, Peso: ${student.peso} kg, Experiencia: ${student.experiencia}`;
+  }
+
+  /**
+   * Obtiene el historial médico del alumno.
+   */
+  private getMedicalHistory(studentId: string): string {
+    const student = MOCK_STUDENTS[studentId as keyof typeof MOCK_STUDENTS];
+    if (!student) return "HISTORIAL MÉDICO: Ninguno registrado.";
+
+    const h = student.historialMedico;
+    return `HISTORIAL MÉDICO:
+- Lesiones: ${h.lesiones.join(', ') || 'Ninguna'}
+- Patologías: ${h.patologias.join(', ') || 'Ninguna'}
+- Restricciones: ${h.restricciones || 'Ninguna'}`;
   }
 
   /**
