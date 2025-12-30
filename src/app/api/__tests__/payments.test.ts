@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { POST } from '../payments/create-checkout/route';
 
 // Mock de Supabase
 // Mock de Supabase
@@ -42,7 +41,7 @@ describe('Payments API Routes', () => {
 
     beforeEach(() => {
         jest.resetModules();
-        process.env = { ...originalEnv, MERCADOPAGO_ACCESS_TOKEN: 'TEST_TOKEN_123' };
+        process.env = { ...originalEnv };
     });
 
     afterEach(() => {
@@ -51,6 +50,9 @@ describe('Payments API Routes', () => {
 
     describe('POST /api/payments/create-checkout', () => {
         it('should create checkout session successfully', async () => {
+            process.env.MERCADOPAGO_ACCESS_TOKEN = 'TEST_TOKEN_123';
+            const { POST } = require('../payments/create-checkout/route');
+
             const request = new NextRequest('http://localhost:3000/api/payments/create-checkout', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -71,6 +73,9 @@ describe('Payments API Routes', () => {
         });
 
         it('should return 401 for unauthenticated user', async () => {
+            process.env.MERCADOPAGO_ACCESS_TOKEN = 'TEST_TOKEN_123';
+            const { POST } = require('../payments/create-checkout/route');
+
             // Mock sin sesión
             const mockCreateClient = require('@/lib/supabase/server').createClient;
             mockCreateClient.mockImplementationOnce(() => ({
@@ -97,6 +102,9 @@ describe('Payments API Routes', () => {
         });
 
         it('should return 400 for missing required fields', async () => {
+            process.env.MERCADOPAGO_ACCESS_TOKEN = 'TEST_TOKEN_123';
+            const { POST } = require('../payments/create-checkout/route');
+
             const request = new NextRequest('http://localhost:3000/api/payments/create-checkout', {
                 method: 'POST',
                 body: JSON.stringify({
