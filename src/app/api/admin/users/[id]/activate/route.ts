@@ -41,8 +41,11 @@ export async function POST(
             newEndDate: endDate.toISOString()
         });
 
-    } catch (error: any) {
-        console.error('Error activating user:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Error activating user:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error activating user';
+        return NextResponse.json({
+            error: errorMessage
+        }, { status: 500 });
     }
 }

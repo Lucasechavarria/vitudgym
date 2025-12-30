@@ -45,10 +45,11 @@ export async function GET(
             routines: routines || []
         });
 
-    } catch (error: any) {
-        console.error('Error loading student:', error);
+    } catch (error) {
+        console.error('❌ Error loading student:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar información del alumno';
         return NextResponse.json({
-            error: error.message || 'Error loading student'
+            error: errorMessage
         }, { status: 500 });
     }
 }

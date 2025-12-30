@@ -3,6 +3,7 @@
 import { useLandingActivities } from "@/hooks/useLandingActivities";
 import { ActivityCarousel } from "@/components/ui/ActivityCarousel";
 import { InstagramCarousel } from "@/components/ui/InstagramCarousel";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -14,6 +15,10 @@ export default function Home() {
   const gymActivities = activities.filter(a => !a.type || a.type === 'gym');
   const martialArtsActivities = activities.filter(a => a.type === 'martial_arts');
   const tcmActivities = activities.filter(a => a.type === 'tcm');
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">

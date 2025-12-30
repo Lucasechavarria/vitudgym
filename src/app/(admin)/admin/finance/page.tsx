@@ -6,22 +6,6 @@ import toast from 'react-hot-toast';
 import { Line, Bar } from 'recharts';
 import { LineChart, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const MOCK_REVENUE_DATA = [
-    { month: 'Ene', ingresos: 38000, gastos: 15000 },
-    { month: 'Feb', ingresos: 42000, gastos: 18000 },
-    { month: 'Mar', ingresos: 45000, gastos: 17500 },
-    { month: 'Abr', ingresos: 48000, gastos: 19000 },
-    { month: 'May', ingresos: 44000, gastos: 18500 },
-    { month: 'Jun', ingresos: 50000, gastos: 20000 },
-];
-
-const MOCK_EXPENSES = [
-    { id: 1, concepto: 'Alquiler Gimnasio', monto: 8000, fecha: '2025-06-01', categoria: 'Fijo' },
-    { id: 2, concepto: 'Equipamiento Nuevo', monto: 3500, fecha: '2025-06-10', categoria: 'Inversión' },
-    { id: 3, concepto: 'Servicios (Luz, Agua)', monto: 1200, fecha: '2025-06-15', categoria: 'Variable' },
-    { id: 4, concepto: 'Salarios Staff', monto: 6500, fecha: '2025-06-01', categoria: 'Fijo' },
-    { id: 5, concepto: 'Marketing Digital', monto: 800, fecha: '2025-06-20', categoria: 'Marketing' },
-];
 
 export default function FinancePage() {
     const [payments, setPayments] = useState<any[]>([]);
@@ -45,7 +29,7 @@ export default function FinancePage() {
             if (data.payments) {
                 setPayments(data.payments);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar finanzas');
         } finally {
             setLoading(false);

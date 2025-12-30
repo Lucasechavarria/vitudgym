@@ -61,13 +61,15 @@ export default function SignupPage() {
                     toast.success("¡Bienvenido!");
                     router.push('/dashboard');
                 } catch (signinError) {
+                    console.error("Auto-login failed:", signinError);
                     // If manual login fails, maybe it DOES need confirmation or other error
                     toast.success("Cuenta creada. Por favor inicia sesión.");
                     router.push('/login');
                 }
             }
-        } catch (error: any) {
-            toast.error(error.message || "Error al crear cuenta");
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Error al crear cuenta";
+            toast.error(errorMessage);
             console.error("Email signup error:", error);
             setIsLoading(false);
         }

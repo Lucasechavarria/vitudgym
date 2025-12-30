@@ -5,13 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import {
     Search,
-    Filter,
     CheckCircle2,
     AlertTriangle,
     XCircle,
     Wrench,
     History,
-    Save,
     X
 } from 'lucide-react';
 
@@ -49,6 +47,7 @@ export default function CoachEquipmentPage() {
             const data = await res.json();
             setEquipment(data);
         } catch (error) {
+            console.error('Error fetching equipment:', error);
             toast.error('Error al cargar el equipo');
         } finally {
             setLoading(false);
@@ -74,6 +73,7 @@ export default function CoachEquipmentPage() {
             setSelectedItem(null);
             fetchEquipment();
         } catch (error) {
+            console.error('Error reporting status:', error);
             toast.error('Error al reportar el estado');
         } finally {
             setUpdating(false);

@@ -4,11 +4,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
+import { StudentRoutine, ItemVariants, RoutineExercise } from '@/types/student-components';
+
 interface RoutinePreviewProps {
-    routine: any;
+    routine: StudentRoutine;
     handleRequestRoutine: () => void;
     isRequesting: boolean;
-    itemVariants: any;
+    itemVariants: ItemVariants;
 }
 
 export function RoutinePreview({ routine, handleRequestRoutine, isRequesting, itemVariants }: RoutinePreviewProps) {
@@ -33,7 +35,7 @@ export function RoutinePreview({ routine, handleRequestRoutine, isRequesting, it
                         </div>
 
                         <div className="space-y-2 mt-4">
-                            {routine.exercises?.slice(0, 3).map((exercise: any, i: number) => (
+                            {routine.exercises?.slice(0, 3).map((exercise: RoutineExercise, i: number) => (
                                 <div key={i} className="flex items-center gap-3 text-sm text-gray-400">
                                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                     <span className="flex-1 truncate">{exercise.name}</span>

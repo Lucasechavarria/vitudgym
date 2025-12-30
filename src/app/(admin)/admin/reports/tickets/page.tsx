@@ -9,7 +9,6 @@ import {
     AlertCircle,
     ChevronLeft,
     MessageSquare,
-    Filter,
     User,
     Mail,
     Search
@@ -56,7 +55,7 @@ export default function AdminTicketsPage() {
             if (!res.ok) throw new Error('Error al cargar tickets');
             const data = await res.json();
             setTickets(data);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Ocurrió un error al cargar los tickets');
         } finally {
             setLoading(false);
@@ -82,7 +81,7 @@ export default function AdminTicketsPage() {
             setSelectedTicket(null);
             setResponse('');
             fetchTickets();
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al actualizar el ticket');
         } finally {
             setUpdating(false);
@@ -136,8 +135,8 @@ export default function AdminTicketsPage() {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === f
-                                ? 'bg-purple-600 text-white shadow-lg'
-                                : 'text-gray-500 hover:text-white'
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'text-gray-500 hover:text-white'
                             }`}
                     >
                         {f === 'all' ? 'Todos' : STATUS_CONFIG[f as keyof typeof STATUS_CONFIG].label}

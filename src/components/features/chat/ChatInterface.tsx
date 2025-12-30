@@ -4,23 +4,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 
+import { ChatParticipant, ChatMessage } from '@/types/chat';
+
 interface ChatInterfaceProps {
-    currentUser: {
-        id: string;
-        role: string;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        [key: string]: any;
-    };
+    currentUser: ChatParticipant;
     initialRecipientId?: string;
 }
 
 export default function ChatInterface({ currentUser, initialRecipientId }: ChatInterfaceProps) {
     // const [supabase] = useState(() => createClientComponentClient()); // Removed
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [conversations, setConversations] = useState<any[]>([]);
+    const [conversations, setConversations] = useState<ChatParticipant[]>([]);
     const [selectedRecipient, setSelectedRecipient] = useState<string | null>(initialRecipientId || null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -85,8 +80,9 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                     filter: `receiver_id=eq.${currentUser.id}`, // Listen for incoming
                 },
                 (payload) => {
-                    if (payload.new.sender_id === selectedRecipient) {
-                        setMessages((current) => [...current, payload.new]);
+                    const newMessage = payload.new as ChatMessage;
+                    if (newMessage.sender_id === selectedRecipient) {
+                        setMessages((current) => [...current, newMessage]);
                     } else {
                         // Optional: Show notification dot for other conversations
                     }
@@ -139,7 +135,7 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
             setMessages((prev) => prev.filter(m => m.id !== tempId));
         } else {
             // Replace optimistic with real
-            setMessages((prev) => prev.map(m => m.id === tempId ? data : m));
+            setMessages((prev) => prev.map(m => m.id === tempId ? (data as ChatMessage) : m));
         }
     };
 

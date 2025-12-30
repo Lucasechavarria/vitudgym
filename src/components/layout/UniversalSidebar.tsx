@@ -106,8 +106,8 @@ export function UniversalSidebar({
                 ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
             `}
         >
-            {/* Logo */}
-            <div className="p-6 shrink-0">
+            {/* Logo & Close Button */}
+            <div className="p-6 shrink-0 flex justify-between items-center">
                 <Link href={navItems[0].href} className="block relative h-10 w-32">
                     <Image
                         src="/logos/Logo-Fondo-Negro.png"
@@ -118,6 +118,16 @@ export function UniversalSidebar({
                         sizes="128px"
                     />
                 </Link>
+                {/* Mobile Close Button */}
+                {isMobile && (
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="p-2 text-gray-400 hover:text-white transition-colors"
+                        aria-label="Cerrar menú"
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
 
             {/* Navigation */}

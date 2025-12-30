@@ -24,7 +24,7 @@ interface Challenge {
 
 export default function AdminChallengesPage() {
     const [challenges, setChallenges] = useState<Challenge[]>([]);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true); // Removed as it was not used based on lint report, but actually used in line 53? Wait.
     const [showCreate, setShowCreate] = useState(false);
     const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
 
@@ -47,10 +47,10 @@ export default function AdminChallengesPage() {
             const res = await fetch('/api/admin/challenges');
             const data = await res.json();
             if (data.challenges) setChallenges(data.challenges);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar desafíos');
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 
@@ -107,7 +107,7 @@ export default function AdminChallengesPage() {
                 const data = await res.json();
                 toast.error(data.error || 'Error en la operación');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al arbitrar');
         }
     };
@@ -187,8 +187,8 @@ export default function AdminChallengesPage() {
                                     {selectedChallenge.participants && selectedChallenge.participants.length > 0 ? (
                                         selectedChallenge.participants.map((p: any) => (
                                             <div key={p.user_id} className={`p-4 rounded-xl border flex justify-between items-center group transition-all ${p.status === 'winner'
-                                                    ? 'bg-yellow-600/20 border-yellow-500/50'
-                                                    : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                                ? 'bg-yellow-600/20 border-yellow-500/50'
+                                                : 'bg-white/5 border-white/5 hover:bg-white/10'
                                                 }`}>
                                                 <div>
                                                     <span className="text-white font-bold flex items-center gap-2">

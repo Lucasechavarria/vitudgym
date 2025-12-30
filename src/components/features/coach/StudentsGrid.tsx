@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase/client';
 import { StudentAction } from './StudentAction';
+import { SupabaseUserProfile } from '@/types/user';
 
 interface Student {
     id: string;
@@ -31,7 +32,8 @@ export default function StudentsGrid() {
                 const { data: profiles, error } = await supabase
                     .from('profiles')
                     .select('*')
-                    .or('role.eq.member,role.eq.user') as { data: any[]; error: any };
+                    .or('role.eq.member,role.eq.user')
+                    .returns<SupabaseUserProfile[]>();
 
                 if (error) throw error;
 

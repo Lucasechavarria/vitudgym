@@ -8,10 +8,12 @@ import {
     ResponsiveContainer
 } from 'recharts';
 
+import { EvolutionChartData, AttendanceChartData, ItemVariants } from '@/types/student-components';
+
 interface EvolutionChartsProps {
-    chartData: any[];
-    attendance: any[];
-    itemVariants: any;
+    chartData: EvolutionChartData[];
+    attendance: AttendanceChartData[];
+    itemVariants: ItemVariants;
 }
 
 export function EvolutionCharts({ chartData, attendance, itemVariants }: EvolutionChartsProps) {

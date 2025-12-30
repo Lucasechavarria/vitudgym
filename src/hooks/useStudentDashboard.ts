@@ -56,9 +56,10 @@ export function useStudentDashboard() {
 
             toast.success('¡Rutina generada por IA! Tu coach la revisará y aprobará pronto.');
             await fetchData();
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error requesting routine:', error);
-            toast.error(error.message || 'Error al procesar la solicitud.');
+            const errorMessage = error instanceof Error ? error.message : 'Error al procesar la solicitud.';
+            toast.error(errorMessage);
         } finally {
             setIsRequesting(false);
         }

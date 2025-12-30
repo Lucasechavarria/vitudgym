@@ -32,10 +32,11 @@ export async function POST(request: Request) {
             message: 'Peso registrado correctamente'
         });
 
-    } catch (error: any) {
-        console.error('Error registering weight:', error);
+    } catch (error) {
+        console.error('❌ Error logging weight:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al registrar peso';
         return NextResponse.json({
-            error: error.message || 'Error registering weight'
+            error: errorMessage
         }, { status: 500 });
     }
 }

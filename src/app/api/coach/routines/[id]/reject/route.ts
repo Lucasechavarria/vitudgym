@@ -34,10 +34,11 @@ export async function POST(
             message: 'Rutina rechazada correctamente'
         });
 
-    } catch (error: any) {
-        console.error('Error rejecting routine:', error);
+    } catch (error) {
+        console.error('❌ Error rejecting routine:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al rechazar rutina';
         return NextResponse.json({
-            error: error.message || 'Error rejecting routine'
+            error: errorMessage
         }, { status: 500 });
     }
 }

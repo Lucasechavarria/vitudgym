@@ -8,7 +8,6 @@ import {
     Edit2,
     Trash2,
     Search,
-    Filter,
     CheckCircle2,
     AlertTriangle,
     XCircle,
@@ -53,7 +52,7 @@ export default function AdminEquipmentPage() {
             if (!res.ok) throw new Error();
             const data = await res.json();
             setEquipment(data);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar el equipo');
         } finally {
             setLoading(false);
@@ -77,7 +76,7 @@ export default function AdminEquipmentPage() {
             setIsModalOpen(false);
             setEditingItem(null);
             fetchEquipment();
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al guardar el equipo');
         }
     };
@@ -89,7 +88,7 @@ export default function AdminEquipmentPage() {
             if (!res.ok) throw new Error();
             toast.success('Equipo eliminado');
             fetchEquipment();
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al eliminar');
         }
     };

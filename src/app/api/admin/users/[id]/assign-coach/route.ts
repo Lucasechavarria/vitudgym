@@ -25,8 +25,11 @@ export async function PUT(
 
         return NextResponse.json({ success: true, message: 'Coach asignado correctamente' });
 
-    } catch (error: any) {
-        console.error('Error assigning coach:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Error assigning coach:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error assigning coach';
+        return NextResponse.json({
+            error: errorMessage
+        }, { status: 500 });
     }
 }

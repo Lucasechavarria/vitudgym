@@ -40,8 +40,9 @@ export function CoachAttendanceWidget() {
             toast.success('¡Entrada registrada! Buena jornada.', { id: toastId });
             setStatus('checked-in');
             setActiveSession(data.attendance);
-        } catch (error: any) {
-            toast.error(error.message, { id: toastId });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Error al registrar entrada';
+            toast.error(message, { id: toastId });
         }
     };
 
@@ -58,8 +59,9 @@ export function CoachAttendanceWidget() {
             toast.success('¡Salida registrada! Descansa.', { id: toastId });
             setStatus('checked-out');
             setActiveSession(null);
-        } catch (error: any) {
-            toast.error(error.message, { id: toastId });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Error al registrar salida';
+            toast.error(message, { id: toastId });
         }
     };
 
@@ -133,8 +135,9 @@ export function CoachAttendanceWidget() {
                             if (!res.ok) throw new Error(data.error);
 
                             toast.success('Ausencia reportada al administrador.', { id: toastId });
-                        } catch (error: any) {
-                            toast.error(error.message, { id: toastId });
+                        } catch (error) {
+                            const message = error instanceof Error ? error.message : 'Error al reportar ausencia';
+                            toast.error(message, { id: toastId });
                         }
                     }}
                     className="w-full mt-3 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 font-medium rounded-xl transition-all text-xs"

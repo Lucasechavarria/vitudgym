@@ -337,16 +337,24 @@ IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después.
             message: 'Rutina generada exitosamente. Pendiente de aprobación del coach.'
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('AI Generation Error:', error);
+
+        // Capture specific error details for Sentry
+        const errorMessage = error instanceof Error ? error.message : 'Error generating routine';
+        const errorStack = error instanceof Error ? error.stack : undefined;
+
         Sentry.captureException(error, {
             extra: {
-                studentId: (await request.clone().json()).studentId,
+                studentId: (await request.clone().json().catch(() => ({}))).studentId,
+                errorMessage,
+                errorStack,
                 context: 'AI Routine Generation'
             }
         });
+
         return NextResponse.json({
-            error: error.message || 'Error generating routine'
+            error: errorMessage
         }, { status: 500 });
     }
 }

@@ -39,10 +39,11 @@ export async function GET(request: Request) {
             progress
         });
 
-    } catch (error: any) {
-        console.error('Error loading progress:', error);
+    } catch (error) {
+        console.error('❌ Error loading progress:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar progreso';
         return NextResponse.json({
-            error: error.message || 'Error loading progress'
+            error: errorMessage
         }, { status: 500 });
     }
 }

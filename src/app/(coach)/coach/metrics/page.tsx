@@ -2,39 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Line, Bar } from 'recharts';
-import { LineChart, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Line } from 'recharts';
+import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // Mock data for metrics
-const MOCK_STUDENT_METRICS = {
-    attendance: [
-        { month: 'Ene', rate: 85 },
-        { month: 'Feb', rate: 90 },
-        { month: 'Mar', rate: 88 },
-        { month: 'Abr', rate: 92 },
-        { month: 'May', rate: 87 },
-        { month: 'Jun', rate: 95 },
-    ],
-    performance: [
-        { exercise: 'Sentadilla', current: 100, target: 120 },
-        { exercise: 'Press Banca', current: 80, target: 90 },
-        { exercise: 'Peso Muerto', current: 120, target: 140 },
-        { exercise: 'Press Militar', current: 50, target: 60 },
-    ],
-    bodyMetrics: [
-        { week: 'S1', peso: 75, grasa: 18 },
-        { week: 'S2', peso: 74.5, grasa: 17.8 },
-        { week: 'S3', peso: 74, grasa: 17.5 },
-        { week: 'S4', peso: 73.5, grasa: 17.2 },
-        { week: 'S5', peso: 73, grasa: 17 },
-        { week: 'S6', peso: 72.5, grasa: 16.8 },
-    ],
-};
+// Mock data for metrics removed as it was unused
 
 export default function CoachMetricsPage() {
     const [viewMode, setViewMode] = useState<'individual' | 'group' | 'class'>('individual');
     const [selectedStudent, setSelectedStudent] = useState<string>('');
-    const [students, setStudents] = useState<any[]>([]);
+    const [students, setStudents] = useState<{ id: string, full_name: string }[]>([]);
     const [metrics, setMetrics] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -138,8 +115,8 @@ export default function CoachMetricsPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {isLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                        <div key={i} className="bg-[#1c1c1e]/60 border border-white/10 rounded-xl p-4 animate-pulse h-24" />
+                    Array(4).fill(0).map((_, _i) => (
+                        <div key={_i} className="bg-[#1c1c1e]/60 border border-white/10 rounded-xl p-4 animate-pulse h-24" />
                     ))
                 ) : (
                     [

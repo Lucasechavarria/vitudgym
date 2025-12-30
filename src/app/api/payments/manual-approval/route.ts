@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         // Obtener datos del request
         const { userId, amount, concept, notes } = await request.json();
 
-        // Validar datos
+        // Validaciones robustas
         if (!userId || !amount || !concept) {
             return NextResponse.json({
                 error: 'Missing required fields',
@@ -59,16 +59,41 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
+        // Validar que el monto sea válido
+        const numericAmount = Number(amount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            return NextResponse.json({
+                error: 'Invalid amount',
+                message: 'El monto debe ser un número positivo'
+            }, { status: 400 });
+        }
+
+        // Validar que el userId exista
+        const { data: userExists, error: userCheckError } = await supabase!
+            .from('profiles')
+            .select('id')
+            .eq('id', userId)
+            .single();
+
+        if (userCheckError || !userExists) {
+            return NextResponse.json({
+                error: 'User not found',
+                message: `Usuario con ID ${userId} no encontrado`
+            }, { status: 404 });
+        }
+
         // Crear registro de pago en Supabase
         const { data: payment, error: paymentError } = await supabase!
             .from('payments')
             .insert({
                 user_id: userId,
-                amount: Number(amount),
+                amount: numericAmount,
+                currency: 'ARS', // Siempre ARS para pagos manuales
                 concept,
                 notes: notes || '',
                 status: 'approved',
                 payment_method: 'cash',
+                payment_provider: 'manual',
                 approved_by: user!.id,
                 approved_at: new Date().toISOString()
             })
@@ -76,10 +101,11 @@ export async function POST(request: Request) {
             .single();
 
         if (paymentError) {
-            console.error('Error creating payment:', paymentError);
+            console.error('❌ Error creating payment:', paymentError);
             return NextResponse.json({
                 error: 'Payment creation failed',
-                message: paymentError.message
+                message: paymentError.message,
+                details: paymentError.details || 'Error al crear el registro de pago'
             }, { status: 500 });
         }
 
@@ -96,21 +122,33 @@ export async function POST(request: Request) {
             .eq('id', userId);
 
         if (profileError) {
-            console.error('Error updating profile:', profileError);
+            console.error('⚠️ Error updating profile:', profileError);
             // No fallar la operación si solo falla la actualización del perfil
+            // El pago ya fue registrado exitosamente
+        } else {
+            console.log('✅ Membresía activada para usuario:', userId);
         }
+
+        console.log('✅ Pago manual aprobado:', {
+            paymentId: payment.id,
+            userId,
+            amount: numericAmount,
+            approvedBy: user!.id
+        });
 
         return NextResponse.json({
             success: true,
             paymentId: payment.id,
-            message: 'Pago aprobado exitosamente'
+            message: 'Pago aprobado exitosamente',
+            membershipEndDate: membershipEndDate.toISOString()
         });
 
-    } catch (error: any) {
-        console.error('Error en aprobación manual de pago:', error);
+    } catch (error) {
+        console.error('❌ Error en aprobación manual de pago:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
         return NextResponse.json({
             error: 'Payment approval failed',
-            message: error.message || 'Error al procesar el pago'
+            message: errorMessage
         }, { status: 500 });
     }
 }
@@ -162,11 +200,12 @@ export async function GET(request: Request) {
             payments: payments || []
         });
 
-    } catch (error: any) {
-        console.error('Error al obtener pagos:', error);
+    } catch (error) {
+        console.error('❌ Error al obtener pagos:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al obtener pagos';
         return NextResponse.json({
             error: 'Failed to fetch payments',
-            message: error.message || 'Error al obtener pagos'
+            message: errorMessage
         }, { status: 500 });
     }
 }

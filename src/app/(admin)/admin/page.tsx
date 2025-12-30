@@ -1,6 +1,5 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 export default async function AdminDashboard() {
@@ -102,7 +101,7 @@ export default async function AdminDashboard() {
                     <h3 className="text-lg font-bold mb-4 text-white">Estado del Sistema</h3>
                     <div className="space-y-4">
                         <SystemStatus label="Base de Datos" status="Operational" color="bg-green-500" />
-                        <SystemStatus label="API IA (Gemini)" status={process.env.GEMINI_API_KEY ? "Active" : "Standby"} color={process.env.GEMINI_API_KEY ? "bg-green-500" : "bg-yellow-500"} />
+                        <SystemStatus label="API IA (Gemini)" status={globalThis.process?.env?.GEMINI_API_KEY ? "Active" : "Standby"} color={globalThis.process?.env?.GEMINI_API_KEY ? "bg-green-500" : "bg-yellow-500"} />
                         <SystemStatus label="Supabase" status="Operational" color="bg-green-500" />
                         <SystemStatus label="Autenticación" status="Operational" color="bg-green-500" />
                     </div>
@@ -123,7 +122,7 @@ export default async function AdminDashboard() {
     );
 }
 
-function StatCard({ title, value, trend, icon, delay }: any) {
+function StatCard({ title, value, trend, icon }: any) {
     return (
         <div className="bg-[#2c2c2e] p-6 rounded-2xl border border-[#3a3a3c] hover:border-orange-500/30 transition-all group cursor-pointer hover:scale-105 duration-300">
             <div className="flex justify-between items-start mb-4">

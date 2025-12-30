@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authService } from '@/services/auth.service';
 import toast from 'react-hot-toast';
 
 export default function ForgotPasswordPage() {
-    const router = useRouter();
+    // const router = useRouter(); // Eliminado ya que no se utiliza en esta página
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
@@ -20,9 +20,10 @@ export default function ForgotPasswordPage() {
             await authService.resetPassword(email);
             setEmailSent(true);
             toast.success('Email de recuperación enviado');
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error:', error);
-            toast.error(error.message || 'Error al enviar email de recuperación');
+            const errorMessage = error instanceof Error ? error.message : 'Error al enviar email de recuperación';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

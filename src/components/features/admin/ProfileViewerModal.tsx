@@ -3,10 +3,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { SupabaseUserProfile } from '@/types/user';
+
 interface ProfileViewerModalProps {
     isOpen: boolean;
     onClose: () => void;
-    user: any; // Using any for flexibility with joined data, ideally typed properly
+    user: SupabaseUserProfile | null;
 }
 
 export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileViewerModalProps) {

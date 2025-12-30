@@ -62,10 +62,11 @@ export async function GET(request: Request) {
             students: studentsWithDetails,
         });
 
-    } catch (error: any) {
-        console.error('Error loading students:', error);
+    } catch (error) {
+        console.error('❌ Error loading students:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar lista de alumnos';
         return NextResponse.json({
-            error: error.message || 'Error loading students'
+            error: errorMessage
         }, { status: 500 });
     }
 }

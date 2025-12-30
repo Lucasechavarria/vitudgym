@@ -85,10 +85,11 @@ export async function PUT(
             message: 'Rol actualizado correctamente'
         });
 
-    } catch (error: any) {
-        console.error('Error updating role:', error);
+    } catch (error) {
+        console.error('❌ Error updating role:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error updating role';
         return NextResponse.json({
-            error: error.message || 'Error updating role'
+            error: errorMessage
         }, { status: 500 });
     }
 }

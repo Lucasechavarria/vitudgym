@@ -51,10 +51,11 @@ export async function POST(
             message: 'Rutina aprobada correctamente'
         });
 
-    } catch (error: any) {
-        console.error('Error approving routine:', error);
+    } catch (error) {
+        console.error('❌ Error approving routine:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al aprobar rutina';
         return NextResponse.json({
-            error: error.message || 'Error approving routine'
+            error: errorMessage
         }, { status: 500 });
     }
 }

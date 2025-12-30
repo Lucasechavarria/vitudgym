@@ -58,10 +58,11 @@ export async function GET(request: Request) {
             routines: routinesWithCounts
         });
 
-    } catch (error: any) {
-        console.error('Error loading pending routines:', error);
+    } catch (error) {
+        console.error('❌ Error loading pending routines:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar rutinas pendientes';
         return NextResponse.json({
-            error: error.message || 'Error loading pending routines'
+            error: errorMessage
         }, { status: 500 });
     }
 }

@@ -40,14 +40,32 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { title, price, quantity = 1 } = body;
 
+        // Validaciones
+        const numericPrice = Number(price) || 15000;
+        const numericQuantity = Number(quantity);
+
+        if (isNaN(numericPrice) || numericPrice <= 0) {
+            return NextResponse.json({
+                error: 'Precio inv\u00e1lido',
+                message: 'El precio debe ser un n\u00famero positivo'
+            }, { status: 400 });
+        }
+
+        if (isNaN(numericQuantity) || numericQuantity <= 0) {
+            return NextResponse.json({
+                error: 'Cantidad inv\u00e1lida',
+                message: 'La cantidad debe ser un n\u00famero positivo'
+            }, { status: 400 });
+        }
+
         const result = await preference.create({
             body: {
                 items: [
                     {
                         id: 'monthly-subscription',
                         title: title || 'Cuota Mensual Virtud',
-                        quantity: Number(quantity),
-                        unit_price: Number(price) || 15000,
+                        quantity: numericQuantity,
+                        unit_price: numericPrice,
                         currency_id: 'ARS',
                     },
                 ],
@@ -60,9 +78,12 @@ export async function POST(request: Request) {
             }
         });
 
+        console.log('\u2705 Preferencia creada:', { id: result.id, amount: numericPrice * numericQuantity });
+
         return NextResponse.json({ id: result.id, init_point: result.init_point });
-    } catch (error: any) {
-        console.error('MercadoPago Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('\u274c MercadoPago Error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al crear preferencia';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authService } from '@/services/auth.service';
@@ -44,9 +44,10 @@ function ResetPasswordContent() {
             await authService.updatePassword(password);
             toast.success('Contraseña actualizada exitosamente');
             router.push('/login');
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error:', error);
-            toast.error(error.message || 'Error al actualizar contraseña');
+            const errorMessage = error instanceof Error ? error.message : 'Error al actualizar contraseña';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

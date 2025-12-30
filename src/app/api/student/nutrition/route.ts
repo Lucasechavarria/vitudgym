@@ -32,10 +32,11 @@ export async function GET(request: Request) {
             plan: plan || null
         });
 
-    } catch (error: any) {
-        console.error('Error loading nutrition plan:', error);
+    } catch (error) {
+        console.error('❌ Error loading nutrition plan:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar plan nutricional';
         return NextResponse.json({
-            error: error.message || 'Error loading nutrition plan'
+            error: errorMessage
         }, { status: 500 });
     }
 }

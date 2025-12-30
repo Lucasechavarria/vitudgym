@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Clock, Calendar as CalendarIcon, User } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface ScheduleItem {
@@ -50,7 +50,7 @@ const DAY_INDEX_MAP: Record<number, string> = {
 export default function AdminSchedulePage() {
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
     const [activities, setActivities] = useState<Activity[]>([]);
-    const [coaches, setCoaches] = useState<Coach[]>([]);
+    // const [coaches, setCoaches] = useState<Coach[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
@@ -87,7 +87,7 @@ export default function AdminSchedulePage() {
             // For now, let's just use the profiles if returned by activities or separate call.
             // I'll create a quick helper to fetch coaches if needed.
             // Actually, /api/admin/users is not standard yet. Let's assume empty for now or fix later.
-            setCoaches([]);
+            // setsCoaches([]); // Eliminar referencia a variable inexistente
 
             if (Array.isArray(scheduleData)) {
                 // Map the data structure to match ScheduleItem interface
@@ -105,7 +105,7 @@ export default function AdminSchedulePage() {
             }
             if (Array.isArray(activitiesData)) setActivities(activitiesData);
 
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error cargando datos');
         } finally {
             setLoading(false);
@@ -178,7 +178,7 @@ export default function AdminSchedulePage() {
             toast.success(editingItem ? 'Clase actualizada' : 'Clase creada');
             setIsModalOpen(false);
             fetchInitialData();
-        } catch (error) {
+        } catch (_error) {
             toast.error('Ocurrió un error');
         }
     };

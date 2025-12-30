@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
+import { ItemVariants } from '@/types/student-components';
+
 interface DashboardHeaderProps {
     gender: string | null;
-    itemVariants: any;
+    itemVariants: ItemVariants;
 }
 
 export function DashboardHeader({ gender, itemVariants }: DashboardHeaderProps) {

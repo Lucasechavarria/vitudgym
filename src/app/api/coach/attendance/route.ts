@@ -47,9 +47,12 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, attendance: data });
 
-    } catch (error: any) {
-        console.error('Check-in error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Check-in error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al registrar entrada';
+        return NextResponse.json({
+            error: errorMessage
+        }, { status: 500 });
     }
 }
 
@@ -95,9 +98,12 @@ export async function PUT(request: Request) {
 
         return NextResponse.json({ success: true, attendance: data });
 
-    } catch (error: any) {
-        console.error('Check-out error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Check-out error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al registrar salida';
+        return NextResponse.json({
+            error: errorMessage
+        }, { status: 500 });
     }
 }
 
@@ -131,9 +137,12 @@ export async function GET(request: Request) {
             activeSession: data?.find(s => s.check_out === null && !s.is_absent) || null
         });
 
-    } catch (error: any) {
-        console.error('Fetch attendance error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Fetch attendance error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al obtener asistencia';
+        return NextResponse.json({
+            error: errorMessage
+        }, { status: 500 });
     }
 }
 
@@ -173,8 +182,11 @@ export async function PATCH(request: Request) {
 
         return NextResponse.json({ success: true, absence: data });
 
-    } catch (error: any) {
-        console.error('Report absence error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Report absence error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al reportar ausencia';
+        return NextResponse.json({
+            error: errorMessage
+        }, { status: 500 });
     }
 }

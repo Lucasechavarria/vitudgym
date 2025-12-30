@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import type { ClassBooking } from '@/types/analytics';
 
 export async function GET() {
     try {
@@ -47,7 +48,8 @@ export async function GET() {
             .single();
 
         // Process Attendance Data for Chart
-        const attendanceByMonth = processAttendance(bookings || []);
+        const bookingsData: Pick<ClassBooking, 'date'>[] = bookings || [];
+        const attendanceByMonth = processAttendance(bookingsData);
 
         return NextResponse.json({
             progress: measurements || [],
@@ -59,21 +61,49 @@ export async function GET() {
         });
 
     } catch (error) {
-        console.error('Dashboard API Error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        console.error('❌ Dashboard API Error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar dashboard';
+        return NextResponse.json({
+            error: 'Internal Server Error',
+            message: errorMessage
+        }, { status: 500 });
     }
 }
 
-function processAttendance(bookings: any[]) {
-    // Implement logic to group bookings by month
+/**
+ * Procesa datos de asistencia y agrupa por mes
+ * @param bookings - Array de bookings (solo necesita date)
+ * @returns Array con conteo de asistencias por mes
+ */
+function processAttendance(bookings: Pick<ClassBooking, 'date'>[]): Array<{ month: string; rate: number }> {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const result = bookings.reduce((acc: any, booking: any) => {
+
+    // Validación de entrada
+    if (!Array.isArray(bookings)) {
+        console.warn('⚠️ processAttendance recibió datos inválidos');
+        return months.map(m => ({ month: m, rate: 0 }));
+    }
+
+    const result = bookings.reduce((acc: Record<string, number>, booking) => {
+        // Validar estructura del booking
+        if (!booking || !booking.date) {
+            console.warn('⚠️ Booking sin fecha:', booking);
+            return acc;
+        }
+
         const date = new Date(booking.date);
+
+        // Validar fecha válida
+        if (isNaN(date.getTime())) {
+            console.warn('⚠️ Fecha inválida en booking:', booking.date);
+            return acc;
+        }
+
         const month = months[date.getMonth()];
         if (!acc[month]) acc[month] = 0;
         acc[month]++;
         return acc;
     }, {});
 
-    return months.map(m => ({ month: m, rate: result[m] || 0 })); // Simplified rate logic, returns count for now
+    return months.map(m => ({ month: m, rate: result[m] || 0 }));
 }

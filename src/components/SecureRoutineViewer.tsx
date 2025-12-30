@@ -126,7 +126,7 @@ export function SecureRoutineViewer({ routineId, userId, children }: SecureRouti
         };
 
         // 5. Detectar intento de compartir
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        const handleBeforeUnload = (_e: BeforeUnloadEvent) => {
             // No mostramos mensaje, solo registramos
             logAccess('view_interrupted');
         };
@@ -142,7 +142,7 @@ export function SecureRoutineViewer({ routineId, userId, children }: SecureRouti
         };
 
         // 7. Detectar long-press (Android screenshot gesture)
-        let longPressTimer: NodeJS.Timeout;
+        let longPressTimer: ReturnType<typeof setTimeout>;
         const handleTouchStart = (e: TouchEvent) => {
             if (isMobileDevice) {
                 longPressTimer = setTimeout(() => {
@@ -229,10 +229,10 @@ export function SecureRoutineViewer({ routineId, userId, children }: SecureRouti
         window.addEventListener('beforeunload', handleBeforeUnload);
 
         // Mobile-specific listeners
-        let repeatedViewsInterval: NodeJS.Timeout | undefined;
+        let repeatedViewsInterval: ReturnType<typeof setInterval> | undefined;
         if (isMobileDevice) {
             window.addEventListener('orientationchange', handleOrientationChange);
-            document.addEventListener('touchstart', handleTouchStart as unknown as EventListener);
+            document.addEventListener('touchstart', handleTouchStart as any);
             document.addEventListener('touchend', handleTouchEnd);
 
             // Check repeated views every 30 seconds
@@ -257,8 +257,9 @@ export function SecureRoutineViewer({ routineId, userId, children }: SecureRouti
             // Mobile cleanup
             if (isMobileDevice) {
                 window.removeEventListener('orientationchange', handleOrientationChange);
-                document.removeEventListener('touchstart', handleTouchStart as unknown as EventListener);
+                document.removeEventListener('touchstart', handleTouchStart as any);
                 document.removeEventListener('touchend', handleTouchEnd);
+                if (repeatedViewsInterval) clearInterval(repeatedViewsInterval);
             }
         };
     }, [routineId, userId]);

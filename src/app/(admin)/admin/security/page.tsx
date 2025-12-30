@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Line, Pie } from 'recharts';
 import toast from 'react-hot-toast';
 
 interface SecurityAlert {
@@ -212,8 +211,8 @@ export default function SecurityDashboardPage() {
                         <button
                             onClick={() => setFilter('all')}
                             className={`px-4 py-2 rounded-lg transition-colors ${filter === 'all'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                 }`}
                         >
                             Todas ({alerts.length})
@@ -221,8 +220,8 @@ export default function SecurityDashboardPage() {
                         <button
                             onClick={() => setFilter('critical')}
                             className={`px-4 py-2 rounded-lg transition-colors ${filter === 'critical'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                 }`}
                         >
                             Críticas ({alerts.filter(a => a.severity === 'critical').length})
@@ -230,8 +229,8 @@ export default function SecurityDashboardPage() {
                         <button
                             onClick={() => setFilter('high')}
                             className={`px-4 py-2 rounded-lg transition-colors ${filter === 'high'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                 }`}
                         >
                             Altas ({alerts.filter(a => a.severity === 'high' || a.severity === 'critical').length})
@@ -239,8 +238,8 @@ export default function SecurityDashboardPage() {
                         <button
                             onClick={() => setFilter('unresolved')}
                             className={`px-4 py-2 rounded-lg transition-colors ${filter === 'unresolved'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                 }`}
                         >
                             Sin Resolver ({alerts.filter(a => !a.resolved).length})
@@ -296,9 +295,9 @@ export default function SecurityDashboardPage() {
                                 {alert.details && (
                                     <div className="bg-gray-700/50 rounded p-3 mb-4">
                                         <div className="text-xs text-gray-400 mb-1">Detalles:</div>
-                                        <pre className="text-xs text-gray-300 overflow-x-auto">
+                                        <div className="text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap">
                                             {JSON.stringify(alert.details, null, 2)}
-                                        </pre>
+                                        </div>
                                     </div>
                                 )}
 

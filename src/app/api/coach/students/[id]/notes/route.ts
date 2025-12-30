@@ -36,10 +36,11 @@ export async function PUT(
             message: 'Notas actualizadas correctamente'
         });
 
-    } catch (error: any) {
-        console.error('Error updating notes:', error);
+    } catch (error) {
+        console.error('❌ Error updating notes:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al actualizar notas';
         return NextResponse.json({
-            error: error.message || 'Error updating notes'
+            error: errorMessage
         }, { status: 500 });
     }
 }

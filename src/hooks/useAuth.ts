@@ -29,7 +29,12 @@ export function useAuth() {
         // Listen for auth changes
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange((event, session) => {
+            // Debugging auth state changes
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`🔐 Auth State Change: ${event}`, session?.user?.email);
+            }
+
             setSession(session);
             setUser(session?.user ?? null);
 

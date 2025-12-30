@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TRAINING_GOALS } from '@/lib/constants/gym';
+import { TRAINING_GOALS, GYM_EQUIPMENT } from '@/lib/constants/gym';
 
 /**
  * RoutineGenerator Component
@@ -30,6 +30,8 @@ interface Student {
     name?: string;
     email: string;
     role?: string;
+    medical_info?: any; // JSONB from DB
+    // Falta tipado estricto pero 'any' aquí es seguro temporalmente para pasar al backend
 }
 
 export default function RoutineGenerator({ initialTemplate }: { initialTemplate?: string | null } = {}) {
@@ -44,6 +46,20 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
     const [studentsError, setStudentsError] = useState<string | null>(null);
     const [includeNutrition, setIncludeNutrition] = useState(true);
     const [nutritionPlan, setNutritionPlan] = useState<any | null>(null);
+
+    // Initial Template Effect
+    useEffect(() => {
+        if (initialTemplate) {
+            // Check if matches a goal
+            const matchedGoal = TRAINING_GOALS.find(g => g.toLowerCase() === initialTemplate.toLowerCase());
+            if (matchedGoal) {
+                setGoal(matchedGoal);
+            } else {
+                // Otherwise use as notes pre-fill
+                setCoachNotes(prev => prev ? `${prev}\n${initialTemplate}` : initialTemplate);
+            }
+        }
+    }, [initialTemplate]);
 
     // Fetch real students from Supabase
     useEffect(() => {
@@ -85,6 +101,8 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
         fetchStudents();
     }, []);
 
+    const selectedStudentData = students.find(s => s.id === selectedStudent);
+
     const generate = async () => {
         if (!selectedStudent) {
             alert('Por favor selecciona un alumno');
@@ -102,9 +120,11 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 },
                 body: JSON.stringify({
                     studentId: selectedStudent,
+                    studentProfile: selectedStudentData, // Send full profile with medical info
                     goal,
                     coachNotes,
-                    includeNutrition
+                    includeNutrition,
+                    gymInventory: GYM_EQUIPMENT
                 })
             });
 
@@ -160,7 +180,6 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
         }
     };
 
-    const selectedStudentData = students.find(s => s.id === selectedStudent);
 
     return (
         <div className="space-y-6">

@@ -105,9 +105,10 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 router.push('/dashboard');
             }
 
-        } catch (error: any) {
-            console.error('Error saving profile:', error);
-            toast.error("Error al guardar la ficha: " + error.message);
+        } catch (error) {
+            console.error('❌ Error saving profile:', error);
+            const message = error instanceof Error ? error.message : 'Error desconocido al guardar';
+            toast.error("Error al guardar la ficha: " + message);
         } finally {
             setIsSubmitting(false);
         }
@@ -191,15 +192,24 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 </div>
             </div>
 
-            {/* Conditional input handled by checking 'medicalActive' if possible, or just plain input */}
-            <div className="mt-2">
-                <label className="block text-sm text-gray-400 mb-1">¿Cual?</label>
-                <input
-                    {...register('medical.activity_details')}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
-                    placeholder="Especifique si respondió SI"
-                />
-            </div>
+            {/* Conditional input handled by checking 'medicalActive' */}
+            <AnimatePresence>
+                {String(medicalActive) === 'true' && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-2 overflow-hidden"
+                    >
+                        <label className="block text-sm text-gray-400 mb-1">¿Cual?</label>
+                        <input
+                            {...register('medical.activity_details', { required: 'Especifique la actividad' })}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
+                            placeholder="Ej: Running, Natación, Crossfit"
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>

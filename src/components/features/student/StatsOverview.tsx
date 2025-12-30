@@ -11,9 +11,11 @@ interface Stat {
     color: string;
 }
 
+import { ItemVariants } from '@/types/student-components';
+
 interface StatsOverviewProps {
     stats: Stat[];
-    itemVariants: any;
+    itemVariants: ItemVariants;
 }
 
 export function StatsOverview({ stats, itemVariants }: StatsOverviewProps) {

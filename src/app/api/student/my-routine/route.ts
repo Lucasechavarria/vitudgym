@@ -60,10 +60,11 @@ export async function GET(request: Request) {
             userId: user.id
         });
 
-    } catch (error: any) {
-        console.error('Error loading routine:', error);
+    } catch (error) {
+        console.error('❌ Error loading routine:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar rutina';
         return NextResponse.json({
-            error: error.message || 'Error loading routine'
+            error: errorMessage
         }, { status: 500 });
     }
 }

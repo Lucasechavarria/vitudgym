@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
+import type { MercadoPagoPayment, MercadoPagoWebhookNotification } from '@/types/mercadopago';
 
 /**
  * POST /api/payments/webhook
@@ -88,20 +89,35 @@ export async function POST(request: Request) {
             message: 'Webhook procesado correctamente'
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('❌ Error procesando webhook:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido procesando webhook';
+        logger.error('Error en webhook de MercadoPago', { error: errorMessage });
         return NextResponse.json({
-            error: error.message
+            error: errorMessage
         }, { status: 500 });
     }
 }
 
 /**
  * Maneja pagos aprobados
+ * @param payment - Objeto de pago de MercadoPago
+ * @param userId - ID del usuario que realizó el pago
  */
-async function handleApprovedPayment(payment: any, userId: string) {
+async function handleApprovedPayment(payment: MercadoPagoPayment, userId: string) {
     try {
         const supabase = await createClient();
+
+        // Validaciones críticas antes de procesar
+        if (!payment.id) {
+            throw new Error('Payment ID es requerido');
+        }
+        if (!payment.transaction_amount || payment.transaction_amount <= 0) {
+            throw new Error('Monto de transacción inválido');
+        }
+        if (!userId) {
+            throw new Error('User ID es requerido para procesar el pago');
+        }
 
         // Guardar pago en Supabase
         const { error: paymentError } = await supabase
@@ -122,45 +138,70 @@ async function handleApprovedPayment(payment: any, userId: string) {
                     status_detail: payment.status_detail,
                     date_approved: payment.date_approved,
                     money_release_date: payment.money_release_date,
+                    payer_email: payment.payer?.email,
                 }
             });
 
         if (paymentError) {
-            console.error('Error guardando pago aprobado:', paymentError);
-            throw paymentError;
+            logger.error('Error guardando pago aprobado en BD', {
+                error: paymentError,
+                paymentId: payment.id,
+                userId
+            });
+            throw new Error(`Error en base de datos: ${paymentError.message}`);
         }
 
         // Actualizar usuario como activo (membresía por 30 días)
-        if (userId) {
-            const membershipEndDate = new Date();
-            membershipEndDate.setDate(membershipEndDate.getDate() + 30);
+        const membershipEndDate = new Date();
+        membershipEndDate.setDate(membershipEndDate.getDate() + 30);
 
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .update({
-                    membership_status: 'active',
-                    membership_end_date: membershipEndDate.toISOString()
-                })
-                .eq('id', userId);
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+                membership_status: 'active',
+                membership_end_date: membershipEndDate.toISOString()
+            })
+            .eq('id', userId);
 
-            if (profileError) {
-                logger.error('Error actualizando perfil', { error: profileError });
-            }
+        if (profileError) {
+            logger.error('Error actualizando perfil de usuario', {
+                error: profileError,
+                userId,
+                paymentId: payment.id
+            });
+            // No lanzamos error aquí porque el pago ya se guardó exitosamente
         }
 
-        logger.info('Pago aprobado procesado', { paymentId: payment.id });
+        logger.info('✅ Pago aprobado procesado exitosamente', {
+            paymentId: payment.id,
+            userId,
+            amount: payment.transaction_amount,
+            currency: payment.currency_id
+        });
     } catch (error) {
-        logger.error('Error guardando pago aprobado', { error });
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        logger.error('❌ Error procesando pago aprobado', {
+            error: errorMessage,
+            paymentId: payment.id,
+            userId
+        });
         throw error;
     }
 }
 
 /**
- * Maneja pagos pendientes (transferencias bancarias, etc.)
+ * Maneja pagos pendientes (transferencias bancarias, Rapipago, etc.)
+ * @param payment - Objeto de pago de MercadoPago
+ * @param userId - ID del usuario que realizó el pago
  */
-async function handlePendingPayment(payment: any, userId: string) {
+async function handlePendingPayment(payment: MercadoPagoPayment, userId: string) {
     try {
         const supabase = await createClient();
+
+        // Validaciones
+        if (!payment.id || !userId) {
+            throw new Error('Payment ID y User ID son requeridos');
+        }
 
         // Guardar pago pendiente
         const { error: paymentError } = await supabase
@@ -180,29 +221,51 @@ async function handlePendingPayment(payment: any, userId: string) {
                     payment_type_id: payment.payment_type_id,
                     status_detail: payment.status_detail,
                     date_created: payment.date_created,
+                    payer_email: payment.payer?.email,
                 }
             });
 
         if (paymentError) {
-            logger.error('Error guardando pago pendiente', { error: paymentError });
-            throw paymentError;
+            logger.error('Error guardando pago pendiente en BD', {
+                error: paymentError,
+                paymentId: payment.id,
+                userId
+            });
+            throw new Error(`Error en base de datos: ${paymentError.message}`);
         }
 
-        logger.info('Pago pendiente procesado', { paymentId: payment.id });
+        logger.info('⏳ Pago pendiente registrado', {
+            paymentId: payment.id,
+            userId,
+            paymentMethod: payment.payment_method_id,
+            statusDetail: payment.status_detail
+        });
     } catch (error) {
-        logger.error('Error guardando pago pendiente', { error });
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        logger.error('❌ Error procesando pago pendiente', {
+            error: errorMessage,
+            paymentId: payment.id,
+            userId
+        });
         throw error;
     }
 }
 
 /**
  * Maneja pagos rechazados
+ * @param payment - Objeto de pago de MercadoPago
+ * @param userId - ID del usuario que realizó el pago
  */
-async function handleRejectedPayment(payment: any, userId: string) {
+async function handleRejectedPayment(payment: MercadoPagoPayment, userId: string) {
     try {
         const supabase = await createClient();
 
-        // Guardar pago rechazado
+        // Validaciones
+        if (!payment.id || !userId) {
+            throw new Error('Payment ID y User ID son requeridos');
+        }
+
+        // Guardar pago rechazado para auditoría
         const { error: paymentError } = await supabase
             .from('payments')
             .upsert({
@@ -220,17 +283,33 @@ async function handleRejectedPayment(payment: any, userId: string) {
                     payment_type_id: payment.payment_type_id,
                     status_detail: payment.status_detail,
                     date_created: payment.date_created,
+                    payer_email: payment.payer?.email,
+                    rejection_reason: payment.status_detail // Importante para análisis
                 }
             });
 
         if (paymentError) {
-            logger.error('Error guardando pago rechazado', { error: paymentError });
-            throw paymentError;
+            logger.error('Error guardando pago rechazado en BD', {
+                error: paymentError,
+                paymentId: payment.id,
+                userId
+            });
+            throw new Error(`Error en base de datos: ${paymentError.message}`);
         }
 
-        logger.info('Pago rechazado procesado', { paymentId: payment.id });
+        logger.warn('❌ Pago rechazado registrado', {
+            paymentId: payment.id,
+            userId,
+            statusDetail: payment.status_detail,
+            paymentMethod: payment.payment_method_id
+        });
     } catch (error) {
-        logger.error('Error guardando pago rechazado', { error });
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        logger.error('❌ Error procesando pago rechazado', {
+            error: errorMessage,
+            paymentId: payment.id,
+            userId
+        });
         throw error;
     }
 }

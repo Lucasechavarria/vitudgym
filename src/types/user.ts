@@ -30,3 +30,28 @@ export interface MedicalHistory {
     medicacion?: string;
     restricciones?: string;
 }
+
+// --- Supabase & Admin Types ---
+
+export interface SupabaseUserProfile {
+    id: string;
+    full_name: string | null;
+    email: string;
+    role: UserRole;
+    avatar_url?: string | null;
+    phone?: string | null;
+    birth_date?: string | null;
+    gender?: string | null;
+    medical_info?: any | null;
+    waiver_accepted?: boolean;
+    membership_status?: 'active' | 'inactive' | 'pending' | 'expired';
+    membership_end_date?: string | null;
+    created_at?: string;
+    [key: string]: any; // Allow extra fields
+}
+
+export interface AdminUserListResponse extends SupabaseUserProfile {
+    name: string;
+    membershipStatus: string;
+    membershipEnds?: string | null;
+}

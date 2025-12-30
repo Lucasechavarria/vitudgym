@@ -163,7 +163,7 @@ export default function AdminReportsPage() {
                                     stroke="#6b7280"
                                     axisLine={false}
                                     tickLine={false}
-                                    tickFormatter={(value: any) => `$${value / 1000}k`}
+                                    tickFormatter={(value: number) => `$${value / 1000}k`}
                                 />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
@@ -224,7 +224,16 @@ export default function AdminReportsPage() {
     );
 }
 
-function MetricCard({ title, value, trend, isPositive, icon, color }: any) {
+interface MetricCardProps {
+    title: string;
+    value: string | number;
+    trend: string;
+    isPositive: boolean;
+    icon: React.ReactNode;
+    color: string;
+}
+
+function MetricCard({ title, value, trend, isPositive, icon, color }: MetricCardProps) {
     return (
         <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/5 p-6 rounded-2xl group hover:border-white/10 transition-all cursor-default">
             <div className="flex justify-between items-start mb-4">

@@ -13,7 +13,9 @@ export async function GET(request: Request) {
             .order('created_at', { ascending: false });
 
         return NextResponse.json({ success: true, payments: payments || [] });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Error fetching payments:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar pagos';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

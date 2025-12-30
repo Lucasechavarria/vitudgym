@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface ManualPaymentFormProps {
@@ -134,8 +134,8 @@ export default function ManualPaymentForm({ onSuccess }: ManualPaymentFormProps)
                     whileHover={{ scale: loading ? 1 : 1.02 }}
                     whileTap={{ scale: loading ? 1 : 0.98 }}
                     className={`w-full py-4 rounded-xl font-bold text-lg ${loading
-                            ? 'bg-gray-700 cursor-not-allowed text-gray-400'
-                            : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500'
+                        ? 'bg-gray-700 cursor-not-allowed text-gray-400'
+                        : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500'
                         }`}
                 >
                     {loading ? '⏳ Procesando...' : '✅ Aprobar Pago'}

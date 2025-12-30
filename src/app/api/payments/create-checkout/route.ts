@@ -18,11 +18,47 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { userId, userEmail, title, price, quantity = 1 } = body;
 
-        // Validar datos
+        // Validaciones robustas
         if (!userId || !userEmail || !title || !price) {
             return NextResponse.json({
                 error: 'Faltan datos requeridos: userId, userEmail, title, price'
             }, { status: 400 });
+        }
+
+        // Validar formato de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(userEmail)) {
+            return NextResponse.json({
+                error: 'Email inv\u00e1lido',
+                message: 'Por favor proporciona un email v\u00e1lido'
+            }, { status: 400 });
+        }
+
+        // Validar precio
+        const numericPrice = Number(price);
+        const numericQuantity = Number(quantity);
+
+        if (isNaN(numericPrice) || numericPrice <= 0) {
+            return NextResponse.json({
+                error: 'Precio inv\u00e1lido',
+                message: 'El precio debe ser un n\u00famero positivo'
+            }, { status: 400 });
+        }
+
+        if (isNaN(numericQuantity) || numericQuantity <= 0) {
+            return NextResponse.json({
+                error: 'Cantidad inv\u00e1lida',
+                message: 'La cantidad debe ser un n\u00famero positivo'
+            }, { status: 400 });
+        }
+
+        // Validar que el access token est\u00e9 configurado
+        if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
+            console.error('\u274c MERCADOPAGO_ACCESS_TOKEN no configurado');
+            return NextResponse.json({
+                error: 'Configuraci\u00f3n de pago no disponible',
+                message: 'El sistema de pagos no est\u00e1 configurado correctamente'
+            }, { status: 503 });
         }
 
         // Configurar cliente de MercadoPago
@@ -42,8 +78,8 @@ export async function POST(request: Request) {
                     {
                         id: `membership-${userId}`,
                         title: title,
-                        quantity: Number(quantity),
-                        unit_price: Number(price),
+                        quantity: numericQuantity,
+                        unit_price: numericPrice,
                         currency_id: 'ARS',
                     },
                 ],
@@ -72,6 +108,12 @@ export async function POST(request: Request) {
             }
         });
 
+        console.log('\u2705 Checkout creado exitosamente:', {
+            preferenceId: result.id,
+            userId,
+            amount: numericPrice * numericQuantity
+        });
+
         return NextResponse.json({
             success: true,
             init_point: result.init_point,
@@ -81,11 +123,21 @@ export async function POST(request: Request) {
             sandbox_init_point: result.sandbox_init_point
         });
 
-    } catch (error: any) {
-        console.error('Error creando checkout de MercadoPago:', error);
+    } catch (error) {
+        console.error('\u274c Error creando checkout de MercadoPago:', error);
+
+        // Extraer mensaje de error de forma segura
+        let errorMessage = 'Error al crear checkout';
+        let errorDetails = null;
+
+        if (error instanceof Error) {
+            errorMessage = error.message;
+            errorDetails = (error as any).cause || null;
+        }
+
         return NextResponse.json({
-            error: error.message || 'Error al crear checkout',
-            details: error.cause || null
+            error: errorMessage,
+            details: errorDetails
         }, { status: 500 });
     }
 }
@@ -109,6 +161,14 @@ export async function GET(request: Request) {
             }, { status: 400 });
         }
 
+        // Validar que el access token est\u00e9 configurado
+        if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
+            console.error('\u274c MERCADOPAGO_ACCESS_TOKEN no configurado');
+            return NextResponse.json({
+                error: 'Configuraci\u00f3n de pago no disponible'
+            }, { status: 503 });
+        }
+
         // Consultar pago en MercadoPago
         const response = await fetch(
             `https://api.mercadopago.com/v1/payments/${paymentId}`,
@@ -119,6 +179,16 @@ export async function GET(request: Request) {
             }
         );
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('\u274c Error de MercadoPago API:', errorData);
+            return NextResponse.json({
+                error: 'Error consultando pago',
+                message: errorData.message || 'No se pudo obtener informaci\u00f3n del pago',
+                status: response.status
+            }, { status: response.status });
+        }
+
         const payment = await response.json();
 
         return NextResponse.json({
@@ -126,10 +196,11 @@ export async function GET(request: Request) {
             payment
         });
 
-    } catch (error: any) {
-        console.error('Error obteniendo pago:', error);
+    } catch (error) {
+        console.error('\u274c Error obteniendo pago:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error al obtener pago';
         return NextResponse.json({
-            error: error.message || 'Error al obtener pago'
+            error: errorMessage
         }, { status: 500 });
     }
 }

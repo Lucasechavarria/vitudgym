@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Save, Clock, Info } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Clock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,7 +38,7 @@ export default function AdminActivitiesPage() {
             const res = await fetch('/api/admin/activities');
             const data = await res.json();
             if (Array.isArray(data)) setActivities(data);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar actividades');
         } finally {
             setLoading(false);
@@ -100,7 +100,7 @@ export default function AdminActivitiesPage() {
 
             toast.success('Actividad eliminada');
             fetchActivities();
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al eliminar');
         }
     };

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
+import type { SupabaseUserProfile } from '@/types/user.ts';
 
 /**
  * GET /api/admin/users/list
@@ -25,8 +26,9 @@ export async function GET(request: Request) {
         if (dbError) throw dbError;
 
         // Formatear respuesta
-        const formattedUsers = users.map((u: any) => ({
-            ...u, // Include ALL profile fields (medical_info, etc.)
+        // Formatear respuesta con tipos seguros
+        const formattedUsers = (users as SupabaseUserProfile[]).map(u => ({
+            ...u, // Include ALL profile fields
             id: u.id,
             name: u.full_name || 'Sin Nombre',
             email: u.email,
@@ -37,8 +39,9 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ users: formattedUsers });
 
-    } catch (error: any) {
-        console.error('Error fetching users:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('❌ Error fetching users:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido al obtener usuarios';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

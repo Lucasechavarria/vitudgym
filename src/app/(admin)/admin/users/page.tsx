@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
 import ProfileViewerModal from '@/components/features/admin/ProfileViewerModal';
@@ -41,8 +41,8 @@ export default function UsersPage() {
             if (data.coaches) {
                 setCoaches(data.coaches);
             }
-        } catch (error) {
-            console.error(error);
+        } catch (_error) {
+            console.error(_error);
         }
     };
 
@@ -53,8 +53,8 @@ export default function UsersPage() {
             if (data.users) {
                 setUsers(data.users);
             }
-        } catch (error) {
-            console.error(error);
+        } catch (_error) {
+            console.error(_error);
             toast.error('Error cargando usuarios');
         }
     };

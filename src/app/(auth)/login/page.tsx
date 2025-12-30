@@ -9,7 +9,7 @@ import Image from 'next/image';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  // const router = useRouter(); // Eliminado ya que no se utiliza en esta página
 
   const handleLogin = async () => {
     setIsLoading(true);
