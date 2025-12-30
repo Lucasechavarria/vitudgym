@@ -38,6 +38,17 @@ jest.mock('mercadopago', () => ({
 }));
 
 describe('Payments API Routes', () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+        jest.resetModules();
+        process.env = { ...originalEnv, MERCADOPAGO_ACCESS_TOKEN: 'TEST_TOKEN_123' };
+    });
+
+    afterEach(() => {
+        process.env = originalEnv;
+    });
+
     describe('POST /api/payments/create-checkout', () => {
         it('should create checkout session successfully', async () => {
             const request = new NextRequest('http://localhost:3000/api/payments/create-checkout', {

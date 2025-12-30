@@ -4,16 +4,15 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
 import ProfileViewerModal from '@/components/features/admin/ProfileViewerModal';
+import { SupabaseUserProfile } from '@/types/user';
 
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
+// Extend the shared type to include any frontend-specific fields if needed, 
+// or just use it directly. The API returns 'name' as a convenience alias for 'full_name'.
+interface User extends SupabaseUserProfile {
+    name: string; // API sends this
     membershipStatus: string;
     membershipEnds: string | null;
-    assigned_coach_id?: string;
-    [key: string]: any; // Allow other profile fields
+    items?: any[]; // For older types compatibility if needed
 }
 
 interface Coach {
@@ -72,7 +71,8 @@ export default function UsersPage() {
             if (!response.ok) throw new Error(data.error);
 
             toast.success(`Rol actualizado a ${newRole}`);
-            setUsers(users.map(u => u.id === uid ? { ...u, role: newRole } : u));
+            // Cast newRole to specific UserRole via any to avoid complex TS validation here
+            setUsers(users.map(u => u.id === uid ? { ...u, role: newRole as any } : u));
         } catch (error: any) {
             toast.error('Error al actualizar rol: ' + error.message);
         } finally {
