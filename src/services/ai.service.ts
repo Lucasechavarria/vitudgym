@@ -127,7 +127,7 @@ FORMATO DE RESPUESTA (JSON estricto):
     const g = goal.toLowerCase();
     if (g.includes('rehab') || g.includes('salud') || g.includes('lesión') || g.includes('dolor')) return AI_PROMPT_TEMPLATES.REHAB;
     if (g.includes('fuerza') || g.includes('músculo') || g.includes('hipertrofia') || g.includes('volumen')) return AI_PROMPT_TEMPLATES.HYPERTROPHY;
-    return AI_PROMPT_TEMPLATES.WELLNESS;
+    return AI_PROMPT_TEMPLATES.BEGINNER;
   }
   /**
    * Genera una respuesta de chat manteniendo el contexto
