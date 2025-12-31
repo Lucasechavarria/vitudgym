@@ -1,17 +1,17 @@
 
 import { model, genAI } from '@/lib/config/gemini';
-import { GYM_EQUIPMENT, MOCK_STUDENTS } from '@/lib/constants';
+import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
 
 /**
- * Parámetros para generar una rutina
+ * Parámetros para generar una rutina mejorada
  */
-export interface RoutineParams {
-  /** ID del alumno en Firestore o 'demo_user' para testing */
-  studentId: string;
-  /** Objetivo del entrenamiento */
-  goal: string;
-  /** Notas adicionales del coach (opcional) */
+export interface RoutineGenerationContext {
+  studentProfile: any;
+  userGoal: any;
+  gymEquipment: any[];
   coachNotes?: string;
+  templateKey?: AITemplateKey;
+  includeNutrition?: boolean;
 }
 
 /**
@@ -20,40 +20,22 @@ export interface RoutineParams {
 export interface Routine {
   id?: string;
   routineName: string;
+  durationWeeks: number;
+  medicalConsiderations: string;
   motivationalQuote: string;
-  duration: string;
-  medicalConsiderations?: string;
-  warmup: Exercise[];
-  mainWorkout: WorkoutExercise[];
-  cooldown: Exercise[];
-  createdAt?: Date;
-  createdBy?: string;
-  assignedTo?: string;
-}
-
-export interface Exercise {
-  exercise: string;
-  duration: string;
-  notes: string;
-}
-
-export interface WorkoutExercise {
-  name: string;
-  sets: number;
-  reps: string;
-  rest: string;
-  equipment: string;
-  notes: string;
+  weeklySchedule: any[];
+  nutritionPlan?: any;
 }
 
 /**
  * Servicio de IA para generación de rutinas personalizadas
  * 
- * Utiliza Google Gemini para crear rutinas de entrenamiento.
+ * Utiliza Google Gemini para crear rutinas de entrenamiento integrando
+ * datos de salud, objetivos e inventario del gimnasio.
  */
 export class AIService {
   /**
-   * Genera una rutina desde un prompt personalizado (para API mejorada)
+   * Genera una rutina desde un prompt personalizado
    * 
    * @param prompt - Prompt completo para Gemini
    * @returns Rutina completa parseada desde JSON
@@ -66,112 +48,86 @@ export class AIService {
     let text = response.text();
 
     // Limpiar respuesta (remover markdown code blocks si existen)
-    text = text.replace(/```json\n ? /g, '').replace(/```\n?/g, '').trim();
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-    // Parsear respuesta JSON
-    const routine = JSON.parse(text);
-
-    return routine;
-  }
-
-  /**
-   * Genera una rutina basada en parámetros o un prompt directo.
-   * Para compatibilidad con los tests y la API.
-   */
-  async generateRoutine(input: RoutineParams | string): Promise<any> {
-    if (typeof input === 'string') {
-      return this.generateRoutineFromPrompt(input);
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("Failed to parse AI response:", text);
+      throw new Error("La respuesta de la IA no es un JSON válido.");
     }
-
-    // Si es un objeto RoutineParams, construir el prompt
-    const studentContext = this.getStudentContext(input.studentId);
-    const medicalHistory = this.getMedicalHistory(input.studentId);
-    const prompt = this.buildPrompt(studentContext, medicalHistory, input.coachNotes);
-
-    return this.generateRoutineFromPrompt(prompt);
   }
 
   /**
-   * Obtiene información básica del alumno para el contexto de la IA.
-   * Por ahora usa MOCK_STUDENTS, debería usar Supabase en producción.
+   * Construye el prompt para Gemini basado en el contexto real del alumno
    */
-  private getStudentContext(studentId: string): string {
-    const student = MOCK_STUDENTS[studentId as keyof typeof MOCK_STUDENTS];
-    if (!student) return "Alumno: Demo (sin historial previo)";
+  buildPrompt(context: RoutineGenerationContext): string {
+    const { studentProfile, userGoal, gymEquipment, coachNotes, templateKey, includeNutrition } = context;
 
-    return `Alumno: ${student.nombre}, Edad: ${student.edad} años, Peso: ${student.peso} kg, Experiencia: ${student.experiencia}`;
-  }
+    // Seleccionar plantilla según el objetivo o key
+    const template = templateKey ? AI_PROMPT_TEMPLATES[templateKey] : this.inferTemplate(userGoal.primary_goal);
 
-  /**
-   * Obtiene el historial médico del alumno.
-   */
-  private getMedicalHistory(studentId: string): string {
-    const student = MOCK_STUDENTS[studentId as keyof typeof MOCK_STUDENTS];
-    if (!student) return "HISTORIAL MÉDICO: Ninguno registrado.";
-
-    const h = student.historialMedico;
-    return `HISTORIAL MÉDICO:
-- Lesiones: ${h.lesiones.join(', ') || 'Ninguna'}
-- Patologías: ${h.patologias.join(', ') || 'Ninguna'}
-- Restricciones: ${h.restricciones || 'Ninguna'}`;
-  }
-
-  /**
-   * Construye el prompt para Gemini con todas las instrucciones
-   * 
-   * @private
-   * @param studentContext - Contexto del alumno
-   * @param medicalHistory - Historial médico
-   * @param coachNotes - Notas del coach (opcional)
-   * @returns Prompt completo para Gemini
-   */
-  private buildPrompt(studentContext: string, medicalHistory: string, coachNotes?: string): string {
     return `
-Actúa como "VirtudCoach", el mejor entrenador personal especializado en biomecánica y rehabilitación.
+Genera una rutina de entrenamiento COMPLETA Y PERSONALIZADA en formato JSON con los siguientes datos:
 
-DATOS DEL ALUMNO:
-${studentContext}
+INFORMACIÓN DEL ALUMNO:
+- Nombre: ${studentProfile.full_name}
+- Condiciones médicas: ${studentProfile.medical_info?.chronic_diseases || 'Ninguna'}
+- Lesiones: ${studentProfile.medical_info?.injuries || 'Ninguna'}
+- Peso actual: ${studentProfile.medical_info?.weight || 'No especificado'}kg
+- Observaciones previas: ${studentProfile.coach_observations || 'Ninguna'}
 
-${medicalHistory}
+OBJETIVOS:
+- Objetivo principal: ${userGoal.primary_goal}
+- Objetivos secundarios: ${userGoal.secondary_goals?.join(', ') || 'Ninguno'}
+- Frecuencia semanal: ${userGoal.training_frequency_per_week} días
+- Tiempo por sesión: ${userGoal.time_per_session_minutes} minutos
+- Notas del coach para esta rutina: ${coachNotes || 'Ninguna'}
 
-NOTAS DEL COACH:
-${coachNotes || 'Ninguna'}
+EQUIPAMIENTO DISPONIBLE:
+${gymEquipment.map(eq => `- ${eq.name} (${eq.category})`).join('\n')}
 
-EQUIPAMIENTO DISPONIBLE EN VIRTUD:
-${GYM_EQUIPMENT.join(', ')}
+${template.promptSuffix}
 
-INSTRUCCIONES CRÍTICAS:
-1. Si hay lesiones o patologías, PRIORIZA la seguridad absoluta.Evita ejercicios que puedan agravar la condición.
-2. Si hay cirugías recientes(<6 meses), consulta con médico antes de ejercicios de alto impacto.
-3. SOLO usa equipamiento de la lista disponible.No inventes máquinas que no tenemos.
-4. Adapta la intensidad según la experiencia del alumno.
-5. Incluye calentamiento específico y enfriamiento.
-6. Sé específico con técnica y rangos de movimiento seguros.
+INSTRUCCIONES ADICIONALES:
+1. Considera TODAS las condiciones médicas y lesiones.
+2. Usa SOLO el equipamiento disponible.
+3. ${includeNutrition ? 'Genera un plan nutricional acorde al objetivo.' : 'NO incluyas plan nutricional.'}
 
-FORMATO DE SALIDA(JSON):
+FORMATO DE RESPUESTA (JSON estricto):
 {
-  "routineName": "Nombre épico y motivador",
-    "motivationalQuote": "Frase personalizada inspiradora",
-      "duration": "Duración en minutos",
-        "medicalConsiderations": "Consideraciones médicas importantes (si aplica)",
-          "warmup": [
-            { "exercise": "Nombre", "duration": "5 min", "notes": "Indicaciones" }
-          ],
-            "mainWorkout": [
-              {
+    "routineName": "Nombre motivador",
+    "durationWeeks": 8,
+    "medicalConsiderations": "Pautas de seguridad específicas",
+    "motivationalQuote": "Frase inspiradora",
+    "weeklySchedule": [
+        {
+            "day": 1,
+            "dayName": "Lunes",
+            "focus": "Grupo muscular",
+            "warmup": [{ "name": "Ejercicio", "duration": "5 min", "description": "..." }],
+            "mainWorkout": [{
                 "name": "Ejercicio",
+                "equipment": "...",
                 "sets": 3,
-                "reps": "10-12",
-                "rest": "60s",
-                "equipment": "Equipamiento usado",
-                "notes": "Técnica y precauciones"
-              }
-            ],
-              "cooldown": [
-                { "exercise": "Estiramiento", "duration": "3 min", "notes": "Zona a estirar" }
-              ]
+                "reps": "12",
+                "rest": 60,
+                "instructions": "Técnica",
+                "modifications": "Si aplica por lesión"
+            }],
+            "cooldown": [{ "name": "Estiramiento", "duration": "5 min", "description": "..." }]
+        }
+    ],
+    ${includeNutrition ? `"nutritionPlan": { "dailyCalories": 2000, "proteinGrams": 150, "carbsGrams": 200, "fatsGrams": 60, "meals": [...] }` : ''}
 }
 `;
+  }
+
+  private inferTemplate(goal: string): any {
+    const g = goal.toLowerCase();
+    if (g.includes('rehab') || g.includes('salud') || g.includes('lesión') || g.includes('dolor')) return AI_PROMPT_TEMPLATES.REHAB;
+    if (g.includes('fuerza') || g.includes('músculo') || g.includes('hipertrofia') || g.includes('volumen')) return AI_PROMPT_TEMPLATES.HYPERTROPHY;
+    return AI_PROMPT_TEMPLATES.WELLNESS;
   }
   /**
    * Genera una respuesta de chat manteniendo el contexto

@@ -11,9 +11,10 @@ import { QuickMessages } from '@/components/features/student/QuickMessages';
 import { Gamification } from '@/components/features/student/Gamification';
 import { DashboardHeader } from '@/components/features/student/DashboardHeader';
 import { WaiverWarning } from '@/components/features/student/WaiverWarning';
+import { GoalRequestModal } from '@/components/features/student/GoalRequestModal';
 
 export default function StudentDashboard() {
-  const { data, loading, isRequesting, handleRequestRoutine } = useStudentDashboard();
+  const { data, loading, isRequesting, handleRequestRoutine, handleGoalModal } = useStudentDashboard();
 
   if (loading) {
     return (
@@ -115,12 +116,20 @@ export default function StudentDashboard() {
           <RoutinePreview
             routine={routine}
             handleRequestRoutine={handleRequestRoutine}
+            handleGoalModal={handleGoalModal}
             isRequesting={isRequesting}
             itemVariants={itemVariants}
           />
           <QuickMessages itemVariants={itemVariants} />
         </div>
       </div>
+
+      <GoalRequestModal
+        isOpen={data.isGoalModalOpen}
+        onClose={() => handleGoalModal(false)}
+        onSubmit={handleRequestRoutine}
+        isSubmitting={isRequesting}
+      />
 
       {/* Floating Report Button */}
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="fixed bottom-6 right-6 z-50">

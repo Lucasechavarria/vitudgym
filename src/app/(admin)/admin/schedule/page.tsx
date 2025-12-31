@@ -19,8 +19,7 @@ interface ScheduleItem {
     };
     coach?: {
         id: string;
-        first_name: string;
-        last_name: string;
+        full_name: string;
     };
     teacher_text?: string;
 }
@@ -33,8 +32,8 @@ interface Activity {
 
 interface Coach {
     id: string;
-    first_name: string;
-    last_name: string;
+    full_name: string;
+    email: string;
 }
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -50,17 +49,19 @@ const DAY_INDEX_MAP: Record<number, string> = {
 export default function AdminSchedulePage() {
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
     const [activities, setActivities] = useState<Activity[]>([]);
-    // const [coaches, setCoaches] = useState<Coach[]>([]);
+    const [coaches, setCoaches] = useState<Coach[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
+    const [isCreatingActivity, setIsCreatingActivity] = useState(false);
+    const [newActivityData, setNewActivityData] = useState({ name: '', type: 'gym' });
 
     // Form State
     const [formData, setFormData] = useState({
         activity_id: '',
-        coach_id: '', // Optional
-        teacher_text: '', // Optional fallback
-        day_of_week: 1, // Default Lunes
+        coach_id: '',
+        teacher_text: '',
+        day_of_week: 1,
         start_time: '09:00',
         end_time: '10:00',
         is_active: true
@@ -73,24 +74,16 @@ export default function AdminSchedulePage() {
     const fetchInitialData = async () => {
         try {
             const [scheduleRes, activitiesRes, coachesRes] = await Promise.all([
-                fetch('/api/schedule'), // Reusing public GET for now
+                fetch('/api/schedule'),
                 fetch('/api/admin/activities'),
-                fetch('/api/admin/users?role=coach') // Need to ensure this endpoint exists or filter all users
+                fetch('/api/admin/coaches/list')
             ]);
 
             const scheduleData = await scheduleRes.json();
             const activitiesData = await activitiesRes.json();
-
-            // For coaches, we might need a specific endpoint or just fetch profiles
-            // Assuming we can get them somehow. For now, mocking or empty.
-            // Let's assume we implement a specific route /api/admin/coaches later.
-            // For now, let's just use the profiles if returned by activities or separate call.
-            // I'll create a quick helper to fetch coaches if needed.
-            // Actually, /api/admin/users is not standard yet. Let's assume empty for now or fix later.
-            // setsCoaches([]); // Eliminar referencia a variable inexistente
+            const coachesData = await coachesRes.json();
 
             if (Array.isArray(scheduleData)) {
-                // Map the data structure to match ScheduleItem interface
                 const mappedSchedule = scheduleData.map((item: any) => ({
                     id: item.id,
                     day_of_week: item.day_of_week,
@@ -104,6 +97,7 @@ export default function AdminSchedulePage() {
                 setSchedule(mappedSchedule);
             }
             if (Array.isArray(activitiesData)) setActivities(activitiesData);
+            if (coachesData.coaches) setCoaches(coachesData.coaches);
 
         } catch (_error) {
             toast.error('Error cargando datos');
@@ -113,6 +107,7 @@ export default function AdminSchedulePage() {
     };
 
     const handleOpenModal = (item?: ScheduleItem) => {
+        setIsCreatingActivity(false);
         if (item) {
             setEditingItem(item);
             setFormData({
@@ -137,6 +132,26 @@ export default function AdminSchedulePage() {
             });
         }
         setIsModalOpen(true);
+    };
+
+    const handleCreateQuickActivity = async () => {
+        if (!newActivityData.name) return toast.error('Ingresa un nombre');
+        try {
+            const res = await fetch('/api/admin/activities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newActivityData)
+            });
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setActivities(prev => [...prev, data]);
+            setFormData(prev => ({ ...prev, activity_id: data.id }));
+            setIsCreatingActivity(false);
+            setNewActivityData({ name: '', type: 'gym' });
+            toast.success('Actividad creada');
+        } catch {
+            toast.error('Error al crear actividad');
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -164,7 +179,7 @@ export default function AdminSchedulePage() {
 
             const body = {
                 ...formData,
-                profile_id: formData.coach_id || null // Map coach_id to profile_id for DB
+                coach_id: formData.coach_id || null // Match DB column name
             };
 
             const res = await fetch(url, {
@@ -250,7 +265,7 @@ export default function AdminSchedulePage() {
                                         </div>
                                         <p className="font-bold text-white text-sm truncate">{item.activity.name}</p>
                                         <p className="text-xs text-gray-400 truncate">
-                                            {item.coach ? `${item.coach.first_name} ${item.coach.last_name}` : (item.teacher_text || 'Sin instructor')}
+                                            {item.coach ? item.coach.full_name : (item.teacher_text || 'Sin instructor')}
                                         </p>
                                     </div>
                                 </motion.div>
@@ -288,77 +303,123 @@ export default function AdminSchedulePage() {
                             <form onSubmit={handleSubmit} className="p-6 space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Día</label>
+                                        <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">Día Semanal</label>
                                         <select
                                             value={formData.day_of_week}
                                             onChange={e => setFormData({ ...formData, day_of_week: Number(e.target.value) })}
-                                            className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all"
                                         >
                                             {Object.entries(DAY_INDEX_MAP).map(([val, label]) => (
-                                                <option key={val} value={val}>{label}</option>
+                                                <option key={val} value={val} className="bg-[#1c1c1e]">{label}</option>
                                             ))}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Actividad</label>
-                                        <select
-                                            value={formData.activity_id}
-                                            onChange={e => setFormData({ ...formData, activity_id: e.target.value })}
-                                            className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
-                                        >
-                                            <option value="">Seleccionar...</option>
-                                            {activities.map(act => (
-                                                <option key={act.id} value={act.id}>{act.name}</option>
-                                            ))}
-                                        </select>
+                                        <div className="flex justify-between items-center mb-1.5 ml-1">
+                                            <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest">Actividad</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsCreatingActivity(!isCreatingActivity)}
+                                                className="text-[10px] text-purple-300 hover:text-white font-bold"
+                                            >
+                                                {isCreatingActivity ? 'Cancelar' : '+ Nueva'}
+                                            </button>
+                                        </div>
+                                        {!isCreatingActivity ? (
+                                            <select
+                                                value={formData.activity_id}
+                                                onChange={e => setFormData({ ...formData, activity_id: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all font-bold"
+                                            >
+                                                <option value="" className="bg-[#1c1c1e]">Seleccionar...</option>
+                                                {activities.map(act => (
+                                                    <option key={act.id} value={act.id} className="bg-[#1c1c1e]">{act.name}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <input
+                                                    placeholder="Nombre..."
+                                                    value={newActivityData.name}
+                                                    onChange={e => setNewActivityData({ ...newActivityData, name: e.target.value })}
+                                                    className="flex-1 bg-white/5 border border-purple-500/30 rounded-xl px-4 py-2 text-white text-sm outline-none"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCreateQuickActivity}
+                                                    className="p-2 bg-purple-500 text-white rounded-xl shadow-lg shadow-purple-500/20"
+                                                >
+                                                    <Save size={16} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest ml-1">Horario Inicio</label>
+                                        <div className="relative">
+                                            <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                                            <input
+                                                type="time"
+                                                value={formData.start_time}
+                                                onChange={e => setFormData({ ...formData, start_time: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest ml-1">Horario Fin</label>
+                                        <div className="relative">
+                                            <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                                            <input
+                                                type="time"
+                                                value={formData.end_time}
+                                                onChange={e => setFormData({ ...formData, end_time: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Inicio</label>
-                                        <input
-                                            type="time"
-                                            value={formData.start_time}
-                                            onChange={e => setFormData({ ...formData, start_time: e.target.value })}
-                                            className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
-                                        />
+                                        <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">Coach Registrado</label>
+                                        <select
+                                            value={formData.coach_id}
+                                            onChange={e => setFormData({ ...formData, coach_id: e.target.value, teacher_text: '' })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all"
+                                        >
+                                            <option value="" className="bg-[#1c1c1e]">Sin asignar / Externo</option>
+                                            {coaches.map(coach => (
+                                                <option key={coach.id} value={coach.id} className="bg-[#1c1c1e]">{coach.full_name}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-1">Fin</label>
+                                        <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">Instructor Externo (Fallback)</label>
                                         <input
-                                            type="time"
-                                            value={formData.end_time}
-                                            onChange={e => setFormData({ ...formData, end_time: e.target.value })}
-                                            className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
+                                            type="text"
+                                            disabled={!!formData.coach_id}
+                                            value={formData.teacher_text}
+                                            onChange={e => setFormData({ ...formData, teacher_text: e.target.value })}
+                                            placeholder="Solo si no es Coach..."
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all placeholder:text-gray-600 disabled:opacity-30"
                                         />
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Instructor (Opcional)</label>
-                                    <input
-                                        type="text"
-                                        value={formData.teacher_text}
-                                        onChange={e => setFormData({ ...formData, teacher_text: e.target.value })}
-                                        placeholder="Nombre del instructor (si no tiene perfil)"
-                                        className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Dejar vacío para asignar un Coach registrado (Próximamente selector de Coach)
-                                    </p>
-                                </div>
-
-                                <div className="flex items-center gap-2 pt-2">
+                                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
                                     <input
                                         type="checkbox"
                                         id="isActive"
                                         checked={formData.is_active}
                                         onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
-                                        className="w-4 h-4 rounded border-gray-600 bg-black/30 text-purple-600 focus:ring-purple-500"
+                                        className="w-5 h-5 rounded-lg border-white/10 bg-black/40 text-purple-600 focus:ring-purple-500 accent-purple-500"
                                     />
-                                    <label htmlFor="isActive" className="text-sm font-medium text-gray-300 select-none cursor-pointer">
-                                        Clase disponible
+                                    <label htmlFor="isActive" className="text-sm font-bold text-gray-300 select-none cursor-pointer">
+                                        Clase Visible y Disponible para Reservas
                                     </label>
                                 </div>
 

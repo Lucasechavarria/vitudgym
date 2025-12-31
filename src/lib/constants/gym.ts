@@ -77,9 +77,17 @@ export const MOCK_STUDENTS = {
  */
 export const TRAINING_GOALS = [
     'Hipertrofia',
-    'Pérdida de Peso',
+    'Fuerza General',
     'Fuerza Máxima',
+    'Powerlifting',
+    'Atlético',
+    'Funcional',
     'Resistencia',
+    'Calistenia',
+    'Principiante',
+    'Adultos Mayores',
+    'Deporte de Combate',
     'Rehabilitación',
+    'Pérdida de Peso',
     'Movilidad'
 ] as const;

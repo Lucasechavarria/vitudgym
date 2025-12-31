@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         // Verificar autenticación y rol (Estudiantes pueden solicitar, Coaches/Admins pueden generar directamente)
         const { user, profile, supabase, error } = await authenticateAndRequireRole(
             request,
-            ['student', 'coach', 'admin', 'superadmin']
+            ['member', 'coach', 'admin', 'superadmin']
         );
 
         if (error) return error;
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         }
 
         // Parsear y validar body
-        const { studentId, goalId, goal, coachNotes, includeNutrition = true } = await request.json();
+        const { studentId, goalId, goal, coachNotes, includeNutrition = true, templateKey } = await request.json();
 
         // Acepta tanto goal (string) como goalId (database ID) para flexibilidad
         if (!studentId || (!goalId && !goal)) {
@@ -100,126 +100,23 @@ export async function POST(request: Request) {
             ? calculateAge(studentProfile.date_of_birth)
             : null;
 
-        // 5. Construir prompt completo para Gemini
-        const prompt = `
-Genera una rutina de entrenamiento COMPLETA Y PERSONALIZADA en formato JSON con los siguientes datos:
+        // 5. Generar prompt y llamar a Gemini usando el servicio unificado
+        const prompt = aiService.buildPrompt({
+            studentProfile,
+            userGoal,
+            gymEquipment,
+            coachNotes,
+            includeNutrition,
+            templateKey
+        });
 
-INFORMACIÓN DEL ALUMNO:
-- Nombre: ${studentProfile.full_name}
-- Edad: ${age || 'No especificada'}
-- Género: ${studentProfile.gender || 'No especificado'}
-- Condiciones médicas: ${studentProfile.medical_info?.chronic_diseases || 'Ninguna'}
-- Lesiones: ${studentProfile.medical_info?.injuries || 'Ninguna'}
-- Alergias: ${studentProfile.medical_info?.allergies || 'Ninguna'}
-- Antecedentes: ${studentProfile.medical_info?.background || 'Ninguno'}
-- Fuma: ${studentProfile.medical_info?.is_smoker ? 'Sí' : 'No'}
-- Peso: ${studentProfile.medical_info?.weight || 'No especificado'}kg
-- Presión Arterial: ${studentProfile.medical_info?.blood_pressure || 'No especificada'}
-- Observaciones del coach: ${studentProfile.coach_observations || 'Ninguna'}
-- Contacto Emergencia: ${studentProfile.emergency_contact?.full_name || 'No especificado'} (${studentProfile.emergency_contact?.phone || '-'})
-
-OBJETIVOS:
-- Objetivo principal: ${goalText}
-- Objetivos secundarios: ${userGoal.secondary_goals?.join(', ') || 'Ninguno'}
-- Frecuencia semanal: ${userGoal.training_frequency_per_week} días
-- Tiempo por sesión: ${userGoal.time_per_session_minutes} minutos
-- Días disponibles: ${userGoal.available_days?.join(', ') || 'Flexible'}
-- Horario preferido: ${userGoal.preferred_training_time || 'Flexible'}
-- Peso objetivo: ${userGoal.target_weight ? userGoal.target_weight + ' kg' : 'No especificado'}
-- Fecha objetivo: ${userGoal.target_date || 'No especificada'}
-- Notas del coach: ${userGoal.coach_notes || 'Ninguna'}
-
-EQUIPAMIENTO DISPONIBLE EN EL GIMNASIO:
-${gymEquipment.map(eq => `- ${eq.name} (${eq.category}) - Cantidad: ${eq.quantity}`).join('\n')}
-
-INSTRUCCIONES:
-1. Considera TODAS las condiciones médicas y lesiones al seleccionar ejercicios
-2. Usa SOLO el equipamiento disponible en el gimnasio
-3. Respeta la frecuencia semanal y tiempo por sesión
-4. Genera un plan progresivo de ${userGoal.duration_weeks || 8} semanas
-5. Incluye calentamiento, trabajo principal y enfriamiento
-6. ${includeNutrition ? 'Incluye un plan nutricional completo' : 'No incluyas plan nutricional'}
-
-FORMATO DE RESPUESTA (JSON estricto):
-{
-    "routineName": "Nombre descriptivo y motivador",
-    "durationWeeks": ${userGoal.duration_weeks || 8},
-    "medicalConsiderations": "Consideraciones médicas específicas basadas en la información del alumno",
-    "motivationalQuote": "Frase motivacional personalizada",
-    "weeklySchedule": [
-        {
-            "day": 1,
-            "dayName": "Lunes",
-            "focus": "Ej: Tren Superior",
-            "warmup": [
-                {
-                    "name": "Nombre del ejercicio",
-                    "duration": "5-10 minutos",
-                    "description": "Descripción breve"
-                }
-            ],
-            "mainWorkout": [
-                {
-                    "name": "Nombre del ejercicio",
-                    "equipment": "Equipamiento usado",
-                    "muscleGroup": "Grupo muscular",
-                    "sets": 3,
-                    "reps": "10-12",
-                    "rest": 60,
-                    "instructions": "Instrucciones detalladas",
-                    "modifications": "Modificaciones si hay lesiones"
-                }
-            ],
-            "cooldown": [
-                {
-                    "name": "Nombre del ejercicio",
-                    "duration": "5-10 minutos",
-                    "description": "Descripción breve"
-                }
-            ]
-        }
-    ],
-    ${includeNutrition ? `"nutritionPlan": {
-        "dailyCalories": 2500,
-        "proteinGrams": 150,
-        "carbsGrams": 250,
-        "fatsGrams": 80,
-        "waterLiters": 3.0,
-        "meals": [
-            {
-                "name": "Desayuno",
-                "time": "08:00",
-                "foods": ["Alimento 1", "Alimento 2"],
-                "calories": 500,
-                "protein": 30,
-                "carbs": 60,
-                "fats": 15
-            }
-        ],
-        "supplements": [
-            {
-                "name": "Nombre del suplemento",
-                "dosage": "Dosis",
-                "timing": "Cuándo tomarlo",
-                "purpose": "Para qué sirve"
-            }
-        ],
-        "generalGuidelines": "Pautas generales de alimentación",
-        "restrictions": ["Restricciones alimentarias basadas en el perfil"]
-    }` : ''}
-}
-
-IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después.
-`;
-
-        // 6. Llamar a Gemini AI
         const aiResponse = await aiService.generateRoutineFromPrompt(prompt);
 
         const { data: routine, error: routineError } = await supabase
             .from('routines')
             .insert({
                 user_id: studentId,
-                coach_id: profile.role === 'student' ? null : user.id, // Student requested, no coach yet
+                coach_id: profile.role === 'member' ? null : user.id, // Member requested, no coach yet
                 user_goal_id: goalId || null,
                 name: aiResponse.routineName,
                 description: aiResponse.medicalConsiderations,
@@ -227,10 +124,10 @@ IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después.
                 duration_weeks: aiResponse.durationWeeks,
                 generated_by_ai: true,
                 ai_prompt: prompt,
-                status: profile.role === 'student' ? 'pending_approval' : 'approved',
+                status: profile.role === 'member' ? 'pending_approval' : 'approved',
                 medical_considerations: aiResponse.medicalConsiderations,
                 equipment_used: gymEquipment.map(eq => eq.id),
-                is_active: profile.role === 'student' ? false : true,
+                is_active: profile.role === 'member' ? false : true,
             })
             .select()
             .single();

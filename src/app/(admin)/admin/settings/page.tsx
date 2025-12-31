@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { Plus } from 'lucide-react';
 import { RoleManagement } from '@/components/features/admin/RoleManagement';
 
 export default function SettingsPage() {
@@ -144,16 +145,21 @@ export default function SettingsPage() {
                     {/* Integrations */}
                     {activeSection === 'integrations' && (
                         <div className="space-y-6">
-                            <h2 className="text-2xl font-bold text-white mb-4">🔌 Integraciones</h2>
+                            <div>
+                                <h2 className="text-2xl font-bold text-white mb-2">🔌 Conexiones Externas</h2>
+                                <p className="text-gray-400 text-sm">Configura las herramientas que se conectan con tu gimnasio para automatizar cobros y avisos.</p>
+                            </div>
 
                             {/* MercadoPago */}
-                            <div className="bg-white/5 rounded-xl p-6 border border-white/5">
+                            <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-3xl">💳</span>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-[#009ee3]/10 rounded-2xl flex items-center justify-center text-2xl">
+                                            💳
+                                        </div>
                                         <div>
                                             <h3 className="font-bold text-white">MercadoPago</h3>
-                                            <p className="text-xs text-gray-400">Procesar pagos en línea</p>
+                                            <p className="text-xs text-gray-500">Para recibir pagos de cuotas automáticamente.</p>
                                         </div>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
@@ -166,44 +172,52 @@ export default function SettingsPage() {
                                             })}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
                                     </label>
                                 </div>
 
                                 {integrations.mercadopago.enabled && (
-                                    <div className="space-y-3">
-                                        <input
-                                            type="text"
-                                            placeholder="Public Key"
-                                            value={integrations.mercadopago.publicKey}
-                                            onChange={(e) => setIntegrations({
-                                                ...integrations,
-                                                mercadopago: { ...integrations.mercadopago, publicKey: e.target.value }
-                                            })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm"
-                                        />
-                                        <input
-                                            type="password"
-                                            placeholder="Access Token"
-                                            value={integrations.mercadopago.accessToken}
-                                            onChange={(e) => setIntegrations({
-                                                ...integrations,
-                                                mercadopago: { ...integrations.mercadopago, accessToken: e.target.value }
-                                            })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm"
-                                        />
+                                    <div className="space-y-4 pt-4 border-t border-white/5">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Clave Pública (Public Key)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="APP_USR-..."
+                                                value={integrations.mercadopago.publicKey}
+                                                onChange={(e) => setIntegrations({
+                                                    ...integrations,
+                                                    mercadopago: { ...integrations.mercadopago, publicKey: e.target.value }
+                                                })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-blue-500/50"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Token de Acceso (Access Token)</label>
+                                            <input
+                                                type="password"
+                                                placeholder="APP_USR-..."
+                                                value={integrations.mercadopago.accessToken}
+                                                onChange={(e) => setIntegrations({
+                                                    ...integrations,
+                                                    mercadopago: { ...integrations.mercadopago, accessToken: e.target.value }
+                                                })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-blue-500/50"
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </div>
 
                             {/* Email */}
-                            <div className="bg-white/5 rounded-xl p-6 border border-white/5">
+                            <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-3xl">📧</span>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center text-2xl">
+                                            📧
+                                        </div>
                                         <div>
                                             <h3 className="font-bold text-white">Email (SendGrid)</h3>
-                                            <p className="text-xs text-gray-400">Enviar notificaciones por correo</p>
+                                            <p className="text-xs text-gray-500">Para enviar comprobantes y avisos de vencimiento.</p>
                                         </div>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
@@ -221,24 +235,27 @@ export default function SettingsPage() {
                                 </div>
 
                                 {integrations.email.enabled && (
-                                    <input
-                                        type="password"
-                                        placeholder="API Key"
-                                        value={integrations.email.apiKey}
-                                        onChange={(e) => setIntegrations({
-                                            ...integrations,
-                                            email: { ...integrations.email, apiKey: e.target.value }
-                                        })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm"
-                                    />
+                                    <div className="space-y-1 pt-4 border-t border-white/5">
+                                        <label className="text-[10px] font-black text-purple-400 uppercase tracking-widest ml-1">API Key de SendGrid</label>
+                                        <input
+                                            type="password"
+                                            placeholder="SG.xxxxx..."
+                                            value={integrations.email.apiKey}
+                                            onChange={(e) => setIntegrations({
+                                                ...integrations,
+                                                email: { ...integrations.email, apiKey: e.target.value }
+                                            })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50"
+                                        />
+                                    </div>
                                 )}
                             </div>
 
                             <button
                                 onClick={saveSettings}
-                                className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-xl transition-all"
+                                className="w-full bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-2xl transition-all border border-white/10 uppercase tracking-widest text-xs"
                             >
-                                Guardar Integraciones
+                                Actualizar Credenciales
                             </button>
                         </div>
                     )}
@@ -246,25 +263,34 @@ export default function SettingsPage() {
                     {/* Permissions */}
                     {activeSection === 'users' && (
                         <div className="space-y-6">
-                            <h2 className="text-2xl font-bold text-white mb-4">👥 Permisos y Roles</h2>
+                            <div>
+                                <h2 className="text-2xl font-bold text-white mb-2">👥 Seguridad y Accesos</h2>
+                                <p className="text-gray-400 text-sm">Define qué puede hacer cada tipo de usuario en el sistema.</p>
+                            </div>
 
                             <div className="space-y-4">
                                 {[
-                                    { role: 'SuperAdmin', permissions: ['Ver todo', 'Editar todo', 'Eliminar', 'Cambiar roles'], color: 'purple' },
-                                    { role: 'Admin', permissions: ['Ver usuarios', 'Editar clases', 'Ver finanzas'], color: 'blue' },
-                                    { role: 'Coach', permissions: ['Ver alumnos', 'Crear rutinas', 'Pasar lista'], color: 'orange' },
-                                    { role: 'Usuario', permissions: ['Ver su progreso', 'Reservar clases'], color: 'green' },
+                                    { role: 'SuperAdmin', permissions: ['Control Total', 'Gestión Financiera', 'Gestión de Staff', 'Configuración del Sistema'], info: 'Acceso ilimitado a todas las funciones.', color: 'purple' },
+                                    { role: 'Admin', permissions: ['Ver usuarios', 'Editar clases', 'Ver finanzas', 'Gestionar stock'], info: 'Personal administrativo centrado en la operación diaria.', color: 'blue' },
+                                    { role: 'Coach', permissions: ['Ver alumnos', 'Crear rutinas', 'Pasar lista', 'Chat con alumnos'], info: 'Personal deportivo limitado a la gestión de sus alumnos.', color: 'orange' },
+                                    { role: 'Miembro', permissions: ['Ver su progreso', 'Reservar clases', 'Chat con coach', 'Ver su rutina'], info: 'Clientes del gimnasio con acceso a su propia información.', color: 'green' },
                                 ].map((roleInfo) => (
-                                    <div key={roleInfo.role} className="bg-white/5 rounded-xl p-4 border border-white/5">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h3 className={`font-bold text-${roleInfo.color}-400 text-lg`}>{roleInfo.role}</h3>
-                                            <button className="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
-                                                Editar
+                                    <div key={roleInfo.role} className="bg-white/5 rounded-2xl p-6 border border-white/5 hover:bg-white/10 transition-all group">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-2 h-8 rounded-full bg-${roleInfo.color}-500 shadow-lg shadow-${roleInfo.color}-500/40`} />
+                                                <div>
+                                                    <h3 className={`font-black text-white text-xl tracking-tight`}>{roleInfo.role}</h3>
+                                                    <p className="text-xs text-gray-500">{roleInfo.info}</p>
+                                                </div>
+                                            </div>
+                                            <button className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-gray-400 hover:text-white border border-white/5">
+                                                Personalizar
                                             </button>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {roleInfo.permissions.map((perm, i) => (
-                                                <span key={i} className="px-2 py-1 bg-white/5 text-gray-300 rounded text-xs">
+                                                <span key={i} className="px-3 py-1.5 bg-black/40 text-gray-300 rounded-lg text-[10px] font-bold border border-white/5">
                                                     ✓ {perm}
                                                 </span>
                                             ))}
@@ -313,64 +339,78 @@ export default function SettingsPage() {
                         </div>
                     )}
 
-                    {/* Branding */}
+                    {/* Branding / Home Personalization */}
                     {activeSection === 'branding' && (
-                        <div className="space-y-6">
-                            <h2 className="text-2xl font-bold text-white mb-4">🎨 Personalización</h2>
+                        <div className="space-y-8">
+                            <div>
+                                <h2 className="text-2xl font-bold text-white mb-2">🎨 Personalización Visual</h2>
+                                <p className="text-gray-400 text-sm">Gestiona la identidad visual de tu gimnasio y el contenido de la página de inicio.</p>
+                            </div>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-gray-300 mb-2 font-bold text-sm">Color Primario</label>
-                                    <div className="flex gap-3">
-                                        <input
-                                            type="color"
-                                            value={branding.primaryColor}
-                                            onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
-                                            className="w-20 h-12 rounded-lg cursor-pointer"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={branding.primaryColor}
-                                            onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
-                                            className="flex-1 bg-white/5 border border-white/10 rounded-lg p-3 text-white"
-                                        />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-black text-purple-400 uppercase tracking-widest">Colores de Marca</h3>
+                                    <div>
+                                        <label className="block text-gray-300 mb-2 font-bold text-xs uppercase">Color Primario</label>
+                                        <div className="flex gap-3">
+                                            <input
+                                                type="color"
+                                                value={branding.primaryColor}
+                                                onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
+                                                className="w-14 h-14 rounded-xl cursor-pointer bg-white/5 border border-white/10"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={branding.primaryColor}
+                                                onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
+                                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-white font-mono"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-gray-300 mb-2 font-bold text-sm">Color Secundario</label>
-                                    <div className="flex gap-3">
-                                        <input
-                                            type="color"
-                                            value={branding.secondaryColor}
-                                            onChange={(e) => setBranding({ ...branding, secondaryColor: e.target.value })}
-                                            className="w-20 h-12 rounded-lg cursor-pointer"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={branding.secondaryColor}
-                                            onChange={(e) => setBranding({ ...branding, secondaryColor: e.target.value })}
-                                            className="flex-1 bg-white/5 border border-white/10 rounded-lg p-3 text-white"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-300 mb-2 font-bold text-sm">Logo</label>
-                                    <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                                        <p className="text-sm text-gray-400 mb-2">Logo actual: {branding.logo}</p>
-                                        <button className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-all">
-                                            Subir Nuevo Logo
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-black text-purple-400 uppercase tracking-widest">Logo Principal</h3>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3">
+                                        <div className="w-full h-12 bg-black/40 rounded-lg flex items-center justify-center overflow-hidden">
+                                            <img src="/logos/Logo-Fondo-Negro.png" alt="Logo" className="h-8 object-contain" />
+                                        </div>
+                                        <button className="w-full py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl transition-all border border-white/5">
+                                            Cambiar Logo
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
+                            <div className="space-y-4 pt-4 border-t border-white/5">
+                                <h3 className="text-sm font-black text-purple-400 uppercase tracking-widest">🏠 Gestión de Inicio (Carruseles)</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {[1, 2, 3].map((id) => (
+                                        <div key={id} className="relative aspect-video rounded-2xl overflow-hidden bg-white/5 border border-white/10 group cursor-pointer hover:border-purple-500/50 transition-all">
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 group-hover:text-white transition-colors">
+                                                <span className="text-2xl mb-1">🖼️</span>
+                                                <span className="text-[10px] font-bold uppercase">Slide {id}</span>
+                                            </div>
+                                            <div className="absolute bottom-2 right-2 flex gap-1">
+                                                <button className="p-2 bg-black/60 backdrop-blur-md rounded-lg text-white hover:bg-purple-600 transition-colors">
+                                                    <Plus size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="aspect-video rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center text-gray-600 hover:text-gray-400 hover:border-white/10 cursor-pointer transition-all">
+                                        <Plus size={24} />
+                                        <span className="text-[10px] font-bold uppercase mt-1">Añadir Slide</span>
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-gray-500 italic">Aquí podrás subir las imágenes que aparecen en el carrusel de la página de inicio (vitudgym.vercel.app).</p>
+                            </div>
+
                             <button
                                 onClick={saveSettings}
-                                className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-xl transition-all"
+                                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.01] active:scale-[0.99] text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-purple-900/40 border border-white/10"
                             >
-                                Guardar Personalización
+                                GUARDAR TEMA Y CONTENIDO
                             </button>
                         </div>
                     )}

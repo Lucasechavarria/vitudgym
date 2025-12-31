@@ -9,7 +9,8 @@ export function useStudentDashboard() {
         progress: [],
         attendance: [],
         routine: null,
-        profile: null
+        profile: null,
+        isGoalModalOpen: false
     });
 
     const fetchData = async () => {
@@ -17,7 +18,7 @@ export function useStudentDashboard() {
             const res = await fetch('/api/student/dashboard');
             if (!res.ok) throw new Error('Error cargando datos');
             const dashboardData = await res.json();
-            setData(dashboardData);
+            setData((prev: any) => ({ ...prev, ...dashboardData }));
         } catch (error) {
             console.error(error);
             toast.error('No se pudo cargar tu progreso');
@@ -30,31 +31,35 @@ export function useStudentDashboard() {
         fetchData();
     }, []);
 
-    const handleRequestRoutine = async () => {
+    const handleGoalModal = (isOpen: boolean) => {
+        setData((prev: any) => ({ ...prev, isGoalModalOpen: isOpen }));
+    };
+
+    const handleRequestRoutine = async (formData: { goal: string; frequency: number; includeNutrition: boolean }) => {
         try {
             setIsRequesting(true);
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('No user found');
-
-            const goal = prompt('¿Cuál es tu objetivo principal? (Ej: Ganar masa muscular, Perder peso, etc.)');
-            if (!goal) return;
+            if (!user) throw new Error('Sesión de usuario no encontrada.');
 
             const res = await fetch('/api/ai/generate-routine', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     studentId: user.id,
-                    goal: goal,
-                    includeNutrition: true
+                    goal: formData.goal,
+                    frequency: formData.frequency,
+                    includeNutrition: formData.includeNutrition
                 })
             });
 
+            const result = await res.json().catch(() => ({ error: 'Error inesperado del servidor (HTML)' }));
+
             if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error.error || 'Error generando rutina');
+                throw new Error(result.error || 'Ocurrió un error al contactar con la IA.');
             }
 
-            toast.success('¡Rutina generada por IA! Tu coach la revisará y aprobará pronto.');
+            toast.success('¡Rutina generada por IA exitosamente! Tu coach la revisará pronto.');
+            handleGoalModal(false);
             await fetchData();
         } catch (error) {
             console.error('Error requesting routine:', error);
@@ -70,6 +75,7 @@ export function useStudentDashboard() {
         loading,
         isRequesting,
         handleRequestRoutine,
+        handleGoalModal,
         refreshData: fetchData
     };
 }

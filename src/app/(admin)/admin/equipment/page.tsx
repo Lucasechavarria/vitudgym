@@ -220,51 +220,63 @@ export default function AdminEquipmentPage() {
                                 </button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 block">Nombre del Equipo</label>
+                            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] ml-1">Nombre del Equipo</label>
                                     <input
                                         type="text"
                                         required
                                         value={editingItem?.name}
                                         onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white outline-none focus:border-purple-500"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all placeholder:text-gray-600"
                                         placeholder="Ej: Caminadora Pro v2"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 block">Categoría</label>
-                                        <select
-                                            value={editingItem?.category}
-                                            onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white outline-none focus:border-purple-500"
-                                        >
-                                            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] ml-1">Categoría</label>
+                                        <div className="relative">
+                                            <select
+                                                value={editingItem?.category}
+                                                onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                                            >
+                                                {CATEGORIES.map(c => <option key={c} value={c} className="bg-[#1c1c1e] text-white">{c}</option>)}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                <Plus size={14} className="rotate-45" />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 block">Estado</label>
-                                        <select
-                                            value={editingItem?.condition}
-                                            onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white outline-none focus:border-purple-500"
-                                        >
-                                            {CONDITIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                                        </select>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] ml-1">Estado</label>
+                                        <div className="relative">
+                                            <select
+                                                value={editingItem?.condition}
+                                                onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                                            >
+                                                {CONDITIONS.map(c => <option key={c.value} value={c.value} className="bg-[#1c1c1e] text-white">{c.label}</option>)}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                <Plus size={14} className="rotate-45" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 p-3 bg-black/20 rounded-xl border border-white/5">
-                                    <input
-                                        type="checkbox"
-                                        id="available"
-                                        checked={editingItem?.is_available}
-                                        onChange={(e) => setEditingItem({ ...editingItem, is_available: e.target.checked })}
-                                        className="w-4 h-4 rounded bg-gray-800 border-white/10 text-purple-600 focus:ring-purple-500"
-                                    />
-                                    <label htmlFor="available" className="text-sm text-gray-300 font-medium cursor-pointer select-none">
+                                <div className="flex items-center gap-3 p-4 bg-purple-500/5 rounded-2xl border border-purple-500/10 hover:bg-purple-500/10 transition-colors cursor-pointer group">
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="available"
+                                            checked={editingItem?.is_available}
+                                            onChange={(e) => setEditingItem({ ...editingItem, is_available: e.target.checked })}
+                                            className="w-5 h-5 rounded-lg bg-white/5 border-white/10 text-purple-600 focus:ring-purple-500/50 transition-all cursor-pointer"
+                                        />
+                                    </div>
+                                    <label htmlFor="available" className="text-sm text-gray-300 font-medium cursor-pointer select-none group-hover:text-white transition-colors">
                                         ¿Está disponible para los alumnos?
                                     </label>
                                 </div>
@@ -273,15 +285,15 @@ export default function AdminEquipmentPage() {
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}
-                                        className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-all"
+                                        className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-all border border-white/5"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-purple-900/20 flex items-center justify-center gap-2"
+                                        className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl font-bold transition-all shadow-xl shadow-purple-900/40 flex items-center justify-center gap-2 border border-white/10 hover:scale-[1.02] active:scale-[0.98]"
                                     >
-                                        <Save size={18} /> {editingItem?.id ? 'Actualizar' : 'Crear'}
+                                        <Save size={18} /> {editingItem?.id ? 'Actualizar' : 'Crear Equipo'}
                                     </button>
                                 </div>
                             </form>

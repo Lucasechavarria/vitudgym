@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TRAINING_GOALS, GYM_EQUIPMENT } from '@/lib/constants/gym';
+import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
 
 /**
  * RoutineGenerator Component
@@ -46,17 +47,22 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
     const [studentsError, setStudentsError] = useState<string | null>(null);
     const [includeNutrition, setIncludeNutrition] = useState(true);
     const [nutritionPlan, setNutritionPlan] = useState<any | null>(null);
+    const [selectedTemplateKey, setSelectedTemplateKey] = useState<string | null>(initialTemplate || null);
 
     // Initial Template Effect
     useEffect(() => {
         if (initialTemplate) {
-            // Check if matches a goal
-            const matchedGoal = TRAINING_GOALS.find(g => g.toLowerCase() === initialTemplate.toLowerCase());
-            if (matchedGoal) {
-                setGoal(matchedGoal);
+            setSelectedTemplateKey(initialTemplate);
+
+            // Try to find a matching goal name for the UI
+            const templateData = (AI_PROMPT_TEMPLATES as any)[initialTemplate.toUpperCase()];
+            if (templateData) {
+                const matchedGoal = TRAINING_GOALS.find(g => g.toLowerCase() === templateData.label.toLowerCase());
+                if (matchedGoal) setGoal(matchedGoal);
             } else {
-                // Otherwise use as notes pre-fill
-                setCoachNotes(prev => prev ? `${prev}\n${initialTemplate}` : initialTemplate);
+                // Compatibility for old goal strings
+                const matchedGoal = TRAINING_GOALS.find(g => g.toLowerCase() === initialTemplate.toLowerCase());
+                if (matchedGoal) setGoal(matchedGoal);
             }
         }
     }, [initialTemplate]);
@@ -67,20 +73,19 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
             try {
                 setLoadingStudents(true);
                 setStudentsError(null);
-                const res = await fetch('/api/admin/users/list');
+                const res = await fetch('/api/coach/students');
 
                 if (!res.ok) {
                     throw new Error('Error al obtener alumnos');
                 }
 
                 const data = await res.json();
-                if (data.users) {
-                    // Filter only students
-                    const studentUsers = data.users.filter((u: Student) => u.role === 'user' || u.role === 'student');
-                    setStudents(studentUsers);
+                if (data.students) {
+                    // El endpoint ya devuelve solo alumnos con rol 'member'
+                    setStudents(data.students);
 
-                    if (studentUsers.length === 0) {
-                        setStudentsError('No hay alumnos registrados');
+                    if (data.students.length === 0) {
+                        setStudentsError('No hay alumnos asignados');
                     }
                 } else {
                     setStudentsError('No se pudieron cargar los alumnos');
@@ -122,6 +127,7 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                     studentId: selectedStudent,
                     studentProfile: selectedStudentData, // Send full profile with medical info
                     goal,
+                    templateKey: selectedTemplateKey,
                     coachNotes,
                     includeNutrition,
                     gymInventory: GYM_EQUIPMENT

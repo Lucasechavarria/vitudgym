@@ -8,12 +8,13 @@ import { StudentRoutine, ItemVariants, RoutineExercise } from '@/types/student-c
 
 interface RoutinePreviewProps {
     routine: StudentRoutine;
-    handleRequestRoutine: () => void;
+    handleRequestRoutine: (data: any) => void;
+    handleGoalModal: (isOpen: boolean) => void;
     isRequesting: boolean;
     itemVariants: ItemVariants;
 }
 
-export function RoutinePreview({ routine, handleRequestRoutine, isRequesting, itemVariants }: RoutinePreviewProps) {
+export function RoutinePreview({ routine, handleRequestRoutine, handleGoalModal, isRequesting, itemVariants }: RoutinePreviewProps) {
     return (
         <motion.div variants={itemVariants} className="bg-gradient-to-b from-[#1c1c1e] to-[#151515] border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden group">
             <div className="flex justify-between items-start mb-6 relative z-10">
@@ -73,11 +74,11 @@ export function RoutinePreview({ routine, handleRequestRoutine, isRequesting, it
                     </div>
                     <p className="text-gray-400 mb-6">Tu coach está diseñando tu plan a medida.</p>
                     <button
-                        onClick={handleRequestRoutine}
+                        onClick={() => handleGoalModal(true)}
                         disabled={isRequesting}
                         className="w-full border border-white/10 hover:bg-white/5 text-white py-3 rounded-xl transition-all text-sm font-bold disabled:opacity-50"
                     >
-                        {isRequesting ? 'Enviando...' : 'Solicitar Rutina'}
+                        {isRequesting ? 'Generando...' : 'Solicitar Rutina'}
                     </button>
                 </div>
             )}
