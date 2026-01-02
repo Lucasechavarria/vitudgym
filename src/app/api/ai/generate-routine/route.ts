@@ -241,9 +241,11 @@ export async function POST(request: Request) {
         const errorMessage = error instanceof Error ? error.message : 'Error generating routine';
         const errorStack = error instanceof Error ? error.stack : undefined;
 
+        const { studentId } = await request.clone().json().catch(() => ({}));
+
         Sentry.captureException(error, {
             extra: {
-                studentId: (await request.clone().json().catch(() => ({}))).studentId,
+                studentId,
                 errorMessage,
                 errorStack,
                 context: 'AI Routine Generation'
@@ -251,6 +253,7 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json({
+            success: false,
             error: errorMessage
         }, { status: 500 });
     }

@@ -125,7 +125,7 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 },
                 body: JSON.stringify({
                     studentId: selectedStudent,
-                    studentProfile: selectedStudentData, // Send full profile with medical info
+                    studentProfile: selectedStudentData,
                     goal,
                     templateKey: selectedTemplateKey,
                     coachNotes,
@@ -136,15 +136,24 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
 
             const data = await res.json();
 
-            if (data.success) {
-                setRoutine(data.routine);
+            if (res.ok && data.success) {
+                // Mapping API response to the local Routine interface if needed
+                // The API returns weeklySchedule, medicalConsiderations, etc.
+                // RoutineGenerator expects { name, description, exercises: [] }
+                const formattedRoutine: Routine = {
+                    name: data.routine.name,
+                    description: data.routine.description,
+                    exercises: data.routine.exercises || [] // Ensure this matches what handleSaveRoutine expects
+                };
+                setRoutine(formattedRoutine);
                 setNutritionPlan(data.nutritionPlan);
             } else {
-                alert('Error: ' + data.error);
+                const errorMsg = data.error || data.message || 'Error desconocido al generar la rutina';
+                alert('Error de VirtudCoach: ' + errorMsg);
             }
         } catch (e) {
-            console.error(e);
-            alert('Error conectando con VirtudCoach');
+            console.error('Fetch Error:', e);
+            alert('Error de conexión: No se pudo contactar con el servidor. Revisa tu internet.');
         } finally {
             setLoading(false);
         }
