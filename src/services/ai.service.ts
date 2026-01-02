@@ -57,10 +57,9 @@ export class AIService {
         const response = await result.response;
         let text = response.text();
 
-        // Limpiar respuesta (remover markdown code blocks y caracteres de control)
+        // Limpiar respuesta (remover markdown code blocks)
         text = text.replace(/```json\n?/g, '')
           .replace(/```\n?/g, '')
-          .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
           .trim();
 
         try {
