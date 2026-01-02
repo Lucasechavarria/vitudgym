@@ -38,67 +38,59 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(redirectUrl);
         }
 
-        // If has user and trying to access login/signup, redirect to dashboard
+        // Optimization: Fetch profile ONCE if user exists and it's not a purely static request
+        let userRole = null;
+        if (user) {
+            try {
+                // Check if role is in metadata first (Performance Win)
+                userRole = user.app_metadata?.role || user.user_metadata?.role;
+
+                if (!userRole) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', user.id)
+                        .single();
+                    userRole = profile?.role;
+                }
+            } catch (e) {
+                console.error('Error fetching role in middleware:', e);
+            }
+        }
+
+        // If has user and trying to access login/signup, redirect to dashboard based on role
         if (user && (pathname === '/login' || pathname === '/signup')) {
             const redirectUrl = request.nextUrl.clone();
 
-            try {
-                // Get user profile to determine redirect based on role
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-
-                if (profile) {
-                    switch (profile.role) {
-                        case 'admin':
-                        case 'superadmin':
-                            redirectUrl.pathname = '/admin';
-                            break;
-                        case 'coach':
-                            redirectUrl.pathname = '/coach';
-                            break;
-                        default:
-                            redirectUrl.pathname = '/dashboard';
-                    }
-                } else {
-                    redirectUrl.pathname = '/dashboard';
+            if (userRole) {
+                switch (userRole) {
+                    case 'admin':
+                    case 'superadmin':
+                        redirectUrl.pathname = '/admin';
+                        break;
+                    case 'coach':
+                        redirectUrl.pathname = '/coach';
+                        break;
+                    default:
+                        redirectUrl.pathname = '/dashboard';
                 }
-            } catch (e) {
-                // If DB error, default to dashboard
+            } else {
                 redirectUrl.pathname = '/dashboard';
             }
 
             return NextResponse.redirect(redirectUrl);
         }
 
-        // Role-based access control
+        // Role-based access control (RBAC)
         if (user) {
-            try {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
+            // Admin routes
+            if (pathname.startsWith('/admin') && !['admin', 'superadmin'].includes(userRole)) {
+                return NextResponse.redirect(new URL('/dashboard', request.url));
+            }
 
-                if (profile) {
-                    // Admin routes
-                    if (pathname.startsWith('/admin') && !['admin', 'superadmin'].includes(profile.role)) {
-                        return NextResponse.redirect(new URL('/dashboard', request.url));
-                    }
-
-                    // Coach routes
-                    if (pathname.startsWith('/coach') && !['coach', 'admin', 'superadmin'].includes(profile.role)) {
-                        return NextResponse.redirect(new URL('/dashboard', request.url));
-                    }
-                }
-            } catch (e) {
-                // If DB error, verify logic - maybe strictly deny admin/coach areas if profile check fails?
-                // Safer to deny access to privileged areas if we can't verify role
-                if (pathname.startsWith('/admin') || pathname.startsWith('/coach')) {
-                    return NextResponse.redirect(new URL('/dashboard', request.url));
-                }
+            // Coach routes
+            if (pathname.startsWith('/coach') && !['coach', 'admin', 'superadmin'].includes(userRole)) {
+                return NextResponse.redirect(new URL('/dashboard', request.url));
             }
         }
 

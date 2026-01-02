@@ -155,6 +155,8 @@ export const userGoalsService = {
      */
     async getStats() {
         const supabase = await createClient();
+
+        // Optimización: Pedir solo campos mínimos
         const { data, error } = await supabase
             .from('user_goals')
             .select('primary_goal, training_frequency_per_week, is_active');
@@ -172,10 +174,8 @@ export const userGoalsService = {
         let countWithFrequency = 0;
 
         data.forEach(goal => {
-            // Count by primary goal
             stats.byPrimaryGoal[goal.primary_goal] = (stats.byPrimaryGoal[goal.primary_goal] || 0) + 1;
 
-            // Calculate average frequency
             if (goal.training_frequency_per_week) {
                 totalFrequency += goal.training_frequency_per_week;
                 countWithFrequency++;

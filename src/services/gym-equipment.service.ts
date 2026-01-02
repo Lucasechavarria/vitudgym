@@ -152,12 +152,16 @@ export const gymEquipmentService = {
      */
     async getStats() {
         const supabase = await createClient();
+
+        // Optimización: Pedir solo los campos necesarios para reducir ancho de banda
         const { data, error } = await supabase
             .from('gym_equipment')
             .select('category, is_available, condition');
 
         if (error) throw error;
 
+        // Estos recuentos son rápidos en memoria si el volumen es manejable (<1000 items)
+        // Para mayor escala, se debería usar una función RPC en PostgreSQL
         const stats = {
             total: data.length,
             available: data.filter(e => e.is_available).length,
@@ -166,10 +170,7 @@ export const gymEquipmentService = {
         };
 
         data.forEach(equipment => {
-            // Count by category
             stats.byCategory[equipment.category] = (stats.byCategory[equipment.category] || 0) + 1;
-
-            // Count by condition
             if (equipment.condition) {
                 stats.byCondition[equipment.condition] = (stats.byCondition[equipment.condition] || 0) + 1;
             }

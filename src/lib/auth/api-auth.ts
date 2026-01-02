@@ -59,29 +59,36 @@ export async function requireRole(
     allowedRoles: string[]
 ) {
     try {
-        const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', userId)
-            .single();
+        // Optimización: Intentar obtener el rol de la sesión/usuario primero para ahorrar DB hits
+        const { data: { user } } = await supabase.auth.getUser();
+        let role = user?.app_metadata?.role || user?.user_metadata?.role;
 
-        if (error) {
-            return {
-                error: NextResponse.json(
-                    { error: 'Profile not found', message: 'User profile could not be retrieved' },
-                    { status: 404 }
-                ),
-                profile: null
-            };
+        if (!role) {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', userId)
+                .single();
+
+            if (error || !profile) {
+                return {
+                    error: NextResponse.json(
+                        { error: 'Profile not found', message: 'User profile could not be retrieved' },
+                        { status: 404 }
+                    ),
+                    profile: null
+                };
+            }
+            role = profile.role;
         }
 
-        if (!profile || !allowedRoles.includes(profile.role)) {
+        if (!allowedRoles.includes(role)) {
             return {
                 error: NextResponse.json(
                     {
                         error: 'Forbidden',
                         message: `Access denied. Required roles: ${allowedRoles.join(', ')}`,
-                        userRole: profile?.role || 'unknown'
+                        userRole: role || 'unknown'
                     },
                     { status: 403 }
                 ),
@@ -89,7 +96,7 @@ export async function requireRole(
             };
         }
 
-        return { profile, error: null };
+        return { profile: { role }, error: null };
     } catch (err) {
         return {
             error: NextResponse.json(

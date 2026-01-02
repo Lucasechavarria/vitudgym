@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
         if (error) return error;
 
-        // Obtener todos los alumnos (miembros)
+        // Obtener alumnos con su objetivo y rutina activa en UNA SOLA consulta (Optimización N+1)
         const { data: students, error: studentsError } = await supabase
             .from('profiles')
             .select(`
@@ -27,34 +27,33 @@ export async function GET(request: Request) {
                 onboarding_completed,
                 medical_info,
                 emergency_contact,
-                role
+                role,
+                active_goal:user_goals(
+                    id,
+                    primary_goal,
+                    target_date,
+                    is_active
+                ),
+                active_routine:routines(
+                    id,
+                    name,
+                    status,
+                    is_active
+                )
             `)
             .eq('role', 'member')
+            .eq('user_goals.is_active', true)
+            .eq('routines.is_active', true)
             .order('created_at', { ascending: false });
 
         if (studentsError) throw studentsError;
 
-        // Para cada alumno, obtener su objetivo activo y rutina activa
-        const studentsWithDetails = await Promise.all(
-            students.map(async (student) => {
-                // Obtener objetivo activo
-                const activeGoal = await userGoalsService.getActiveGoal(student.id);
-
-                // Obtener rutina activa
-                const { data: activeRoutine } = await supabase
-                    .from('routines')
-                    .select('id, name, status')
-                    .eq('user_id', student.id)
-                    .eq('is_active', true)
-                    .single();
-
-                return {
-                    ...student,
-                    active_goal: activeGoal,
-                    active_routine: activeRoutine,
-                };
-            })
-        );
+        // Limpiar la respuesta para que active_goal y active_routine no sean arrays (Supabase devuelve arrays en joins)
+        const studentsWithDetails = students.map(student => ({
+            ...student,
+            active_goal: student.active_goal?.[0] || null,
+            active_routine: student.active_routine?.[0] || null,
+        }));
 
         return NextResponse.json({
             success: true,

@@ -157,20 +157,27 @@ FORMATO DE RESPUESTA (JSON estricto):
    * @param history - Historial de la conversación previa
    * @returns Respuesta del asistente
    */
-  async generateChatResponse(message: string, history: { role: 'user' | 'model', parts: string }[]): Promise<string> {
-    const chat = model.startChat({
-      history: history.map(h => ({
-        role: h.role,
-        parts: [{ text: h.parts }]
-      })),
-      generationConfig: {
-        maxOutputTokens: 1000,
-      },
-    });
+  async generateChatResponse(message: string, history: { role: string; content: string }[] = []) {
+    try {
+      const chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    return response.text();
+      // Optimización: Limitar el historial a los últimos 10 mensajes para ahorrar tokens y mejorar latencia
+      const limitedHistory = history.slice(-10).map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }],
+      }));
+
+      const chat = chatModel.startChat({
+        history: limitedHistory,
+      });
+
+      const result = await chat.sendMessage(message);
+      const response = await result.response;
+      return response.text();
+    } catch (error: unknown) {
+      console.error("AI Chat Error:", error);
+      throw new Error(error instanceof Error ? error.message : "Error al procesar mensaje de IA");
+    }
   }
   /**
    * Analiza un video o imagen para corrección técnica

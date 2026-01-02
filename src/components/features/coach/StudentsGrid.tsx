@@ -26,40 +26,42 @@ export default function StudentsGrid() {
     const [modalOpen, setModalOpen] = useState<'routine' | 'chat' | 'progress' | null>(null);
 
     useEffect(() => {
-        const fetchStudents = async () => {
-            try {
-                // Fetch profiles with role 'member' (student)
-                const { data: profiles, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .or('role.eq.member,role.eq.user')
-                    .returns<SupabaseUserProfile[]>();
+        useEffect(() => {
+            const fetchStudents = async () => {
+                try {
+                    // Usar la API optimizada que preparamos en el backend
+                    const response = await fetch('/api/coach/students');
+                    const data = await response.json();
 
-                if (error) throw error;
+                    if (!data.success) throw new Error(data.error || 'Error al cargar alumnos');
 
-                if (profiles) {
-                    // Map to component structure
-                    const formattedStudents = profiles.map(p => ({
-                        id: p.id,
-                        nombre: p.full_name || 'Sin Nombre',
-                        email: p.email,
-                        // Mocking extra fields for now until we have real analytics for them
-                        experiencia: 'Nivel Intermedio',
-                        status: 'active', // Default to active
-                        lastAttendance: 'Reciente',
-                        nextClass: 'Por agendar',
-                        edad: 25 // Mock
-                    }));
-                    setStudents(formattedStudents as Student[]);
+                    if (data.students) {
+                        // Map to component structure using real data from the API
+                        const formattedStudents = data.students.map((p: any) => ({
+                            id: p.id,
+                            nombre: p.full_name || 'Sin Nombre',
+                            email: p.email,
+                            experiencia: p.active_goal?.primary_goal
+                                ? `Meta: ${p.active_goal.primary_goal}`
+                                : 'Sin objetivo activo',
+                            status: p.active_routine ? 'active' : 'alert',
+                            lastAttendance: 'Consultar', // Pendiente de implementar en DB
+                            nextClass: 'Pendiente',      // Pendiente de implementar en DB
+                            edad: p.medical_info?.age || 0,
+                            active_goal: p.active_goal,
+                            active_routine: p.active_routine
+                        }));
+                        setStudents(formattedStudents as Student[]);
+                    }
+                } catch (error) {
+                    console.error('Error fetching students:', error);
+                } finally {
+                    setLoading(false);
                 }
-            } catch (error) {
-                console.error('Error fetching students:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+            };
 
-        fetchStudents();
+            fetchStudents();
+        }, []);
     }, []);
 
     const filteredStudents = students.filter(student => {

@@ -151,7 +151,7 @@ export default function Home() {
             </div>
             <div className="lg:w-1/2 w-full h-[400px] bg-gray-200 rounded-3xl overflow-hidden shadow-2xl grayscale hover:grayscale-0 transition-all duration-700">
               {/* Simulamos un mapa o imagen del local */}
-              <div className="w-full h-full bg-[url('/images/gym-location.webp')] bg-cover bg-center flex items-center justify-center">
+              <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center flex items-center justify-center">
                 <div className="bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl flex items-center gap-3">
                   <div className="bg-orange-500 w-10 h-10 rounded-full flex items-center justify-center text-white">V</div>
                   <span className="font-bold">Virtud Gym HQ</span>

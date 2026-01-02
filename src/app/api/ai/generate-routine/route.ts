@@ -224,11 +224,9 @@ export async function POST(request: Request) {
         const errorMessage = error instanceof Error ? error.message : 'Error generating routine';
         const errorStack = error instanceof Error ? error.stack : undefined;
 
-        const { studentId } = await request.clone().json().catch(() => ({}));
-
+        // Ya no intentamos parsear el request aquí para evitar crashes secundarios
         Sentry.captureException(error, {
             extra: {
-                studentId,
                 errorMessage,
                 errorStack,
                 context: 'AI Routine Generation'
