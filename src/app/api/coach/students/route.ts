@@ -42,17 +42,19 @@ export async function GET(request: Request) {
                 )
             `)
             .eq('role', 'member')
-            .eq('user_goals.is_active', true)
-            .eq('routines.is_active', true)
-            .order('created_at', { ascending: false });
+            .order('full_name', { ascending: true });
 
         if (studentsError) throw studentsError;
 
-        // Limpiar la respuesta para que active_goal y active_routine no sean arrays (Supabase devuelve arrays en joins)
+        // Limpiar la respuesta para que active_goal y active_routine solo contengan los ACTIVOS
         const studentsWithDetails = students.map(student => ({
             ...student,
-            active_goal: student.active_goal?.[0] || null,
-            active_routine: student.active_routine?.[0] || null,
+            active_goal: Array.isArray(student.active_goal)
+                ? student.active_goal.find((g: any) => g.is_active) || null
+                : null,
+            active_routine: Array.isArray(student.active_routine)
+                ? student.active_routine.find((r: any) => r.is_active) || null
+                : null,
         }));
 
         return NextResponse.json({
