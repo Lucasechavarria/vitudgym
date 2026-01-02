@@ -42,20 +42,42 @@ export class AIService {
    * @throws Error si la API de Gemini falla o la respuesta no es válida
    */
   async generateRoutineFromPrompt(prompt: string): Promise<any> {
-    // Llamar a Gemini
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let text = response.text();
+    let lastError: any;
+    const maxRetries = 2;
 
-    // Limpiar respuesta (remover markdown code blocks si existen)
-    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    for (let i = 0; i <= maxRetries; i++) {
+      try {
+        if (i > 0) {
+          console.log(`Retry attempt ${i} for AI generation...`);
+          // Espera exponencial breve
+          await new Promise(resolve => setTimeout(resolve, i * 1000));
+        }
 
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      console.error("Failed to parse AI response:", text);
-      throw new Error("La respuesta de la IA no es un JSON válido.");
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        // Limpiar respuesta (remover markdown code blocks y caracteres invisibles)
+        text = text.replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+          .trim();
+
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error(`Attempt ${i + 1}: Failed to parse AI response. Text length: ${text.length}`);
+          lastError = new Error("La respuesta de la IA no es un JSON válido.");
+          if (i === maxRetries) throw lastError;
+        }
+      } catch (error: any) {
+        console.error(`AI Generation Attempt ${i + 1} failed:`, error.message);
+        lastError = error;
+        if (i === maxRetries) break;
+      }
     }
+
+    throw lastError || new Error("Error desconocido al generar la rutina con IA.");
   }
 
   /**

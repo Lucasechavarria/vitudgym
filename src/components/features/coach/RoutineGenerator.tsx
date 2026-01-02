@@ -108,21 +108,36 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
 
     const selectedStudentData = students.find(s => s.id === selectedStudent);
 
+    const [statusMessage, setStatusMessage] = useState<string>('');
+
     const generate = async () => {
         if (!selectedStudent) {
             alert('Por favor selecciona un alumno');
             return;
         }
 
+        // 1. Validar conexión local
+        if (typeof window !== 'undefined' && !window.navigator.onLine) {
+            alert('⚠️ No tienes conexión a internet. Revisa tu wifi o datos móviles.');
+            return;
+        }
+
         setLoading(true);
         setRoutine(null);
+        setStatusMessage('Conectando con VirtudCoach...');
+
+        // 2. Control de tiempo de espera (Timeout de 60 segundos)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
 
         try {
+            setStatusMessage('Generando plan personalizado con IA...');
             const res = await fetch('/api/ai/generate-routine', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                signal: controller.signal,
                 body: JSON.stringify({
                     studentId: selectedStudent,
                     studentProfile: selectedStudentData,
@@ -134,16 +149,17 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 })
             });
 
+            clearTimeout(timeoutId);
+            setStatusMessage('Procesando respuesta...');
+
             const data = await res.json();
 
             if (res.ok && data.success) {
-                // Mapping API response to the local Routine interface if needed
-                // The API returns weeklySchedule, medicalConsiderations, etc.
-                // RoutineGenerator expects { name, description, exercises: [] }
+                setStatusMessage('¡Rutina generada con éxito!');
                 const formattedRoutine: Routine = {
                     name: data.routine.name,
                     description: data.routine.description,
-                    exercises: data.routine.exercises || [] // Ensure this matches what handleSaveRoutine expects
+                    exercises: data.routine.exercises || []
                 };
                 setRoutine(formattedRoutine);
                 setNutritionPlan(data.nutritionPlan);
@@ -151,11 +167,16 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 const errorMsg = data.error || data.message || 'Error desconocido al generar la rutina';
                 alert('Error de VirtudCoach: ' + errorMsg);
             }
-        } catch (e) {
-            console.error('Fetch Error:', e);
-            alert('Error de conexión: No se pudo contactar con el servidor. Revisa tu internet.');
+        } catch (e: any) {
+            if (e.name === 'AbortError') {
+                alert('⏳ La conexión tardó demasiado. Por favor, intenta de nuevo.');
+            } else {
+                console.error('Fetch Error:', e);
+                alert('Error de conexión: No se pudo contactar con el servidor. Revisa tu internet o intenta más tarde.');
+            }
         } finally {
             setLoading(false);
+            setStatusMessage('');
         }
     };
 
@@ -299,12 +320,19 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 <button
                     onClick={generate}
                     disabled={loading || !selectedStudent}
-                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all flex flex-col items-center justify-center gap-1"
                 >
-                    {loading ? (
-                        <>Generando Plan IA...</>
-                    ) : (
-                        <>✨ Generar Rutina</>
+                    <div className="flex items-center gap-2">
+                        {loading ? (
+                            <>Generando Plan IA...</>
+                        ) : (
+                            <>✨ Generar Rutina</>
+                        )}
+                    </div>
+                    {loading && statusMessage && (
+                        <span className="text-[10px] text-orange-200 animate-pulse font-normal">
+                            {statusMessage}
+                        </span>
                     )}
                 </button>
             </motion.div>
