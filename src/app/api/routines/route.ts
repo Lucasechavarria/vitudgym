@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         // We need to map it carefully.
         // Accessing the exercises array properly.
 
-        const exercisesToInsert = exercises.map((ex: any, index: number) => ({
+        const exercisesToInsert = exercises.map((ex: Record<string, any>, index: number) => ({
             routine_id: routine.id,
             name: ex.name || ex.exercise, // Handle different naming conventions
             description: ex.notes,

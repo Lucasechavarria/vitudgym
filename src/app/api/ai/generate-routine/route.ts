@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server';
 import * as Sentry from "@sentry/nextjs";
 import { aiService } from '@/services/ai.service';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
-import { createClient } from '@/lib/supabase/server';
 import { userGoalsService } from '@/services/user-goals.service';
 import { gymEquipmentService } from '@/services/gym-equipment.service';
-import { nutritionPlansService } from '@/services/nutrition-plans.service';
 
 /**
  * POST /api/ai/generate-routine
@@ -84,21 +82,6 @@ export async function POST(request: Request) {
         // 3. Obtener inventario del gimnasio disponible
         const gymEquipment = await gymEquipmentService.getAvailable();
 
-        // 4. Calcular edad del alumno
-        const calculateAge = (birthDate: string) => {
-            const today = new Date();
-            const birth = new Date(birthDate);
-            let age = today.getFullYear() - birth.getFullYear();
-            const monthDiff = today.getMonth() - birth.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-                age--;
-            }
-            return age;
-        };
-
-        const age = studentProfile.date_of_birth
-            ? calculateAge(studentProfile.date_of_birth)
-            : null;
 
         // 5. Generar prompt y llamar a Gemini usando el servicio unificado
         const prompt = aiService.buildPrompt({

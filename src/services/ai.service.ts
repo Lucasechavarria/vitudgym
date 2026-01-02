@@ -6,9 +6,9 @@ import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates
  * Parámetros para generar una rutina mejorada
  */
 export interface RoutineGenerationContext {
-  studentProfile: any;
-  userGoal: any;
-  gymEquipment: any[];
+  studentProfile: Record<string, any>;
+  userGoal: Record<string, any>;
+  gymEquipment: Record<string, any>[];
   coachNotes?: string;
   templateKey?: AITemplateKey;
   includeNutrition?: boolean;
@@ -23,8 +23,8 @@ export interface Routine {
   durationWeeks: number;
   medicalConsiderations: string;
   motivationalQuote: string;
-  weeklySchedule: any[];
-  nutritionPlan?: any;
+  weeklySchedule: Record<string, any>[];
+  nutritionPlan?: Record<string, any>;
 }
 
 /**
@@ -57,10 +57,10 @@ export class AIService {
         const response = await result.response;
         let text = response.text();
 
-        // Limpiar respuesta (remover markdown code blocks y caracteres invisibles)
+        // Limpiar respuesta (remover markdown code blocks y caracteres de control)
         text = text.replace(/```json\n?/g, '')
           .replace(/```\n?/g, '')
-          .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+          .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
           .trim();
 
         try {

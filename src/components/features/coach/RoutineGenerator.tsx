@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TRAINING_GOALS, GYM_EQUIPMENT } from '@/lib/constants/gym';
-import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
+import { AI_PROMPT_TEMPLATES } from '@/lib/constants/ai-templates';
 
 /**
  * RoutineGenerator Component
@@ -31,8 +31,7 @@ interface Student {
     name?: string;
     email: string;
     role?: string;
-    medical_info?: any; // JSONB from DB
-    // Falta tipado estricto pero 'any' aquí es seguro temporalmente para pasar al backend
+    medical_info?: Record<string, any>; // JSONB from DB
 }
 
 export default function RoutineGenerator({ initialTemplate }: { initialTemplate?: string | null } = {}) {
@@ -46,7 +45,7 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
     const [loadingStudents, setLoadingStudents] = useState(true);
     const [studentsError, setStudentsError] = useState<string | null>(null);
     const [includeNutrition, setIncludeNutrition] = useState(true);
-    const [nutritionPlan, setNutritionPlan] = useState<any | null>(null);
+    const [nutritionPlan, setNutritionPlan] = useState<Record<string, any> | null>(null);
     const [selectedTemplateKey, setSelectedTemplateKey] = useState<string | null>(initialTemplate || null);
 
     // Initial Template Effect
@@ -167,11 +166,12 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 const errorMsg = data.error || data.message || 'Error desconocido al generar la rutina';
                 alert('Error de VirtudCoach: ' + errorMsg);
             }
-        } catch (e: any) {
-            if (e.name === 'AbortError') {
+        } catch (e: unknown) {
+            const error = e as any;
+            if (error.name === 'AbortError') {
                 alert('⏳ La conexión tardó demasiado. Por favor, intenta de nuevo.');
             } else {
-                console.error('Fetch Error:', e);
+                console.error('Fetch Error:', error);
                 alert('Error de conexión: No se pudo contactar con el servidor. Revisa tu internet o intenta más tarde.');
             }
         } finally {
