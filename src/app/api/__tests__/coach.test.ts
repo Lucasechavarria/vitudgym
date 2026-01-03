@@ -16,18 +16,25 @@ jest.mock('@/lib/supabase/server', () => ({
             if (table === 'profiles') {
                 return {
                     select: jest.fn(() => ({
-                        eq: jest.fn(() => ({
-                            single: jest.fn(() => Promise.resolve({
-                                data: { id: 'coach123', role: 'coach' },
-                                error: null
-                            })),
-                            order: jest.fn(() => Promise.resolve({
-                                data: [
-                                    { id: '1', full_name: 'Student 1', role: 'member' },
-                                    { id: '2', full_name: 'Student 2', role: 'member' }
-                                ],
-                                error: null
-                            }))
+                        eq: jest.fn(function () { return this; }),
+                        or: jest.fn(function () { return this; }),
+                        in: jest.fn(function () { return this; }),
+                        order: jest.fn(function () {
+                            // Si estamos en la cadena de Profiles, devolver los datos de prueba
+                            if (table === 'profiles') {
+                                return Promise.resolve({
+                                    data: [
+                                        { id: '1', full_name: 'Student 1', role: 'member' },
+                                        { id: '2', full_name: 'Student 2', role: 'member' }
+                                    ],
+                                    error: null
+                                });
+                            }
+                            return this;
+                        }),
+                        single: jest.fn(() => Promise.resolve({
+                            data: { id: 'coach123', role: 'coach' },
+                            error: null
                         }))
                     }))
                 };
