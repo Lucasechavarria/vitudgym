@@ -26,42 +26,41 @@ export default function StudentsGrid() {
     const [modalOpen, setModalOpen] = useState<'routine' | 'chat' | 'progress' | null>(null);
 
     useEffect(() => {
-        useEffect(() => {
-            const fetchStudents = async () => {
-                try {
-                    // Usar la API optimizada que preparamos en el backend
-                    const response = await fetch('/api/coach/students');
-                    const data = await response.json();
+        const fetchStudents = async () => {
+            try {
+                setLoading(true);
+                // Usar la API optimizada que preparamos en el backend
+                const response = await fetch('/api/coach/students');
+                const data = await response.json();
 
-                    if (!data.success) throw new Error(data.error || 'Error al cargar alumnos');
+                if (!data.success) throw new Error(data.error || 'Error al cargar alumnos');
 
-                    if (data.students) {
-                        // Map to component structure using real data from the API
-                        const formattedStudents = data.students.map((p: any) => ({
-                            id: p.id,
-                            nombre: p.full_name || 'Sin Nombre',
-                            email: p.email,
-                            experiencia: p.active_goal?.primary_goal
-                                ? `Meta: ${p.active_goal.primary_goal}`
-                                : 'Sin objetivo activo',
-                            status: p.active_routine ? 'active' : 'alert',
-                            lastAttendance: 'Consultar', // Pendiente de implementar en DB
-                            nextClass: 'Pendiente',      // Pendiente de implementar en DB
-                            edad: p.medical_info?.age || 0,
-                            active_goal: p.active_goal,
-                            active_routine: p.active_routine
-                        }));
-                        setStudents(formattedStudents as Student[]);
-                    }
-                } catch (error) {
-                    console.error('Error fetching students:', error);
-                } finally {
-                    setLoading(false);
+                if (data.students) {
+                    // Map to component structure using real data from the API
+                    const formattedStudents = data.students.map((p: any) => ({
+                        id: p.id,
+                        nombre: p.full_name || 'Sin Nombre',
+                        email: p.email,
+                        experiencia: p.active_goal?.primary_goal
+                            ? `Meta: ${p.active_goal.primary_goal}`
+                            : 'Sin objetivo activo',
+                        status: p.active_routine ? 'active' : 'alert',
+                        lastAttendance: 'Consultar', // Pendiente de implementar en DB
+                        nextClass: 'Pendiente',      // Pendiente de implementar en DB
+                        edad: p.medical_info?.age || 0,
+                        active_goal: p.active_goal,
+                        active_routine: p.active_routine
+                    }));
+                    setStudents(formattedStudents as Student[]);
                 }
-            };
+            } catch (error) {
+                console.error('Error fetching students:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-            fetchStudents();
-        }, []);
+        fetchStudents();
     }, []);
 
     const filteredStudents = students.filter(student => {

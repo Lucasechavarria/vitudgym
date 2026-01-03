@@ -89,9 +89,9 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 } else {
                     setStudentsError('No se pudieron cargar los alumnos');
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error fetching students:', error);
-                setStudentsError('Error al cargar alumnos. Verifica tu conexión.');
+                setStudentsError(`Fallo al cargar alumnos: ${error.message || 'Error desconocido'}`);
                 // Fallback to mock data for demo
                 setStudents([
                     { id: 'demo1', full_name: 'Juan Pérez (Demo)', email: 'juan@demo.com' },

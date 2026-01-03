@@ -16,6 +16,8 @@ export async function GET(request: Request) {
 
         if (error) return error;
 
+        console.log('🔍 Fetching students for coach:', user.id);
+
         // Obtener alumnos con su objetivo y rutina activa en UNA SOLA consulta (Optimización N+1)
         const { data: students, error: studentsError } = await supabase
             .from('profiles')
@@ -41,10 +43,15 @@ export async function GET(request: Request) {
                     is_active
                 )
             `)
-            .eq('role', 'member')
+            .or('role.eq.member,role.eq.user') // Ampliado: acepta tanto member como user
             .order('full_name', { ascending: true });
 
-        if (studentsError) throw studentsError;
+        if (studentsError) {
+            console.error('❌ Supabase error fetching students:', studentsError);
+            throw studentsError;
+        }
+
+        console.log('✅ Students found:', students?.length || 0);
 
         // Limpiar la respuesta para que active_goal y active_routine solo contengan los ACTIVOS
         const studentsWithDetails = students.map(student => ({
