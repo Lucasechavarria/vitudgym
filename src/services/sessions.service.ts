@@ -1,6 +1,5 @@
 
 import { createClient } from '@/lib/supabase/server';
-import { PostgrestError } from '@supabase/supabase-js';
 
 export interface ExercisePerformance {
     exercise_id: string;

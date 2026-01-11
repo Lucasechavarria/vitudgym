@@ -26,7 +26,7 @@ interface Routine {
 interface WorkoutPlayerProps {
     routine: Routine;
     onClose: () => void;
-    onComplete: (sessionData: any) => void;
+    onComplete: (session: { id: string; total_points: number }) => void;
 }
 
 export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutPlayerProps) {
@@ -36,12 +36,11 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
     const [restTimeLeft, setRestTimeLeft] = useState(0);
     const [sessionStatus, setSessionStatus] = useState<'loading' | 'active' | 'completed'>('loading');
 
-    // Tracking actual performance
-    const [logs, setLogs] = useState<Record<string, ExerciseLog>>({});
     const [currentWeight, setCurrentWeight] = useState<string>('');
+    // Tracking actual performance
     const [currentReps, setCurrentReps] = useState<string>('');
 
-    const restTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const restTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const currentExercise = routine.exercises[currentIndex];
 

@@ -130,17 +130,27 @@ function processAttendance(bookings: Pick<ClassBooking, 'date'>[]): Array<{ mont
     return months.map(m => ({ month: m, rate: result[m] || 0 }));
 }
 
+interface WorkoutSessionLog {
+    id: string;
+    start_time: string;
+    logs: Array<{
+        actual_reps: string;
+        actual_weight: number | string;
+        actual_sets: number;
+    }>;
+}
+
 /**
  * Calcula el tonelaje total (volumen) por sesión
  */
-function processVolume(sessions: any[]): Array<{ week: string; volume: number }> {
+function processVolume(sessions: WorkoutSessionLog[]): Array<{ week: string; volume: number }> {
     return sessions.map(session => {
         let totalVolume = 0;
-        session.logs?.forEach((log: any) => {
+        session.logs?.forEach((log) => {
             // we assume actual_reps is numeric for volume calculation if possible
             const reps = parseInt(log.actual_reps) || 0;
-            const weight = parseFloat(log.actual_weight) || 0;
-            const sets = parseInt(log.actual_sets) || 1;
+            const weight = typeof log.actual_weight === 'string' ? parseFloat(log.actual_weight) : log.actual_weight || 0;
+            const sets = log.actual_sets || 1;
             totalVolume += (reps * weight * sets);
         });
 

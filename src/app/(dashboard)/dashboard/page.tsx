@@ -14,7 +14,14 @@ import { WaiverWarning } from '@/components/features/student/WaiverWarning';
 import { GoalRequestModal } from '@/components/features/student/GoalRequestModal';
 
 export default function StudentDashboard() {
-  const { data, loading, isRequesting, handleRequestRoutine, handleGoalModal } = useStudentDashboard();
+  const {
+    data,
+    loading,
+    isRequesting,
+    isGoalModalOpen,
+    handleRequestRoutine,
+    handleGoalModal,
+  } = useStudentDashboard();
 
   if (loading) {
     return (
@@ -32,7 +39,7 @@ export default function StudentDashboard() {
   const isExpiringSoon = membershipEndDate && (membershipEndDate.getTime() - Date.now()) < 7 * 24 * 60 * 60 * 1000;
   const daysRemaining = membershipEndDate ? Math.ceil((membershipEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
-  const chartData = progress.length > 0 ? progress.map((p: any) => ({
+  const chartData = progress.length > 0 ? progress.map((p: { recorded_at: string; weight: number; body_fat: number; muscle_mass: number }) => ({
     week: new Date(p.recorded_at).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
     peso: p.weight,
     grasa: p.body_fat,
@@ -41,7 +48,7 @@ export default function StudentDashboard() {
 
   const stats = [
     { label: 'Peso Actual', value: `${latestProgress?.weight || '--'} kg`, icon: '⚖️', trend: 'Objetivo: 75kg', color: 'from-emerald-500/20 to-emerald-600/5 border-emerald-500/30 text-emerald-400' },
-    { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: any) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-blue-500/20 to-blue-600/5 border-blue-500/30 text-blue-400' },
+    { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: { rate: number }) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-blue-500/20 to-blue-600/5 border-blue-500/30 text-blue-400' },
     { label: 'Grasa Corporal', value: `${latestProgress?.body_fat || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-orange-500/20 to-orange-600/5 border-orange-500/30 text-orange-400' },
     { label: 'Músculo', value: `${latestProgress?.muscle_mass || '--'} kg`, icon: '💪', trend: 'En Aumento', color: 'from-purple-500/20 to-purple-600/5 border-purple-500/30 text-purple-400' },
   ];
@@ -126,7 +133,7 @@ export default function StudentDashboard() {
       </div>
 
       <GoalRequestModal
-        isOpen={data.isGoalModalOpen}
+        isOpen={isGoalModalOpen}
         onClose={() => handleGoalModal(false)}
         onSubmit={handleRequestRoutine}
         isSubmitting={isRequesting}

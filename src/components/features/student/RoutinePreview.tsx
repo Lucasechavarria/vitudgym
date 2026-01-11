@@ -9,13 +9,12 @@ import { StudentRoutine, ItemVariants, RoutineExercise } from '@/types/student-c
 
 interface RoutinePreviewProps {
     routine: StudentRoutine;
-    handleRequestRoutine: (data: any) => void;
     handleGoalModal: (isOpen: boolean) => void;
     isRequesting: boolean;
     itemVariants: ItemVariants;
 }
 
-export function RoutinePreview({ routine, handleRequestRoutine, handleGoalModal, isRequesting, itemVariants }: RoutinePreviewProps) {
+export function RoutinePreview({ routine, handleGoalModal, isRequesting, itemVariants }: RoutinePreviewProps) {
     const [isPlayerOpen, setIsPlayerOpen] = React.useState(false);
 
     const handleComplete = (data: any) => {

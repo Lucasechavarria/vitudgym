@@ -2,23 +2,41 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'react-hot-toast';
 
+interface Routine {
+    id: string;
+    name: string;
+    goal?: string;
+    exercises: any[];
+    nutrition_plan_id?: string;
+}
+
+interface DashboardData {
+    profile: any;
+    routine: Routine | null;
+    progress: any[];
+    attendance: any[];
+    volume: Array<{ week: string; volume: number }>;
+}
+
 export function useStudentDashboard() {
     const [loading, setLoading] = useState(true);
     const [isRequesting, setIsRequesting] = useState(false);
-    const [data, setData] = useState<any>({
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [data, setData] = useState<DashboardData>({
         progress: [],
         attendance: [],
         routine: null,
         profile: null,
-        isGoalModalOpen: false
+        volume: []
     });
 
     const fetchData = async () => {
         try {
+            setLoading(true);
             const res = await fetch('/api/student/dashboard');
             if (!res.ok) throw new Error('Error cargando datos');
             const dashboardData = await res.json();
-            setData((prev: any) => ({ ...prev, ...dashboardData }));
+            setData(dashboardData);
         } catch (error) {
             console.error(error);
             toast.error('No se pudo cargar tu progreso');
@@ -32,7 +50,7 @@ export function useStudentDashboard() {
     }, []);
 
     const handleGoalModal = (isOpen: boolean) => {
-        setData((prev: any) => ({ ...prev, isGoalModalOpen: isOpen }));
+        setIsGoalModalOpen(isOpen);
     };
 
     const handleRequestRoutine = async (formData: { goal: string; frequency: number; includeNutrition: boolean }) => {
@@ -52,7 +70,7 @@ export function useStudentDashboard() {
                 })
             });
 
-            const result = await res.json().catch(() => ({ error: 'Error inesperado del servidor (HTML)' }));
+            const result = await res.json().catch(() => ({ error: 'Error inesperado del servidor' }));
 
             if (!res.ok) {
                 throw new Error(result.error || 'Ocurrió un error al contactar con la IA.');
@@ -74,6 +92,7 @@ export function useStudentDashboard() {
         data,
         loading,
         isRequesting,
+        isGoalModalOpen,
         handleRequestRoutine,
         handleGoalModal,
         refreshData: fetchData
