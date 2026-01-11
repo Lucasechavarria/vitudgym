@@ -81,10 +81,9 @@ const nextConfig = {
     ];
   },
 
-  // Experimental Features
+  // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
-    turbopack: {}, // Helps stabilize workers in limited environments
   },
 
   // Bundle Analyzer
