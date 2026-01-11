@@ -123,7 +123,6 @@ export default function StudentDashboard() {
         <div className="space-y-8">
           <RoutinePreview
             routine={routine}
-            handleRequestRoutine={handleRequestRoutine}
             handleGoalModal={handleGoalModal}
             isRequesting={isRequesting}
             itemVariants={itemVariants}

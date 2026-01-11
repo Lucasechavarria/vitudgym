@@ -61,7 +61,7 @@ describe('AIService', () => {
             expect(prompt).toContain('Hipertrofia');
             expect(prompt).toContain('Barra Olímpica');
             expect(prompt).toContain('Test notes');
-            expect(prompt).toContain('plan nutricional');
+            expect(prompt).toContain('plan_nutricional');
         });
 
         it('should use the correct template based on goal', () => {
