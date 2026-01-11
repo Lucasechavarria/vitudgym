@@ -73,21 +73,19 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 setLoadingStudents(true);
                 setStudentsError(null);
                 const res = await fetch('/api/coach/students');
+                const data = await res.json();
 
                 if (!res.ok) {
-                    throw new Error('Error al obtener alumnos');
+                    throw new Error(data.error || 'Error al obtener alumnos');
                 }
 
-                const data = await res.json();
                 if (data.students) {
-                    // El endpoint ya devuelve solo alumnos con rol 'member'
                     setStudents(data.students);
-
                     if (data.students.length === 0) {
                         setStudentsError('No hay alumnos asignados');
                     }
                 } else {
-                    setStudentsError('No se pudieron cargar los alumnos');
+                    setStudentsError('Formato de respuesta inválido');
                 }
             } catch (error: any) {
                 console.error('Error fetching students:', error);

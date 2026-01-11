@@ -114,7 +114,6 @@ export function UniversalSidebar({
                         alt="VIRTUD"
                         fill
                         className="object-contain"
-                        priority
                         sizes="128px"
                     />
                 </Link>
