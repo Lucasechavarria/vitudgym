@@ -95,20 +95,29 @@ export async function POST(request: Request) {
 
         const aiResponse = await aiService.generateRoutineFromPrompt(prompt);
 
+        // Mapear metadatos de la nueva estructura
+        const metadata = aiResponse.rutina_metadata || {};
+        const routineName = metadata.objetivo_principal || goalText || 'Rutina Personalizada';
+
         const { data: routine, error: routineError } = await supabase
             .from('routines')
             .insert({
                 user_id: studentId,
-                coach_id: profile.role === 'member' ? null : user.id, // Member requested, no coach yet
+                coach_id: profile.role === 'member' ? null : user.id,
                 user_goal_id: goalId || null,
-                name: aiResponse.routineName,
-                description: aiResponse.medicalConsiderations,
+                name: routineName,
+                description: JSON.stringify({
+                    metadata: metadata,
+                    logros: aiResponse.sistema_de_logros,
+                    finalizacion: aiResponse.finalizacion_sesion,
+                    recomendaciones: aiResponse.recomendaciones_post_entrenamiento
+                }),
                 goal: goalText,
-                duration_weeks: aiResponse.durationWeeks,
+                duration_weeks: 4, // Default para nueva estructura
                 generated_by_ai: true,
                 ai_prompt: prompt,
                 status: profile.role === 'member' ? 'pending_approval' : 'approved',
-                medical_considerations: aiResponse.medicalConsiderations,
+                medical_considerations: metadata.observaciones_medicas || '',
                 equipment_used: gymEquipment.map(eq => eq.id),
                 is_active: profile.role === 'member' ? false : true,
             })
@@ -117,52 +126,29 @@ export async function POST(request: Request) {
 
         if (routineError) throw routineError;
 
-        // 8. Guardar ejercicios
+        // 8. Guardar ejercicios (Aplanando la estructura de bloques)
         const exercises = [];
-        for (const daySchedule of aiResponse.weeklySchedule) {
-            let orderInDay = 1;
+        let globalOrder = 1;
 
-            // Warmup exercises
-            for (const exercise of daySchedule.warmup || []) {
-                exercises.push({
-                    routine_id: routine.id,
-                    name: exercise.name,
-                    description: exercise.description,
-                    day_number: daySchedule.day,
-                    order_in_day: orderInDay++,
-                    sets: 1,
-                    reps: exercise.duration,
-                });
-            }
+        for (const diaData of aiResponse.rutina || []) {
+            const dayNumber = diaData.dia;
 
-            // Main workout exercises
-            for (const exercise of daySchedule.mainWorkout || []) {
-                exercises.push({
-                    routine_id: routine.id,
-                    name: exercise.name,
-                    description: exercise.instructions,
-                    muscle_group: exercise.muscleGroup,
-                    equipment: exercise.equipment ? [exercise.equipment] : [],
-                    sets: exercise.sets,
-                    reps: String(exercise.reps),
-                    rest_seconds: exercise.rest,
-                    day_number: daySchedule.day,
-                    order_in_day: orderInDay++,
-                    instructions: exercise.modifications,
-                });
-            }
-
-            // Cooldown exercises
-            for (const exercise of daySchedule.cooldown || []) {
-                exercises.push({
-                    routine_id: routine.id,
-                    name: exercise.name,
-                    description: exercise.description,
-                    day_number: daySchedule.day,
-                    order_in_day: orderInDay++,
-                    sets: 1,
-                    reps: exercise.duration,
-                });
+            for (const bloque of diaData.bloques || []) {
+                for (const exercise of bloque.ejercicios || []) {
+                    exercises.push({
+                        routine_id: routine.id,
+                        name: exercise.nombre,
+                        description: exercise.alertas_medicas || '',
+                        muscle_group: diaData.grupo_muscular,
+                        equipment: exercise.equipamiento ? [exercise.equipamiento] : [],
+                        sets: exercise.series,
+                        reps: String(exercise.repeticiones),
+                        rest_seconds: exercise.descanso_segundos || bloque.tiempo_recomendado_segundos || 0,
+                        day_number: dayNumber,
+                        order_in_day: globalOrder++,
+                        instructions: `${exercise.indicaciones_tecnicas}. Tempo: ${exercise.tempo}. Alternativa: ${exercise.alternativa_sin_equipo}. Bloque: ${bloque.nombre}. Puntaje: ${exercise.puntaje_base}`,
+                    });
+                }
             }
         }
 
@@ -176,21 +162,21 @@ export async function POST(request: Request) {
 
         // 9. Guardar plan nutricional si se solicitó
         let nutritionPlan = null;
-        if (includeNutrition && aiResponse.nutritionPlan) {
+        if (includeNutrition && aiResponse.plan_nutricional) {
             const { data: nutrition, error: nutritionError } = await supabase
                 .from('nutrition_plans')
                 .insert({
                     user_id: studentId,
                     coach_id: user.id,
-                    daily_calories: aiResponse.nutritionPlan.dailyCalories,
-                    protein_grams: aiResponse.nutritionPlan.proteinGrams,
-                    carbs_grams: aiResponse.nutritionPlan.carbsGrams,
-                    fats_grams: aiResponse.nutritionPlan.fatsGrams,
-                    meals: aiResponse.nutritionPlan.meals,
-                    water_liters: aiResponse.nutritionPlan.waterLiters,
-                    supplements: aiResponse.nutritionPlan.supplements,
-                    general_guidelines: aiResponse.nutritionPlan.generalGuidelines,
-                    restrictions: aiResponse.nutritionPlan.restrictions,
+                    daily_calories: aiResponse.plan_nutricional.calorias_diarias,
+                    protein_grams: aiResponse.plan_nutricional.proteinas_gramos,
+                    carbs_grams: aiResponse.plan_nutricional.carbohydratos_gramos || aiResponse.plan_nutricional.carbohidratos_gramos,
+                    fats_grams: aiResponse.plan_nutricional.grasas_gramos,
+                    meals: aiResponse.plan_nutricional.comidas,
+                    water_liters: aiResponse.plan_nutricional.litros_agua,
+                    supplements: aiResponse.plan_nutricional.suplementos,
+                    general_guidelines: aiResponse.plan_nutricional.pautas_generales,
+                    restrictions: aiResponse.plan_nutricional.restricciones,
                     is_active: false, // Coach debe aprobar primero
                 })
                 .select()
@@ -211,8 +197,10 @@ export async function POST(request: Request) {
             success: true,
             routine: {
                 ...routine,
+                exercises: exercises, // Devolver ejercicios para previsualización
                 exerciseCount: exercises.length,
             },
+            rawAI: aiResponse, // Devolver respuesta completa para lógica interactiva en frontend
             nutritionPlan,
             message: 'Rutina generada exitosamente. Pendiente de aprobación del coach.'
         });

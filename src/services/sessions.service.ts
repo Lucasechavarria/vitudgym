@@ -1,0 +1,95 @@
+
+import { createClient } from '@/lib/supabase/server';
+import { PostgrestError } from '@supabase/supabase-js';
+
+export interface ExercisePerformance {
+    exercise_id: string;
+    actual_sets?: number;
+    actual_reps?: string;
+    actual_weight?: number;
+    rest_time_seconds?: number;
+    is_completed?: boolean;
+    difficulty_rating?: number;
+}
+
+export class SessionsService {
+    /**
+     * Inicia una nueva sesión de entrenamiento
+     */
+    static async startSession(userId: string, routineId: string) {
+        const supabase = await createClient();
+
+        const { data, error } = await supabase
+            .from('workout_sessions')
+            .insert({
+                user_id: userId,
+                routine_id: routineId,
+                status: 'active',
+                start_time: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        return { session: data, error };
+    }
+
+    /**
+     * Registra el rendimiento de un ejercicio específico en una sesión
+     */
+    static async logExercisePerformance(sessionId: string, performance: ExercisePerformance) {
+        const supabase = await createClient();
+
+        const { data, error } = await supabase
+            .from('exercise_performance_logs')
+            .insert({
+                session_id: sessionId,
+                ...performance
+            })
+            .select()
+            .single();
+
+        return { log: data, error };
+    }
+
+    /**
+     * Finaliza una sesión de entrenamiento y calcula puntos
+     */
+    static async completeSession(sessionId: string, totalPoints: number, moodRating?: number, notes?: string) {
+        const supabase = await createClient();
+
+        const { data, error } = await supabase
+            .from('workout_sessions')
+            .update({
+                status: 'completed',
+                end_time: new Date().toISOString(),
+                total_points: totalPoints,
+                mood_rating: moodRating,
+                notes: notes
+            })
+            .eq('id', sessionId)
+            .select()
+            .single();
+
+        return { session: data, error };
+    }
+
+    /**
+     * Obtiene el historial de sesiones de un usuario
+     */
+    static async getUserSessionHistory(userId: string, limit = 10) {
+        const supabase = await createClient();
+
+        const { data, error } = await supabase
+            .from('workout_sessions')
+            .select(`
+                *,
+                routine:routines(name),
+                logs:exercise_performance_logs(*)
+            `)
+            .eq('user_id', userId)
+            .order('start_time', { ascending: false })
+            .limit(limit);
+
+        return { sessions: data, error };
+    }
+}

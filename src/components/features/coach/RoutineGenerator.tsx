@@ -12,17 +12,27 @@ import { AI_PROMPT_TEMPLATES } from '@/lib/constants/ai-templates';
  * Incluye selección de alumno, objetivo, y notas del coach.
  */
 interface Exercise {
-    exercise: string;
-    notes: string;
+    name: string;
+    description: string;
+    instructions: string;
     sets: number;
-    reps: number;
-    rest: number;
+    reps: string;
+    rest_seconds: number;
+    equipment: string[];
+    muscle_group?: string;
+    // New fields from 2.0
+    tempo?: string;
+    puntaje_base?: number;
+    alerta_medica?: string;
+    alternativa?: string;
 }
 
 interface Routine {
     name: string;
     description: string;
     exercises: Exercise[];
+    metadata?: Record<string, any>;
+    logros?: Record<string, any>;
 }
 
 interface Student {
@@ -152,11 +162,26 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
             const data = await res.json();
 
             if (res.ok && data.success) {
-                setStatusMessage('¡Rutina generada con éxito!');
+                setStatusMessage('¡Experiencia generada con éxito!');
+
+                // Mapear la respuesta extendida
+                const exercises = data.routine.exercises.map((ex: any) => ({
+                    name: ex.name,
+                    description: ex.description,
+                    instructions: ex.instructions,
+                    sets: ex.sets,
+                    reps: ex.reps,
+                    rest_seconds: ex.rest_seconds,
+                    equipment: ex.equipment || [],
+                    muscle_group: ex.muscle_group,
+                }));
+
                 const formattedRoutine: Routine = {
                     name: data.routine.name,
                     description: data.routine.description,
-                    exercises: data.routine.exercises || []
+                    exercises: exercises,
+                    metadata: data.rawAI?.rutina_metadata,
+                    logros: data.rawAI?.sistema_de_logros
                 };
                 setRoutine(formattedRoutine);
                 setNutritionPlan(data.nutritionPlan);
@@ -223,7 +248,12 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-[#1c1c1e] p-4 md:p-8 rounded-2xl border border-[#3a3a3c]"
             >
-                <h2 className="text-xl font-bold text-white mb-6">🤖 VirtudCoach</h2>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                        <span className="text-orange-500">🤖</span> VirtudCoach 2.0
+                    </h2>
+                    <span className="text-[10px] bg-orange-500/10 text-orange-500 px-2 py-1 rounded-full border border-orange-500/20 font-black tracking-widest uppercase">UX Architect Mode</span>
+                </div>
 
                 <div className="space-y-4">
                     {/* Student Selector */}
@@ -258,29 +288,33 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4"
+                            className="bg-blue-900/10 border border-blue-500/30 rounded-lg p-4"
                         >
-                            <p className="text-blue-300 text-sm font-bold mb-2">📋 Datos del Alumno:</p>
-                            <ul className="text-blue-200 text-xs space-y-1">
-                                <li>👤 {selectedStudentData.full_name || selectedStudentData.name}</li>
-                                <li>📧 {selectedStudentData.email}</li>
-                            </ul>
+                            <p className="text-blue-300 text-sm font-bold mb-2">📋 Perfil Seleccionado:</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-black">
+                                    {(selectedStudentData.full_name || selectedStudentData.name || '?')[0]}
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-white text-sm font-bold">{selectedStudentData.full_name || selectedStudentData.name}</p>
+                                    <p className="text-blue-200/50 text-[10px]">{selectedStudentData.email}</p>
+                                </div>
+                            </div>
                         </motion.div>
                     )}
-                    {studentsError && <p className="text-red-400 text-xs mt-1">{studentsError}</p>}
                 </div>
 
                 {/* 2. Select Goal */}
-                <div>
-                    <label className="block text-gray-400 text-sm font-bold mb-2">Objetivo</label>
-                    <div className="grid grid-cols-2 gap-3">
+                <div className="mt-6">
+                    <label className="block text-gray-400 text-sm font-bold mb-2">Objetivo del Alumno</label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {TRAINING_GOALS.map((t) => (
                             <button
                                 key={t}
                                 onClick={() => setGoal(t)}
-                                className={`p-3 rounded-xl border text-sm font-bold transition-all ${goal === t
-                                    ? 'bg-orange-500/20 border-orange-500 text-white'
-                                    : 'bg-white/5 border-transparent text-gray-400 hover:bg-white/10'
+                                className={`p-3 rounded-lg border text-[11px] font-bold transition-all ${goal === t
+                                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20'
+                                    : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10'
                                     }`}
                             >
                                 {t}
@@ -290,18 +324,18 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 </div>
 
                 {/* 3. Notes */}
-                <div>
-                    <label className="block text-gray-400 text-sm font-bold mb-2">Notas Adicionales (Opcional)</label>
+                <div className="mt-6">
+                    <label className="block text-gray-400 text-sm font-bold mb-2">Indicaciones Técnicas del Profesor</label>
                     <textarea
                         value={coachNotes}
                         onChange={(e) => setCoachNotes(e.target.value)}
-                        placeholder="Ej: Tiene lesión en hombro derecho, prefiere mancuernas..."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-orange-500 outline-none h-24 resize-none"
+                        placeholder="Ej: Foco en excéntrica lenta. Evitar press militar por dolor de hombro."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-orange-500 outline-none h-20 text-sm resize-none"
                     />
                 </div>
 
                 {/* Nutrition Toggle */}
-                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
+                <div className="mt-6 flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
                     <input
                         type="checkbox"
                         id="includeNutrition"
@@ -309,8 +343,8 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                         onChange={(e) => setIncludeNutrition(e.target.checked)}
                         className="w-5 h-5 accent-orange-500 rounded border-white/20 bg-black"
                     />
-                    <label htmlFor="includeNutrition" className="text-sm font-bold text-white cursor-pointer select-none">
-                        🍎 Incluir Plan Nutricional Sugerido (IA)
+                    <label htmlFor="includeNutrition" className="text-sm font-medium text-gray-300 cursor-pointer select-none">
+                        🍎 Plan Nutricional Sugerido (Gamificado)
                     </label>
                 </div>
 
@@ -318,17 +352,17 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                 <button
                     onClick={generate}
                     disabled={loading || !selectedStudent}
-                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all flex flex-col items-center justify-center gap-1"
+                    className="w-full mt-6 py-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all flex flex-col items-center justify-center gap-1"
                 >
                     <div className="flex items-center gap-2">
                         {loading ? (
-                            <>Generando Plan IA...</>
+                            <span className="animate-pulse">Diseñando...</span>
                         ) : (
-                            <>✨ Generar Rutina</>
+                            <>🚀 Generar Experiencia VirtudCoach</>
                         )}
                     </div>
                     {loading && statusMessage && (
-                        <span className="text-[10px] text-orange-200 animate-pulse font-normal">
+                        <span className="text-[9px] text-white/50 font-normal italic">
                             {statusMessage}
                         </span>
                     )}
@@ -338,86 +372,147 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
             <AnimatePresence>
                 {routine && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-8 border-t border-white/10 pt-8"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="mt-8 space-y-6"
                     >
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-white">Plan Generado</h3>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setRoutine(null)}
-                                    className="px-4 py-2 text-gray-400 hover:text-white"
-                                >
-                                    Descartar
-                                </button>
-                                <button
-                                    onClick={handleSaveRoutine}
-                                    disabled={saving}
-                                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg shadow-lg flex items-center gap-2 disabled:opacity-70"
-                                >
-                                    {saving ? 'Guardando...' : '💾 Asignar Rutina'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                            <div className="mb-6">
-                                <h4 className="text-2xl font-black text-white mb-2">{routine.name}</h4>
-                                <p className="text-gray-400">{routine.description}</p>
+                        {/* Summary Header */}
+                        <div className="bg-gradient-to-br from-[#1c1c1e] to-[#2c2c2e] p-6 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4">
+                                <span className="bg-green-500/20 text-green-400 text-[10px] px-2 py-1 rounded font-black border border-green-500/10">INTERACTIVA</span>
                             </div>
 
-                            {/* Main Workout */}
-                            <div className="mb-6">
-                                <h2 className="text-xl font-black mb-3 text-orange-600">💪 Entrenamiento</h2>
-                                {routine.exercises && routine.exercises.map((exercise: Exercise, i: number) => (
-                                    <div key={i} className="flex items-center gap-4 p-4 bg-black/20 rounded-lg border border-white/5 mb-2">
-                                        <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold text-sm">
-                                            {i + 1}
-                                        </div>
-                                        <div className="flex-1">
-                                            <h5 className="font-bold text-white">{exercise.exercise}</h5>
-                                            <p className="text-sm text-gray-400">{exercise.notes}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-mono text-orange-400 font-bold">{exercise.sets} x {exercise.reps}</p>
-                                            <p className="text-xs text-gray-500">{exercise.rest}s descanso</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Nutrition Plan Preview */}
-                            {nutritionPlan && (
-                                <div className="border-t border-white/10 pt-6">
-                                    <h2 className="text-xl font-black mb-4 text-green-500 flex items-center gap-2">
-                                        🍎 Plan Nutricional <span className="text-xs bg-green-500/20 px-2 py-1 rounded text-green-400 border border-green-500/20">Sugerencia IA</span>
-                                    </h2>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Calorías</p>
-                                            <p className="text-white font-bold">{nutritionPlan.daily_calories} kcal</p>
-                                        </div>
-                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Proteínas</p>
-                                            <p className="text-blue-400 font-bold">{nutritionPlan.protein_grams}g</p>
-                                        </div>
-                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Carbs</p>
-                                            <p className="text-green-400 font-bold">{nutritionPlan.carbs_grams}g</p>
-                                        </div>
-                                        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-                                            <p className="text-gray-500 text-[10px] uppercase font-bold">Grasas</p>
-                                            <p className="text-yellow-400 font-bold">{nutritionPlan.fats_grams}g</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-gray-400 mt-4 p-3 bg-white/5 border border-white/10 rounded-lg italic">
-                                        <span className="text-orange-400 font-bold">⚠️ Nota para el Coach:</span> Esta es una guía generada por IA. Asegúrate de revisarla. Se mostrará al alumno con el siguiente aviso: "Esta es una guía de alimentación sugerida por IA para orientarte. Recordá que no reemplaza a un profesional: siempre consultá con un nutricionista para un plan a tu medida."
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 className="text-2xl font-black text-white">{routine.name}</h3>
+                                    <p className="text-gray-400 text-sm mt-1 max-w-xl">
+                                        Generada con enfoque en <span className="text-orange-500 font-bold">{goal}</span>.
+                                        Duración estimada: <span className="text-white font-bold">{routine.metadata?.duracion_estimada_minutos || '45-60'} min</span>.
                                     </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setRoutine(null)}
+                                        className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        Descartar
+                                    </button>
+                                    <button
+                                        onClick={handleSaveRoutine}
+                                        disabled={saving}
+                                        className="px-6 py-2 bg-white text-black font-black text-xs rounded-lg hover:bg-orange-500 hover:text-white transition-all shadow-xl disabled:opacity-50"
+                                    >
+                                        {saving ? 'Guardando...' : '💾 ASIGNAR A ALUMNO'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Achievements Cards */}
+                            {routine.logros && (
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 bg-black/30 p-4 rounded-xl border border-white/5">
+                                    <div className="text-center border-r border-white/5">
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase">Puntos Totales</p>
+                                        <p className="text-xl font-black text-orange-500">{routine.logros.puntaje_maximo_sesion || 500}</p>
+                                    </div>
+                                    <div className="text-center border-r border-white/5">
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase">Por Ejercicio</p>
+                                        <p className="text-xl font-black text-white">+{routine.logros.criterios_puntaje?.ejercicio_completado}</p>
+                                    </div>
+                                    <div className="text-center border-r border-white/5">
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase">Frecuencia</p>
+                                        <p className="text-xl font-black text-white">{routine.metadata?.frecuencia_semanal}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase">Nivel</p>
+                                        <p className="text-xl font-black text-white">{routine.metadata?.nivel_alumno || 'Medio'}</p>
+                                    </div>
                                 </div>
                             )}
                         </div>
+
+                        {/* Exercises List */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-black text-gray-500 uppercase tracking-widest px-2">Estructura de la Sesión</h4>
+                            {routine.exercises && routine.exercises.map((ex, i) => (
+                                <div key={i} className="group bg-[#1c1c1e] rounded-xl border border-white/5 hover:border-orange-500/50 transition-all overflow-hidden flex flex-col md:flex-row shadow-lg">
+                                    {/* Order Flag */}
+                                    <div className="w-1 md:w-2 bg-orange-600 group-hover:bg-orange-400 transition-colors" />
+
+                                    <div className="p-5 flex-1 flex flex-col md:flex-row gap-6 items-center">
+                                        {/* Main Info */}
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[10px] text-orange-500 font-black">{ex.muscle_group || 'CORE'}</span>
+                                                {ex.rest_seconds > 0 && (
+                                                    <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                        ⏱️ {ex.rest_seconds}s
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h5 className="font-bold text-white group-hover:text-orange-400 transition-colors uppercase italic tracking-tight">{ex.name}</h5>
+                                            <p className="text-xs text-gray-400 line-clamp-2 mt-1 italic opacity-70 leading-relaxed font-medium">
+                                                {ex.instructions}
+                                            </p>
+                                        </div>
+
+                                        {/* Metrics Block */}
+                                        <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                                            <div className="md:w-24 bg-black/40 p-3 rounded-lg border border-white/5 text-center">
+                                                <p className="text-[8px] text-gray-500 font-bold uppercase mb-1">Series</p>
+                                                <p className="text-lg font-black text-white">{ex.sets}</p>
+                                            </div>
+                                            <div className="md:w-24 bg-black/40 p-3 rounded-lg border border-white/5 text-center">
+                                                <p className="text-[8px] text-gray-500 font-bold uppercase mb-1">Reps</p>
+                                                <p className="text-lg font-black text-white">{ex.reps}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Interactive Status Display (Mock for Coach) */}
+                                        <div className="hidden lg:flex flex-col items-end gap-2 pr-4 border-l border-white/5 pl-6">
+                                            <div className="text-[10px] font-bold text-gray-600 uppercase">Input Alumno</div>
+                                            <div className="flex gap-2">
+                                                <div className="w-6 h-6 rounded border border-white/20 flex items-center justify-center opacity-30">✓</div>
+                                                <div className="w-6 h-6 rounded border border-white/20 flex items-center justify-center opacity-30">!</div>
+                                                <div className="w-6 h-6 rounded border border-white/20 flex items-center justify-center opacity-30">x</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Nutrition Plan Preview */}
+                        {nutritionPlan && (
+                            <div className="bg-gradient-to-br from-[#0a0a0a] to-[#1c1c1e] rounded-2xl p-6 border border-green-500/20 shadow-xl">
+                                <h2 className="text-xl font-black mb-4 text-green-500 flex items-center gap-2">
+                                    🍎 Fueling Plan <span className="text-[8px] bg-green-500/20 px-2 py-1 rounded text-green-400 border border-green-500/10 tracking-widest uppercase">Performance AI</span>
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                                        <p className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter mb-1">Daily Target</p>
+                                        <p className="text-lg font-black text-white tracking-widest">{nutritionPlan.daily_calories}<span className="text-[10px] text-gray-500 ml-1">kcal</span></p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                                        <p className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter mb-1">Proteins</p>
+                                        <p className="text-lg font-black text-blue-400 tracking-widest">{nutritionPlan.protein_grams}<span className="text-[10px] text-gray-500 ml-1">g</span></p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                                        <p className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter mb-1">Carbs</p>
+                                        <p className="text-lg font-black text-green-400 tracking-widest">{nutritionPlan.carbs_grams}<span className="text-[10px] text-gray-500 ml-1">g</span></p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                                        <p className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter mb-1">Fats</p>
+                                        <p className="text-lg font-black text-yellow-400 tracking-widest">{nutritionPlan.fats_grams}<span className="text-[10px] text-gray-500 ml-1">g</span></p>
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-xl">
+                                    <p className="text-[10px] text-orange-200 leading-relaxed font-medium">
+                                        <span className="font-black text-orange-500 mr-2">DISCLAIMER PROFESIONAL:</span> Esta guía de alimentación ha sido optimizada por IA para el objetivo de {goal}. Representa una sugerencia técnica que el alumno debe validar con un profesional nutricionista. Al asignarla, el alumno recibirá este aviso de seguridad.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

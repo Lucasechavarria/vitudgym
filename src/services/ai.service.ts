@@ -80,67 +80,157 @@ export class AIService {
   }
 
   /**
-   * Construye el prompt para Gemini basado en el contexto real del alumno
+   * Construye el prompt interactivo de VirtudCoach 2.0
+   * Actúa como Entrenador Profesional y Arquitecto de UX.
    */
   buildPrompt(context: RoutineGenerationContext): string {
     const { studentProfile, userGoal, gymEquipment, coachNotes, templateKey, includeNutrition } = context;
 
-    // Seleccionar plantilla según el objetivo o key
-    const template = templateKey ? AI_PROMPT_TEMPLATES[templateKey] : this.inferTemplate(userGoal.primary_goal);
+    const normalizedKey = templateKey?.toString().toUpperCase() as AITemplateKey;
+    const template = (normalizedKey && AI_PROMPT_TEMPLATES[normalizedKey])
+      ? AI_PROMPT_TEMPLATES[normalizedKey]
+      : this.inferTemplate(userGoal?.primary_goal || '');
+
+    const safeTemplate = template || AI_PROMPT_TEMPLATES.BEGINNER;
 
     return `
-Genera una rutina de entrenamiento COMPLETA Y PERSONALIZADA en formato JSON con los siguientes datos:
+Actúa como un entrenador personal profesional, planificador deportivo y arquitecto de experiencia de usuario para aplicaciones de entrenamiento.
 
-INFORMACIÓN DEL ALUMNO:
-- Nombre: ${studentProfile.full_name}
-- Condiciones médicas: ${studentProfile.medical_info?.chronic_diseases || 'Ninguna'}
-- Lesiones: ${studentProfile.medical_info?.injuries || 'Ninguna'}
-- Peso actual: ${studentProfile.medical_info?.weight || 'No especificado'}kg
-- Observaciones previas: ${studentProfile.coach_observations || 'Ninguna'}
+Tu tarea es generar una rutina de entrenamiento OPTIMIZADA, INTERACTIVA Y COMPARTIBLE entre profesor y alumno, basada EXCLUSIVAMENTE en los siguientes datos:
 
-OBJETIVOS:
-- Objetivo principal: ${userGoal.primary_goal}
-- Objetivos secundarios: ${userGoal.secondary_goals?.join(', ') || 'Ninguno'}
-- Frecuencia semanal: ${userGoal.training_frequency_per_week} días
-- Tiempo por sesión: ${userGoal.time_per_session_minutes} minutos
-- Notas del coach para esta rutina: ${coachNotes || 'Ninguna'}
-
-EQUIPAMIENTO DISPONIBLE:
+1️⃣ INVENTARIO DEL GIMNASIO (equipamiento disponible):
 ${gymEquipment.map(eq => `- ${eq.name} (${eq.category})`).join('\n')}
 
-${template.promptSuffix}
+2️⃣ PLANILLA MÉDICA DEL ALUMNO:
+- Alumno: ${studentProfile.full_name}
+- Sexo: ${studentProfile.gender || 'No especificado'}
+- Medidas: ${studentProfile.medical_info?.weight || '?'}kg, ${studentProfile.medical_info?.height || '?'}cm
+- Condiciones médicas: ${studentProfile.medical_info?.chronic_diseases || 'Ninguna'}
+- Lesiones/Restricciones: ${studentProfile.medical_info?.injuries || 'Ninguna'}
 
-INSTRUCCIONES ADICIONALES:
-1. Considera TODAS las condiciones médicas y lesiones.
-2. Usa SOLO el equipamiento disponible.
-3. ${includeNutrition ? 'Genera un plan nutricional acorde al objetivo.' : 'NO incluyas plan nutricional.'}
+3️⃣ INDICACIONES DEL PROFESOR:
+${coachNotes || 'Ninguna indicación previa.'}
 
-FORMATO DE RESPUESTA (JSON estricto):
+4️⃣ OBJETIVO DEL ALUMNO:
+- Objetivo principal: ${userGoal?.primary_goal || 'Fitness general'}
+- Frecuencia: ${userGoal?.training_frequency_per_week || 3} días/semana
+- Tiempo sesión: ${userGoal?.time_per_session_minutes || 60} min
+
+5️⃣ TEMPLATE DE RUTINA SELECCIONADO:
+${safeTemplate.promptSuffix}
+
+---
+
+### REGLAS OBLIGATORIAS
+- ❌ No inventar equipamiento.
+- ❌ No incluir ejercicios contraindicados.
+- ❌ No ignorar indicaciones del profesor.
+- ✅ Cada ejercicio debe ser MARCABLE como realizado.
+- ✅ Los ejercicios o descansos cronometrados deben incluir configuración de tiempo.
+- ✅ Los tiempos deben auto-configurarse según la intensidad de la rutina.
+- ✅ La rutina debe permitir marcar: completado, incompleto o omitido.
+- ✅ La finalización debe generar métricas y puntos de logro.
+
+### CRITERIOS FUNCIONALES
+- Determinar si requiere cronómetro (ejercicio por tiempo / descanso).
+- Definir puntualje base por ejecución ( gamificación).
+- Calcular duración estimada total.
+- Asociar alertas médicas específicas a cada ejercicio si aplica.
+
+---
+
+### FORMATO DE SALIDA (OBLIGATORIO – SOLO JSON VÁLIDO)
+
+\`\`\`json
 {
-    "routineName": "Nombre motivador",
-    "durationWeeks": 8,
-    "medicalConsiderations": "Pautas de seguridad específicas",
-    "motivationalQuote": "Frase inspiradora",
-    "weeklySchedule": [
+  "rutina_metadata": {
+    "id_rutina": "UUID_TEMP",
+    "compartida_con_alumno": true,
+    "objetivo_principal": "${userGoal?.primary_goal}",
+    "nivel_alumno": "Determinado según perfil",
+    "frecuencia_semanal": "${userGoal?.training_frequency_per_week} días",
+    "duracion_estimada_minutos": 0,
+    "editable_por_profesor": true,
+    "editable_por_alumno": true
+  },
+
+  "sistema_de_logros": {
+    "puntaje_maximo_sesion": 500,
+    "criterios_puntaje": {
+      "ejercicio_completado": 10,
+      "rutina_finalizada": 50,
+      "respeto_de_tiempos": 20,
+      "constancia_semanal": 100
+    }
+  },
+
+  "rutina": [
+    {
+      "dia": 1,
+      "grupo_muscular": "Ej: Pecho y Tríceps",
+      "bloques": [
         {
-            "day": 1,
-            "dayName": "Lunes",
-            "focus": "Grupo muscular",
-            "warmup": [{ "name": "Ejercicio", "duration": "5 min", "description": "..." }],
-            "mainWorkout": [{
-                "name": "Ejercicio",
-                "equipment": "...",
-                "sets": 3,
-                "reps": "12",
-                "rest": 60,
-                "instructions": "Técnica",
-                "modifications": "Si aplica por lesión"
-            }],
-            "cooldown": [{ "name": "Estiramiento", "duration": "5 min", "description": "..." }]
+          "tipo": "ejercicio | descanso | circuito",
+          "nombre": "Nombre del bloque",
+          "cronometrado": true,
+          "tiempo_recomendado_segundos": 60,
+          "tiempo_editable": true,
+          "ejercicios": [
+            {
+              "id_ejercicio": "ID_TEMP",
+              "nombre": "Nombre del ejercicio",
+              "equipamiento": "De la lista permitida",
+              "series": 4,
+              "repeticiones": "12",
+              "tempo": "3-0-1-0",
+              "descanso_segundos": 60,
+              "descanso_editable": true,
+              "marcable_como_realizado": true,
+              "estado_inicial": "pendiente",
+              "puntaje_base": 15,
+              "indicaciones_tecnicas": "Instrucciones de ejecución",
+              "alertas_medicas": "Cuidado con...",
+              "alternativa_sin_equipo": "Flexiones"
+            }
+          ]
         }
+      ]
+    }
+  ],
+
+  ${includeNutrition ? `
+  "plan_nutricional": {
+    "calorias_diarias": 2500,
+    "proteinas_gramos": 180,
+    "carbohidratos_gramos": 300,
+    "grasas_gramos": 70,
+    "comidas": [
+      { "nombre": "Desayuno", "ejemplo": "Avena con claras" },
+      { "nombre": "Almuerzo", "ejemplo": "Pollo con arroz" }
     ],
-    ${includeNutrition ? `"nutritionPlan": { "dailyCalories": 2000, "proteinGrams": 150, "carbsGrams": 200, "fatsGrams": 60, "meals": [...] }` : ''}
+    "litros_agua": 3,
+    "suplementos": ["Creatina 5g"],
+    "pautas_generales": "Consistencia ante todo",
+    "restricciones": ["Evitar ultraprocesados"]
+  },
+  ` : ''}
+
+  "finalizacion_sesion": {
+    "requiere_confirmacion": true,
+    "metricas_generadas": {
+      "tiempo_total_real": true,
+      "ejercicios_completados": true,
+      "ejercicios_omitidos": true,
+      "puntaje_obtenido": true
+    }
+  },
+
+  "recomendaciones_post_entrenamiento": [
+    "Incluye estiramientos",
+    "Hidratación"
+  ]
 }
+\`\`\`
 `;
   }
 
