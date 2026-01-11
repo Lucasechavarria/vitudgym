@@ -5,13 +5,14 @@ import { SessionsService } from '@/services/sessions.service';
 
 export async function GET(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const { user, profile, error } = await authenticateAndRequireRole(req, ['coach', 'admin', 'superadmin']);
     if (error) return error;
 
     try {
-        const studentId = params.id;
+        const { id } = await params;
+        const studentId = id;
         const { searchParams } = new URL(req.url);
         const limit = parseInt(searchParams.get('limit') || '5');
 
