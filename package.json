@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@firebase/analytics": "^0.10.16",
+    "@google/genai": "^1.35.0",
     "@google/generative-ai": "^0.24.1",
     "@sentry/nextjs": "^10.29.0",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
@@ -38,7 +39,9 @@
     "recharts": "^3.5.1",
     "resend": "^6.6.0",
     "sharp": "^0.34.2",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.5",
+    "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

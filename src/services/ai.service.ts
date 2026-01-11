@@ -1,6 +1,7 @@
 
-import { model, genAI } from '@/lib/config/gemini';
+import { aiClient, DEFAULT_MODEL, RoutineSchema } from '@/lib/config/gemini';
 import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 /**
  * Parámetros para generar una rutina mejorada
@@ -35,48 +36,33 @@ export interface Routine {
  */
 export class AIService {
   /**
-   * Genera una rutina desde un prompt personalizado
-   * 
-   * @param prompt - Prompt completo para Gemini
-   * @returns Rutina completa parseada desde JSON
-   * @throws Error si la API de Gemini falla o la respuesta no es válida
+   * Genera una rutina utilizando la API de Interactions de Gemini 3
    */
   async generateRoutineFromPrompt(prompt: string): Promise<any> {
-    let lastError: any;
-    const maxRetries = 2;
+    try {
+      console.log('Generating routine with Gemini 3 (Thinking: High)...');
 
-    for (let i = 0; i <= maxRetries; i++) {
-      try {
-        if (i > 0) {
-          console.log(`Retry attempt ${i} for AI generation...`);
-          // Espera exponencial breve
-          await new Promise(resolve => setTimeout(resolve, i * 1000));
+      const interaction = await aiClient.interactions.create({
+        model: DEFAULT_MODEL,
+        input: prompt,
+        // @ts-ignore - La API de Interactions acepta esquemas JSON directos
+        response_format: zodToJsonSchema(RoutineSchema) as any,
+        generation_config: {
+          thinking_level: 'high', // Máximo razonamiento para biomecánica y seguridad
+          temperature: 0.1, // Baja temperatura para consistencia estructural
         }
+      });
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text();
-
-        // Limpiar respuesta (remover markdown code blocks)
-        text = text.replace(/```json\n?/g, '')
-          .replace(/```\n?/g, '')
-          .trim();
-
-        try {
-          return JSON.parse(text);
-        } catch (e) {
-          console.error(`Attempt ${i + 1}: Failed to parse AI response. Text length: ${text.length}`);
-          lastError = new Error("La respuesta de la IA no es un JSON válido.");
-          if (i === maxRetries) throw lastError;
-        }
-      } catch (error: any) {
-        console.error(`AI Generation Attempt ${i + 1} failed:`, error.message);
-        lastError = error;
-        if (i === maxRetries) break;
+      const output = interaction.outputs?.[0];
+      if (!output || output.type !== 'text') {
+        throw new Error("La IA no devolvió un resultado de texto válido.");
       }
-    }
 
-    throw lastError || new Error("Error desconocido al generar la rutina con IA.");
+      return JSON.parse(output.text || '{}');
+    } catch (error: any) {
+      console.error("Gemini 3 Generation Error:", error.message);
+      throw new Error(`Fallo en la generación de rutina: ${error.message}`);
+    }
   }
 
   /**
@@ -241,64 +227,73 @@ ${safeTemplate.promptSuffix}
     return AI_PROMPT_TEMPLATES.BEGINNER;
   }
   /**
-   * Genera una respuesta de chat manteniendo el contexto
-   * 
-   * @param message - Mensaje actual del usuario
-   * @param history - Historial de la conversación previa
-   * @returns Respuesta del asistente
+   * Genera una respuesta de chat manteniendo el contexto vía Interaction ID
    */
-  async generateChatResponse(message: string, history: { role: string; content: string }[] = []) {
+  async generateChatResponse(message: string, history: { role: string; content: string }[] = [], previousInteractionId?: string) {
     try {
-      const chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      console.log('Chat response with Gemini 3 (Thinking: Low)...');
 
-      // Optimización: Limitar el historial a los últimos 10 mensajes para ahorrar tokens y mejorar latencia
-      const limitedHistory = history.slice(-10).map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }],
-      }));
+      // Si tenemos previousInteractionId, la API recupera el estado del servidor
+      // Si no, enviamos el historial mapeado
+      const input = previousInteractionId
+        ? message
+        : history.map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          content: [{ type: 'text', text: msg.content }]
+        })).concat([{ role: 'user', content: [{ type: 'text', text: message }] }]);
 
-      const chat = chatModel.startChat({
-        history: limitedHistory,
+      const interaction = await aiClient.interactions.create({
+        model: DEFAULT_MODEL,
+        input: input as any,
+        previous_interaction_id: previousInteractionId,
+        generation_config: {
+          thinking_level: 'low', // Respuesta fluida y rápida
+          temperature: 0.7,
+        },
+        tools: [{ type: 'google_search' }] // Habilitar fundamentación científica
       });
 
-      const result = await chat.sendMessage(message);
-      const response = await result.response;
-      return response.text();
-    } catch (error: unknown) {
-      console.error("AI Chat Error:", error);
-      throw new Error(error instanceof Error ? error.message : "Error al procesar mensaje de IA");
+      const textOutput = interaction.outputs.find(o => o.type === 'text');
+      return {
+        text: textOutput?.text || "No se pudo generar una respuesta.",
+        interactionId: interaction.id
+      };
+    } catch (error: any) {
+      console.error("AI Chat 3.0 Error:", error);
+      throw new Error(error.message || "Error al procesar mensaje de IA 3.0");
     }
   }
+
   /**
-   * Analiza un video o imagen para corrección técnica
-   * @param filePart Base64 string del archivo
-   * @param mimeType Tipo de archivo (video/mp4, image/jpeg)
+   * Analiza un movimiento (visión) utilizando Gemini 3
    */
   async analyzeMovement(filePart: string, mimeType: string): Promise<string> {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    try {
+      const prompt = `
+        Actúa como un entrenador experto en biomecánica. Analiza este video/imagen del ejercicio.
+        Identifica:
+        1. Qué ejercicio es.
+        2. 3 Puntos positivos de la técnica.
+        3. 3 Correcciones o errores detectados.
+        4. Veredicto final: "Buena técnica", "Mejorable" o "Riesgo de lesión".
+        
+        Formatea en Markdown claro.
+      `;
 
-    const prompt = `
-      Actúa como un entrenador experto en biomecánica.Analiza este video / imagen del ejercicio.
-  Identifica:
-1. Qué ejercicio es.
-      2. 3 Puntos positivos de la técnica.
-      3. 3 Correcciones o errores detectados(si los hay).
-      4. Veredicto final: "Buena técnica", "Mejorable" o "Riesgo de lesión".
-      
-      Formatea la respuesta en Markdown claro y conciso.
-    `;
+      const interaction = await aiClient.interactions.create({
+        model: DEFAULT_MODEL,
+        input: [
+          { type: 'text', text: prompt },
+          { type: mimeType.startsWith('video') ? 'video' : 'image', data: filePart, mime_type: mimeType }
+        ] as any
+      });
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: filePart,
-          mimeType: mimeType
-        }
-      }
-    ]);
-
-    return result.response.text();
+      const textOutput = interaction.outputs.find(o => o.type === 'text');
+      return textOutput?.text || "Análisis no disponible.";
+    } catch (error: any) {
+      console.error("Vision Analyze Error:", error);
+      return "Error analizando el movimiento con Gemini 3.";
+    }
   }
 }
 

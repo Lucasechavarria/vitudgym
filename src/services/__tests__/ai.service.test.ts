@@ -3,17 +3,21 @@ import { TRAINING_GOALS } from '@/lib/constants/gym';
 
 // Mock Gemini AI
 jest.mock('@/lib/config/gemini', () => ({
-    model: {
-        generateContent: jest.fn(),
+    aiClient: {
+        interactions: {
+            create: jest.fn(),
+        },
     },
-    genAI: {
-        getGenerativeModel: jest.fn().mockReturnValue({
-            generateContent: jest.fn()
-        })
-    }
+    DEFAULT_MODEL: 'gemini-3-flash-preview',
+    RoutineSchema: { parse: jest.fn() }
 }));
 
-import { model } from '@/lib/config/gemini';
+import { aiClient } from '@/lib/config/gemini';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+
+jest.mock('zod-to-json-schema', () => ({
+    zodToJsonSchema: jest.fn().mockReturnValue({ type: 'object' })
+}));
 
 describe('AIService', () => {
     let aiService: AIService;
@@ -83,28 +87,26 @@ describe('AIService', () => {
                 weeklySchedule: []
             };
 
-            (model.generateContent as jest.Mock).mockResolvedValue({
-                response: {
-                    text: () => JSON.stringify(mockRoutine),
-                },
+            (aiClient.interactions.create as jest.Mock).mockResolvedValue({
+                outputs: [{ type: 'text', text: JSON.stringify(mockRoutine) }],
+                status: 'completed'
             });
 
             const result = await aiService.generateRoutineFromPrompt('Dummy prompt');
 
             expect(result).toEqual(mockRoutine);
-            expect(model.generateContent).toHaveBeenCalledTimes(1);
+            expect(aiClient.interactions.create).toHaveBeenCalledTimes(1);
         });
 
         it('should throw error if response is not valid JSON', async () => {
-            (model.generateContent as jest.Mock).mockResolvedValue({
-                response: {
-                    text: () => 'Invalid JSON',
-                },
+            (aiClient.interactions.create as jest.Mock).mockResolvedValue({
+                outputs: [{ type: 'text', text: 'Invalid JSON' }],
+                status: 'completed'
             });
 
             await expect(
                 aiService.generateRoutineFromPrompt('Dummy prompt')
-            ).rejects.toThrow('La respuesta de la IA no es un JSON válido.');
+            ).rejects.toThrow('Fallo en la generación de rutina');
         });
     });
 });
