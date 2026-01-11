@@ -3,9 +3,6 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 
 /**
  * GET /api/coach/students
- * 
- * Obtiene la lista de alumnos del coach con su objetivo y rutina activa.
- * Optimizado para evitar el problema N+1.
  */
 export async function GET(request: Request) {
     try {
@@ -14,58 +11,50 @@ export async function GET(request: Request) {
             ['coach', 'admin', 'superadmin']
         );
 
-        if (error) {
-            console.error('Auth Error in /api/coach/students:', error);
-            return error;
-        }
+        if (error) return error;
+        if (!supabase) throw new Error('Supabase client not initialized');
 
-        if (!supabase) {
-            throw new Error('Supabase client not initialized');
-        }
-
-        // Obtener alumnos con su objetivo y rutina activa en UNA SOLA consulta (Optimización N+1)
-        const { data: students, error: studentsError } = await supabase
+        // 1. Obtener perfiles (En producción hay: admin, superadmin, coach. Permitimos todos para pruebas)
+        const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
-            .select(`
-                id,
-                email,
-                full_name,
-                avatar_url,
-                onboarding_completed,
-                medical_info,
-                emergency_contact,
-                role,
-                active_goal:user_goals(
-                    id,
-                    primary_goal,
-                    target_date,
-                    is_active
-                ),
-                active_routine:routines(
-                    id,
-                    name,
-                    status,
-                    is_active
-                )
-            `)
-            .or('role.eq.member,role.eq.user')
+            .select('id, email, full_name, avatar_url, onboarding_completed, medical_info, emergency_contact, role')
             .order('full_name', { ascending: true });
 
-        if (studentsError) {
-            console.error('Supabase Query Error:', studentsError);
-            throw studentsError;
+        if (profilesError) throw profilesError;
+
+        if (!profiles || profiles.length === 0) {
+            return NextResponse.json({ success: true, students: [] });
         }
 
-        // Limpiar la respuesta para que active_goal y active_routine solo contengan los ACTIVOS
-        const studentsWithDetails = (students || []).map(student => ({
-            ...student,
-            active_goal: Array.isArray(student.active_goal)
-                ? student.active_goal.find((g: any) => g.is_active) || null
-                : null,
-            active_routine: Array.isArray(student.active_routine)
-                ? student.active_routine.find((r: any) => r.is_active) || null
-                : null,
-        }));
+        const studentIds = profiles.map(p => p.id);
+
+        // 2. Obtener objetivos activos
+        const { data: allGoals, error: goalsError } = await supabase
+            .from('user_goals')
+            .select('id, user_id, primary_goal, target_date, is_active')
+            .in('user_id', studentIds);
+
+        if (goalsError) console.error('Error fetching goals:', goalsError);
+
+        // 3. Obtener rutinas activas
+        const { data: allRoutines, error: routinesError } = await supabase
+            .from('routines')
+            .select('id, user_id, name, status, is_active')
+            .in('user_id', studentIds);
+
+        if (routinesError) console.error('Error fetching routines:', routinesError);
+
+        // 4. Mapear resultados
+        const studentsWithDetails = profiles.map(profile => {
+            const activeGoal = allGoals?.find(g => g.user_id === profile.id && g.is_active) || null;
+            const activeRoutine = allRoutines?.find(r => r.user_id === profile.id && r.is_active) || null;
+
+            return {
+                ...profile,
+                active_goal: activeGoal,
+                active_routine: activeRoutine
+            };
+        });
 
         return NextResponse.json({
             success: true,
@@ -74,9 +63,8 @@ export async function GET(request: Request) {
 
     } catch (error) {
         console.error('❌ Error fatal loading students:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error interno al cargar alumnos';
         return NextResponse.json({
-            error: errorMessage
+            error: error instanceof Error ? error.message : 'Error interno al cargar alumnos'
         }, { status: 500 });
     }
 }
