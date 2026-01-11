@@ -42,20 +42,42 @@ export async function GET() {
 
         // 5. Fetch Profile Status
         const { data: profile } = await supabase
-            .from('profiles') // Changed 'profiles' to 'profiles' (no change here based on instruction, but snippet showed 'class_schedules')
-            .select('waiver_accepted')
+            .from('profiles')
+            .select('waiver_accepted, full_name, avatar_url, membership_end_date, gender')
             .eq('id', user.id)
             .single();
+
+        // 6. Fetch Workout Volume (New - Functional Training)
+        const { data: sessionLogs } = await supabase
+            .from('workout_sessions')
+            .select(`
+                id,
+                start_time,
+                logs:exercise_performance_logs(
+                    actual_reps,
+                    actual_weight,
+                    actual_sets
+                )
+            `)
+            .eq('user_id', user.id)
+            .eq('status', 'completed')
+            .order('start_time', { ascending: true })
+            .limit(20);
 
         // Process Attendance Data for Chart
         const bookingsData: Pick<ClassBooking, 'date'>[] = bookings || [];
         const attendanceByMonth = processAttendance(bookingsData);
 
+        // Process Volume Data for Chart
+        const volumeByWeek = processVolume(sessionLogs || []);
+
         return NextResponse.json({
             progress: measurements || [],
             attendance: attendanceByMonth,
             routine: activeRoutine || null,
+            volume: volumeByWeek,
             profile: {
+                ...profile,
                 waiver_accepted: profile?.waiver_accepted || false
             }
         });
@@ -106,4 +128,25 @@ function processAttendance(bookings: Pick<ClassBooking, 'date'>[]): Array<{ mont
     }, {});
 
     return months.map(m => ({ month: m, rate: result[m] || 0 }));
+}
+
+/**
+ * Calcula el tonelaje total (volumen) por sesión
+ */
+function processVolume(sessions: any[]): Array<{ week: string; volume: number }> {
+    return sessions.map(session => {
+        let totalVolume = 0;
+        session.logs?.forEach((log: any) => {
+            // we assume actual_reps is numeric for volume calculation if possible
+            const reps = parseInt(log.actual_reps) || 0;
+            const weight = parseFloat(log.actual_weight) || 0;
+            const sets = parseInt(log.actual_sets) || 1;
+            totalVolume += (reps * weight * sets);
+        });
+
+        return {
+            week: new Date(session.start_time).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
+            volume: Math.round(totalVolume)
+        };
+    });
 }

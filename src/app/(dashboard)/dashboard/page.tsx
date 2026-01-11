@@ -99,6 +99,7 @@ export default function StudentDashboard() {
           <EvolutionCharts
             chartData={chartData}
             attendance={attendance}
+            volumeData={data.volume}
             itemVariants={itemVariants}
           />
 

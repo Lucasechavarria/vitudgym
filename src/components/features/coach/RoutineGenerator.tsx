@@ -57,6 +57,8 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
     const [includeNutrition, setIncludeNutrition] = useState(true);
     const [nutritionPlan, setNutritionPlan] = useState<Record<string, any> | null>(null);
     const [selectedTemplateKey, setSelectedTemplateKey] = useState<string | null>(initialTemplate || null);
+    const [studentSessions, setStudentSessions] = useState<any[]>([]);
+    const [loadingSessions, setLoadingSessions] = useState(false);
 
     // Initial Template Effect
     useEffect(() => {
@@ -112,6 +114,31 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
 
         fetchStudents();
     }, []);
+
+    // Fetch student session history when selected
+    useEffect(() => {
+        const fetchStudentSessions = async () => {
+            if (!selectedStudent) {
+                setStudentSessions([]);
+                return;
+            }
+
+            try {
+                setLoadingSessions(true);
+                const res = await fetch(`/api/coach/students/${selectedStudent}/sessions?limit=5`);
+                const data = await res.json();
+                if (res.ok && data.sessions) {
+                    setStudentSessions(data.sessions);
+                }
+            } catch (error) {
+                console.error('Error fetching student sessions:', error);
+            } finally {
+                setLoadingSessions(false);
+            }
+        };
+
+        fetchStudentSessions();
+    }, [selectedStudent]);
 
     const selectedStudentData = students.find(s => s.id === selectedStudent);
 
@@ -283,22 +310,51 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                         </select>
                     </div>
 
-                    {/* Medical Context Display */}
+                    {/* Medical Context & Session History */}
                     {selectedStudentData && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="bg-blue-900/10 border border-blue-500/30 rounded-lg p-4"
+                            className="space-y-3"
                         >
-                            <p className="text-blue-300 text-sm font-bold mb-2">📋 Perfil Seleccionado:</p>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-black">
-                                    {(selectedStudentData.full_name || selectedStudentData.name || '?')[0]}
+                            {/* Profile Info */}
+                            <div className="bg-blue-900/10 border border-blue-500/30 rounded-lg p-4">
+                                <p className="text-blue-300 text-sm font-bold mb-2">📋 Perfil Seleccionado:</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-black">
+                                        {(selectedStudentData.full_name || selectedStudentData.name || '?')[0]}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-white text-sm font-bold">{selectedStudentData.full_name || selectedStudentData.name}</p>
+                                        <p className="text-blue-200/50 text-[10px]">{selectedStudentData.email}</p>
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <p className="text-white text-sm font-bold">{selectedStudentData.full_name || selectedStudentData.name}</p>
-                                    <p className="text-blue-200/50 text-[10px]">{selectedStudentData.email}</p>
-                                </div>
+                            </div>
+
+                            {/* New: Real-Time Session History */}
+                            <div className="bg-purple-900/10 border border-purple-500/30 rounded-lg p-4">
+                                <p className="text-purple-300 text-sm font-bold mb-2 flex justify-between">
+                                    <span>⚡ Últimas Sesiones:</span>
+                                    {loadingSessions && <span className="animate-pulse text-[10px]">Cargando...</span>}
+                                </p>
+                                {studentSessions.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {studentSessions.map((session, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-[10px] bg-black/40 p-2 rounded border border-white/5">
+                                                <div className="flex flex-col">
+                                                    <span className="text-white font-bold">{new Date(session.start_time).toLocaleDateString()}</span>
+                                                    <span className="text-purple-300/50 uppercase">{session.routine?.name}</span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-orange-500 font-black">{session.total_points} PTS</div>
+                                                    <div className="text-gray-500">{session.mood_rating ? '😊'.repeat(session.mood_rating) : 'Sin mood'}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-[10px] text-purple-300/40 italic">No hay historial de sesiones registrado aún.</p>
+                                )}
                             </div>
                         </motion.div>
                     )}
