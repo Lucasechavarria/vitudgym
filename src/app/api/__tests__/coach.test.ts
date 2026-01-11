@@ -13,72 +13,43 @@ jest.mock('@/lib/supabase/server', () => ({
             }))
         },
         from: jest.fn((table) => {
-            if (table === 'profiles') {
-                return {
-                    select: jest.fn(() => ({
-                        eq: jest.fn(function () { return this; }),
-                        or: jest.fn(function () { return this; }),
-                        in: jest.fn(function () { return this; }),
-                        order: jest.fn(function () {
-                            // Si estamos en la cadena de Profiles, devolver los datos de prueba
-                            if (table === 'profiles') {
-                                return Promise.resolve({
-                                    data: [
-                                        { id: '1', full_name: 'Student 1', role: 'member' },
-                                        { id: '2', full_name: 'Student 2', role: 'member' }
-                                    ],
-                                    error: null
-                                });
-                            }
-                            return this;
-                        }),
-                        single: jest.fn(() => Promise.resolve({
-                            data: { id: 'coach123', role: 'coach' },
-                            error: null
-                        }))
-                    }))
-                };
-            }
-            if (table === 'user_goals') {
-                return {
-                    select: jest.fn(() => ({
-                        eq: jest.fn(() => ({
-                            eq: jest.fn(() => ({
-                                order: jest.fn(() => ({
-                                    limit: jest.fn(() => ({
-                                        single: jest.fn(() => Promise.resolve({
-                                            data: { id: 'goal1', primary_goal: 'Hypertrophy' },
-                                            error: null
-                                        }))
-                                    }))
-                                }))
-                            }))
-                        }))
-                    }))
-                };
-            }
-            if (table === 'routines') {
-                return {
-                    select: jest.fn(() => ({
-                        eq: jest.fn(() => ({
-                            eq: jest.fn(() => ({
-                                single: jest.fn(() => Promise.resolve({
-                                    data: { id: 'routine1', name: 'Morning Workout' },
-                                    error: null
-                                }))
-                            }))
-                        }))
-                    }))
-                };
-            }
-            return {
-                select: jest.fn(() => ({
-                    eq: jest.fn(() => Promise.resolve({
-                        data: [],
-                        error: null
-                    }))
-                }))
+            const mockQueryChain = {
+                select: jest.fn(function () { return this; }),
+                eq: jest.fn(function () { return this; }),
+                or: jest.fn(function () { return this; }),
+                in: jest.fn(function () { return this; }),
+                order: jest.fn(function () { return this; }),
+                limit: jest.fn(function () { return this; }),
+                single: jest.fn(function () {
+                    if (table === 'profiles') {
+                        return Promise.resolve({ data: { id: 'coach123', role: 'coach' }, error: null });
+                    }
+                    if (table === 'user_goals') {
+                        return Promise.resolve({ data: { id: 'goal1', primary_goal: 'Hypertrophy' }, error: null });
+                    }
+                    if (table === 'routines') {
+                        return Promise.resolve({ data: { id: 'routine1', name: 'Morning Workout' }, error: null });
+                    }
+                    return Promise.resolve({ data: null, error: null });
+                }),
+                then: jest.fn(function (resolve) {
+                    let data: any = [];
+                    if (table === 'profiles') {
+                        data = [
+                            { id: '1', full_name: 'Student 1', role: 'member' },
+                            { id: '2', full_name: 'Student 2', role: 'member' }
+                        ];
+                    } else if (table === 'user_goals') {
+                        data = [{ id: 'goal1', user_id: '1', primary_goal: 'Muscle Gain', is_active: true }];
+                    } else if (table === 'routines') {
+                        data = [{ id: 'routine1', user_id: '1', name: 'Push Day', is_active: true }];
+                    }
+                    return Promise.resolve(resolve({ data, error: null }));
+                })
             };
+
+            // Para que await supabase.from().select().in() funcione, necesitamos que .in() devuelva el chain con .then()
+            return mockQueryChain;
         })
     }))
 }));
