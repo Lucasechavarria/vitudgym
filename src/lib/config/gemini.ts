@@ -1,14 +1,15 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 
 if (!process.env.GEMINI_API_KEY) {
     console.warn('⚠️ GEMINI_API_KEY not found in environment variables');
 }
 
-// El cliente obtiene automáticamente la clave de GEMINI_API_KEY si está en el entorno
-export const aiClient = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY || ''
-});
+// Inicializar el cliente SDK estándar
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+// Exportar el cliente para uso general (aunque el servicio usará getGenerativeModel)
+export const aiClient = genAI;
 
 // Modelo principal para interacciones rápidas
 export const DEFAULT_MODEL = "gemini-1.5-flash";

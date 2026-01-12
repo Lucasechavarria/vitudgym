@@ -47,26 +47,26 @@ export class AIService {
         console.log(`Generating routine with Gemini (Model: ${DEFAULT_MODEL}, Attempt: ${attempt + 1})...`);
 
         // @ts-ignore - Schema conversion
-        const jsonSchema = zodToJsonSchema(RoutineSchema, { target: 'openApi3' });
-        // Remove $schema if present as it can cause issues
-        if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
-          delete (jsonSchema as any).$schema;
-        }
+        const jsonSchema = zodToJsonSchema(RoutineSchema);
 
-        const result = await aiClient.models.generateContent({
+        const model = aiClient.getGenerativeModel({
           model: DEFAULT_MODEL,
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          config: {
-            responseMimeType: 'application/json',
+          generationConfig: {
+            responseMimeType: "application/json",
             responseSchema: jsonSchema as any,
-            temperature: 0.1,
+            temperature: 0.1
           }
         });
 
-        const text = result.text;
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
         if (!text) {
           throw new Error("La IA no devolvió texto.");
         }
+
+        return JSON.parse(text);
 
         return JSON.parse(text);
 
@@ -254,36 +254,32 @@ ${safeTemplate.promptSuffix}
    */
   async generateChatResponse(message: string, history: { role: string; content: string }[] = [], previousInteractionId?: string) {
     try {
-      console.log('Chat response with Gemini 3 (Thinking: Low)...');
+      console.log('Chat response with Gemini (Standard)...');
 
-      // Si tenemos previousInteractionId, la API recupera el estado del servidor
-      // Si no, enviamos el historial mapeado
-      const input = previousInteractionId
-        ? message
-        : history.map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          content: [{ type: 'text', text: msg.content }]
-        })).concat([{ role: 'user', content: [{ type: 'text', text: message }] }]);
+      // Map history for standard model
+      const chatHistory = history.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      }));
 
-      const interaction = await aiClient.interactions.create({
-        model: DEFAULT_MODEL,
-        input: input as any,
-        previous_interaction_id: previousInteractionId,
-        generation_config: {
-          thinking_level: 'low', // Respuesta fluida y rápida
+      const model = aiClient.getGenerativeModel({ model: DEFAULT_MODEL });
+      const chat = model.startChat({
+        history: chatHistory,
+        generationConfig: {
           temperature: 0.7,
-        },
-        tools: [{ type: 'google_search' }] // Habilitar fundamentación científica
+        }
       });
 
-      const textOutput = interaction.outputs.find(o => o.type === 'text');
+      const result = await chat.sendMessage(message);
+      const response = await result.response;
+
       return {
-        text: textOutput?.text || "No se pudo generar una respuesta.",
-        interactionId: interaction.id
+        text: response.text(),
+        interactionId: undefined // Standard chat doesn't persist ID in the same way, consumer must manage history
       };
     } catch (error: any) {
-      console.error("AI Chat 3.0 Error:", error);
-      throw new Error(error.message || "Error al procesar mensaje de IA 3.0");
+      console.error("AI Chat Error:", error);
+      throw new Error(error.message || "Error al procesar mensaje de IA");
     }
   }
 
@@ -303,16 +299,13 @@ ${safeTemplate.promptSuffix}
         Formatea en Markdown claro.
       `;
 
-      const interaction = await aiClient.interactions.create({
-        model: DEFAULT_MODEL,
-        input: [
-          { type: 'text', text: prompt },
-          { type: mimeType.startsWith('video') ? 'video' : 'image', data: filePart, mime_type: mimeType }
-        ] as any
-      });
-
-      const textOutput = interaction.outputs.find(o => o.type === 'text');
-      return textOutput?.text || "Análisis no disponible.";
+      const model = aiClient.getGenerativeModel({ model: DEFAULT_MODEL });
+      const result = await model.generateContent([
+        prompt,
+        { inlineData: { data: filePart, mimeType: mimeType } }
+      ]);
+      const response = await result.response;
+      return response.text();
     } catch (error: any) {
       console.error("Vision Analyze Error:", error);
       return "Error analizando el movimiento con Gemini 3.";

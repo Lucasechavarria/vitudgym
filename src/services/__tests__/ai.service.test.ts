@@ -4,12 +4,7 @@ import { TRAINING_GOALS } from '@/lib/constants/gym';
 // Mock Gemini AI
 jest.mock('@/lib/config/gemini', () => ({
     aiClient: {
-        interactions: {
-            create: jest.fn(),
-        },
-        models: {
-            generateContent: jest.fn(),
-        }
+        getGenerativeModel: jest.fn(),
     },
     DEFAULT_MODEL: 'gemini-1.5-flash',
     RoutineSchema: { parse: jest.fn() }
@@ -90,20 +85,32 @@ describe('AIService', () => {
                 weeklySchedule: []
             };
 
-            // Mock implementation for models.generateContent
-            (aiClient.models.generateContent as jest.Mock).mockResolvedValue({
-                text: JSON.stringify(mockRoutine)
+            const mockGenerateContent = jest.fn().mockResolvedValue({
+                response: {
+                    text: jest.fn().mockReturnValue(JSON.stringify(mockRoutine))
+                }
+            });
+
+            (aiClient.getGenerativeModel as jest.Mock).mockReturnValue({
+                generateContent: mockGenerateContent
             });
 
             const result = await aiService.generateRoutineFromPrompt('Dummy prompt');
 
             expect(result).toEqual(mockRoutine);
-            expect(aiClient.models.generateContent).toHaveBeenCalledTimes(1);
+            expect(aiClient.getGenerativeModel).toHaveBeenCalledTimes(1);
+            expect(mockGenerateContent).toHaveBeenCalledTimes(1);
         });
 
         it('should throw error if response is not valid JSON', async () => {
-            (aiClient.models.generateContent as jest.Mock).mockResolvedValue({
-                text: 'Invalid JSON'
+            const mockGenerateContent = jest.fn().mockResolvedValue({
+                response: {
+                    text: jest.fn().mockReturnValue('Invalid JSON')
+                }
+            });
+
+            (aiClient.getGenerativeModel as jest.Mock).mockReturnValue({
+                generateContent: mockGenerateContent
             });
 
             await expect(
