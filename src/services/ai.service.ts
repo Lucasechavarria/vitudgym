@@ -48,6 +48,9 @@ export class AIService {
 
         // @ts-ignore - Schema conversion
         const jsonSchema = zodToJsonSchema(RoutineSchema);
+        if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
+          delete (jsonSchema as any).$schema;
+        }
 
         const model = aiClient.getGenerativeModel({
           model: DEFAULT_MODEL,
