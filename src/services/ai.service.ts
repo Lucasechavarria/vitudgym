@@ -68,7 +68,7 @@ export class AIService {
 
         return JSON.parse(text);
 
-        return JSON.parse(text);
+
 
       } catch (error: any) {
         console.error(`Gemini Attempt ${attempt + 1} Error:`, error.message);
@@ -252,7 +252,7 @@ ${safeTemplate.promptSuffix}
   /**
    * Genera una respuesta de chat manteniendo el contexto vía Interaction ID
    */
-  async generateChatResponse(message: string, history: { role: string; content: string }[] = [], previousInteractionId?: string) {
+  async generateChatResponse(message: string, history: { role: string; content: string }[] = [], _previousInteractionId?: string) {
     try {
       console.log('Chat response with Gemini (Standard)...');
 
