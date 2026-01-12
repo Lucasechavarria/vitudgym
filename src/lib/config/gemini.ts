@@ -12,7 +12,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 export const aiClient = genAI;
 
 // Modelo principal para interacciones rápidas
-export const DEFAULT_MODEL = "gemini-1.5-flash";
+export const DEFAULT_MODEL = "gemini-3-flash-preview";
 
 // Esquema Zod para la salida estructurada de rutinas según el Prompt Maestro
 export const RoutineSchema = z.object({

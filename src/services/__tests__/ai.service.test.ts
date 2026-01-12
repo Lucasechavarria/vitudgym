@@ -6,7 +6,7 @@ jest.mock('@/lib/config/gemini', () => ({
     aiClient: {
         getGenerativeModel: jest.fn(),
     },
-    DEFAULT_MODEL: 'gemini-1.5-flash',
+    DEFAULT_MODEL: 'gemini-3-flash-preview',
     RoutineSchema: { parse: jest.fn() }
 }));
 
