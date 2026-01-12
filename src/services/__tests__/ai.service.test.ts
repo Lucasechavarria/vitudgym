@@ -7,7 +7,8 @@ jest.mock('@/lib/config/gemini', () => ({
         getGenerativeModel: jest.fn(),
     },
     DEFAULT_MODEL: 'gemini-3-flash-preview',
-    RoutineSchema: { parse: jest.fn() }
+    RoutineSchema: { parse: jest.fn() },
+    SAFETY_SETTINGS: []
 }));
 
 import { aiClient } from '@/lib/config/gemini';
@@ -64,6 +65,7 @@ describe('AIService', () => {
             expect(prompt).toContain('Barra Olímpica');
             expect(prompt).toContain('Test notes');
             expect(prompt).toContain('plan_nutricional');
+            expect(prompt).toContain('PROTOCOLO DE SEGURIDAD LEGAL');
         });
 
         it('should use the correct template based on goal', () => {

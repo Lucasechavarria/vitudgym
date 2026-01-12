@@ -1,7 +1,9 @@
 
-import { aiClient, DEFAULT_MODEL, RoutineSchema } from '@/lib/config/gemini';
+import { aiClient, DEFAULT_MODEL, RoutineSchema, SAFETY_SETTINGS } from '@/lib/config/gemini';
 import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+
+// ... (imports)
 
 /**
  * Parámetros para generar una rutina mejorada
@@ -15,25 +17,8 @@ export interface RoutineGenerationContext {
   includeNutrition?: boolean;
 }
 
-/**
- * Estructura de una rutina generada
- */
-export interface Routine {
-  id?: string;
-  routineName: string;
-  durationWeeks: number;
-  medicalConsiderations: string;
-  motivationalQuote: string;
-  weeklySchedule: Record<string, any>[];
-  nutritionPlan?: Record<string, any>;
-}
+// ... (Rest of the class)
 
-/**
- * Servicio de IA para generación de rutinas personalizadas
- * 
- * Utiliza Google Gemini para crear rutinas de entrenamiento integrando
- * datos de salud, objetivos e inventario del gimnasio.
- */
 export class AIService {
   /**
    * Genera una rutina utilizando la API estándar de Gemini
@@ -54,6 +39,7 @@ export class AIService {
 
         const model = aiClient.getGenerativeModel({
           model: DEFAULT_MODEL,
+          safetySettings: SAFETY_SETTINGS, // Aplicar configuración de seguridad permisiva para salud
           generationConfig: {
             responseMimeType: "application/json",
             responseSchema: jsonSchema as any,
@@ -63,15 +49,22 @@ export class AIService {
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const text = response.text();
+
+        let text = '';
+        try {
+          text = response.text();
+        } catch (e) {
+          console.error("Error retrieving text (likely blocked):", e);
+          console.log("Candidates:", JSON.stringify(response.candidates, null, 2));
+          console.log("PromptFeedback:", JSON.stringify(response.promptFeedback, null, 2));
+        }
 
         if (!text) {
-          throw new Error("La IA no devolvió texto.");
+          console.error("Empty text received. Full response:", JSON.stringify(result, null, 2));
+          throw new Error("La IA no devolvió texto. Revise logs del servidor para detalles de seguridad/bloqueo.");
         }
 
         return JSON.parse(text);
-
-
 
       } catch (error: any) {
         console.error(`Gemini Attempt ${attempt + 1} Error:`, error.message);
@@ -104,6 +97,7 @@ export class AIService {
       : this.inferTemplate(userGoal?.primary_goal || '');
 
     const safeTemplate = template || AI_PROMPT_TEMPLATES.BEGINNER;
+    const medicalData = studentProfile.medical_info || {};
 
     return `
 Actúa como un entrenador personal profesional, planificador deportivo y arquitecto de experiencia de usuario para aplicaciones de entrenamiento.
@@ -116,9 +110,9 @@ ${gymEquipment.map(eq => `- ${eq.name} (${eq.category})`).join('\n')}
 2️⃣ PLANILLA MÉDICA DEL ALUMNO:
 - Alumno: ${studentProfile.full_name}
 - Sexo: ${studentProfile.gender || 'No especificado'}
-- Medidas: ${studentProfile.medical_info?.weight || '?'}kg, ${studentProfile.medical_info?.height || '?'}cm
-- Condiciones médicas: ${studentProfile.medical_info?.chronic_diseases || 'Ninguna'}
-- Lesiones/Restricciones: ${studentProfile.medical_info?.injuries || 'Ninguna'}
+- Medidas: ${medicalData.weight || '?'}kg, ${medicalData.height || '?'}cm
+- Condiciones médicas: ${medicalData.chronic_diseases || 'Ninguna'}
+- Lesiones/Restricciones: ${medicalData.injuries || 'Ninguna'}
 
 3️⃣ INDICACIONES DEL PROFESOR:
 ${coachNotes || 'Ninguna indicación previa.'}
@@ -131,119 +125,34 @@ ${coachNotes || 'Ninguna indicación previa.'}
 5️⃣ TEMPLATE DE RUTINA SELECCIONADO:
 ${safeTemplate.promptSuffix}
 
+6️⃣ PLAN NUTRICIONAL Y SALUD (Si aplica):
+  - Enfermedades Crónicas: ${medicalData.chronic_diseases || 'Ninguna'}
+  - Alergias Alimentarias: ${medicalData.allergies || 'Ninguna'}
+  - Medicación actual: ${medicalData.medications || 'Ninguna'}
+  
+  REGLA DE ORO NUTRICIONAL:
+  Si el alumno tiene enfermedades como Diabetes, Hipertensión, Celiaquía o trastornos digestivos, 
+  el "plan_nutricional" DEBE adaptarse estrictamente a estas condiciones. 
+  "pautas_generales" debe explicar justificaciones médicas.
+  Calcula macros con Mifflin-St Jeor.
+
+7️⃣ PROTOCOLO DE SEGURIDAD LEGAL:
+- Si detectas patologías como: ${medicalData.chronic_diseases || 'Ninguna'}, debes redactar un "aviso_legal" NIVEL ALTO/MEDIO.
+- Si no hay patologías, usa NIVEL BAJO (standard).
+
 ---
 
 ### REGLAS OBLIGATORIAS
-- ❌ No inventar equipamiento.
-- ❌ No incluir ejercicios contraindicados.
+- ❌ No inventar equipamiento. Si el inventario es pobre, sugiere CALISTENIA.
 - ❌ No ignorar indicaciones del profesor.
-- ✅ Cada ejercicio debe ser MARCABLE como realizado.
-- ✅ Los ejercicios o descansos cronometrados deben incluir configuración de tiempo.
-- ✅ Los tiempos deben auto-configurarse según la intensidad de la rutina.
-- ✅ La rutina debe permitir marcar: completado, incompleto o omitido.
-- ✅ La finalización debe generar métricas y puntos de logro.
-
-### CRITERIOS FUNCIONALES
-- Determinar si requiere cronómetro (ejercicio por tiempo / descanso).
-- Definir puntualje base por ejecución ( gamificación).
-- Calcular duración estimada total.
-- Asociar alertas médicas específicas a cada ejercicio si aplica.
+- ❌ Si el objetivo contradice la salud (ej: Powerlifting con Hernia), PRIORIZA SALUD.
+- ✅ Los tiempo de descanso deben ser precisos.
+- ✅ Incluir "aviso_legal" obligatorio.
 
 ---
 
-### FORMATO DE SALIDA (OBLIGATORIO – SOLO JSON VÁLIDO)
-
-\`\`\`json
-{
-  "rutina_metadata": {
-    "id_rutina": "UUID_TEMP",
-    "compartida_con_alumno": true,
-    "objetivo_principal": "${userGoal?.primary_goal}",
-    "nivel_alumno": "Determinado según perfil",
-    "frecuencia_semanal": "${userGoal?.training_frequency_per_week} días",
-    "duracion_estimada_minutos": 0,
-    "editable_por_profesor": true,
-    "editable_por_alumno": true
-  },
-
-  "sistema_de_logros": {
-    "puntaje_maximo_sesion": 500,
-    "criterios_puntaje": {
-      "ejercicio_completado": 10,
-      "rutina_finalizada": 50,
-      "respeto_de_tiempos": 20,
-      "constancia_semanal": 100
-    }
-  },
-
-  "rutina": [
-    {
-      "dia": 1,
-      "grupo_muscular": "Ej: Pecho y Tríceps",
-      "bloques": [
-        {
-          "tipo": "ejercicio | descanso | circuito",
-          "nombre": "Nombre del bloque",
-          "cronometrado": true,
-          "tiempo_recomendado_segundos": 60,
-          "tiempo_editable": true,
-          "ejercicios": [
-            {
-              "id_ejercicio": "ID_TEMP",
-              "nombre": "Nombre del ejercicio",
-              "equipamiento": "De la lista permitida",
-              "series": 4,
-              "repeticiones": "12",
-              "tempo": "3-0-1-0",
-              "descanso_segundos": 60,
-              "descanso_editable": true,
-              "marcable_como_realizado": true,
-              "estado_inicial": "pendiente",
-              "puntaje_base": 15,
-              "indicaciones_tecnicas": "Instrucciones de ejecución",
-              "alertas_medicas": "Cuidado con...",
-              "alternativa_sin_equipo": "Flexiones"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-
-  ${includeNutrition ? `
-  "plan_nutricional": {
-    "calorias_diarias": 2500,
-    "proteinas_gramos": 180,
-    "carbohidratos_gramos": 300,
-    "grasas_gramos": 70,
-    "comidas": [
-      { "nombre": "Desayuno", "ejemplo": "Avena con claras" },
-      { "nombre": "Almuerzo", "ejemplo": "Pollo con arroz" }
-    ],
-    "litros_agua": 3,
-    "suplementos": ["Creatina 5g"],
-    "pautas_generales": "Consistencia ante todo",
-    "restricciones": ["Evitar ultraprocesados"]
-  },
-  ` : ''}
-
-  "finalizacion_sesion": {
-    "requiere_confirmacion": true,
-    "metricas_generadas": {
-      "tiempo_total_real": true,
-      "ejercicios_completados": true,
-      "ejercicios_omitidos": true,
-      "puntaje_obtenido": true
-    }
-  },
-
-  "recomendaciones_post_entrenamiento": [
-    "Incluye estiramientos",
-    "Hidratación"
-  ]
-}
-\`\`\`
-`;
+### FORMATO DE SALIDA (JSON VÁLIDO SEGÚN ESQUEMA PROVISTO)
+    `;
   }
 
   private inferTemplate(goal: string): any {
@@ -252,6 +161,7 @@ ${safeTemplate.promptSuffix}
     if (g.includes('fuerza') || g.includes('músculo') || g.includes('hipertrofia') || g.includes('volumen')) return AI_PROMPT_TEMPLATES.HYPERTROPHY;
     return AI_PROMPT_TEMPLATES.BEGINNER;
   }
+
   /**
    * Genera una respuesta de chat manteniendo el contexto vía Interaction ID
    */
@@ -278,7 +188,7 @@ ${safeTemplate.promptSuffix}
 
       return {
         text: response.text(),
-        interactionId: undefined // Standard chat doesn't persist ID in the same way, consumer must manage history
+        interactionId: undefined
       };
     } catch (error: any) {
       console.error("AI Chat Error:", error);
@@ -289,20 +199,41 @@ ${safeTemplate.promptSuffix}
   /**
    * Analiza un movimiento (visión) utilizando Gemini 3
    */
-  async analyzeMovement(filePart: string, mimeType: string): Promise<string> {
+  async analyzeMovement(filePart: string, mimeType: string, exerciseName: string = "Ejercicio desconocido"): Promise<string> {
     try {
       const prompt = `
-        Actúa como un entrenador experto en biomecánica. Analiza este video/imagen del ejercicio.
-        Identifica:
-        1. Qué ejercicio es.
-        2. 3 Puntos positivos de la técnica.
-        3. 3 Correcciones o errores detectados.
-        4. Veredicto final: "Buena técnica", "Mejorable" o "Riesgo de lesión".
-        
-        Formatea en Markdown claro.
-      `;
+      Actúa como un Especialista en Biomecánica y Entrenador de Élite.
+      Analiza este video del ejercicio: ${exerciseName}.
+      
+      INSTRUCCIONES CRÍTICAS:
+      1. Observa la fase excéntrica y concéntrica.
+      2. Evalúa la alineación de la columna y el rango de movimiento (ROM).
+      3. Identifica si el tempo es adecuado para el objetivo del alumno.
+      
+      ESTRUCTURA DE RESPUESTA (Markdown):
+      ## Análisis de Técnica: ${exerciseName}
+      
+      ### ✅ Puntos Correctos
+      - (Menciona 2 o 3 cosas que el alumno hace bien)
+      
+      ### ❌ Correcciones Necesarias
+      - **Error detectado:** [Nombre del error]
+      - **Cómo corregirlo:** [Instrucción técnica clara]
+      - **Riesgo asociado:** [Qué lesión podría causar si no se corrige]
+      
+      ### 📊 Veredicto Biomecánico
+      **[PUNTUACIÓN: 0-10]**
+      **Nivel:** (Excelente | Seguro | Necesita Ajustes | Peligroso)
+      
+      ---
+      *Consejo del Coach:* "Un tip psicológico para mejorar la conexión mente-músculo en este ejercicio."
+    `;
 
-      const model = aiClient.getGenerativeModel({ model: DEFAULT_MODEL });
+      const model = aiClient.getGenerativeModel({
+        model: DEFAULT_MODEL,
+        safetySettings: SAFETY_SETTINGS // Permitir análisis anatómico
+      });
+
       const result = await model.generateContent([
         prompt,
         { inlineData: { data: filePart, mimeType: mimeType } }

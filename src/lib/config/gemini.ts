@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { z } from 'zod';
 
 if (!process.env.GEMINI_API_KEY) {
@@ -11,8 +11,56 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 // Exportar el cliente para uso general (aunque el servicio usará getGenerativeModel)
 export const aiClient = genAI;
 
-// Modelo principal para interacciones rápidas
+// Modelo principal para interacciones rápidas (Gemini 3 Flash Preview)
 export const DEFAULT_MODEL = "gemini-3-flash-preview";
+
+// Configuración de Seguridad para permitir temas de salud y fitness
+export const SAFETY_SETTINGS = [
+    {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    },
+    // Crítico para salud, ejercicio y rehabilitación:
+    {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH, // Útil para anatomía en videos
+    },
+];
+
+export const SafetyDisclaimerSchema = z.object({
+    nivel_de_riesgo: z.enum(['BAJO', 'MEDIO', 'ALTO']),
+    clausula_legal: z.string(),
+    requiere_validacion_profesor: z.boolean(),
+    mensaje_profesor: z.string().optional()
+});
+
+export const NutritionPlanSchema = z.object({
+    calorias_diarias: z.number(),
+    macros: z.object({
+        proteinas_gramos: z.number(),
+        carbohidratos_gramos: z.number(),
+        grasas_gramos: z.number(),
+    }),
+    ajustes_por_salud: z.string().describe("Justificación médica de los ajustes dietarios"),
+    comidas: z.array(z.object({
+        nombre: z.string(),
+        sugerencia: z.string(),
+        es_opcional: z.boolean().default(false)
+    })),
+    hidratacion: z.object({
+        litros_diarios: z.number(),
+        durante_entreno: z.string()
+    }),
+    advertencia_profesor: z.string().optional()
+});
 
 // Esquema Zod para la salida estructurada de rutinas según el Prompt Maestro
 export const RoutineSchema = z.object({
@@ -26,6 +74,7 @@ export const RoutineSchema = z.object({
         editable_por_profesor: z.boolean(),
         editable_por_alumno: z.boolean()
     }),
+    aviso_legal: SafetyDisclaimerSchema,
     sistema_de_logros: z.object({
         puntaje_maximo_sesion: z.number(),
         criterios_puntaje: z.object({
@@ -58,10 +107,13 @@ export const RoutineSchema = z.object({
                 puntaje_base: z.number(),
                 indicaciones_tecnicas: z.string(),
                 alertas_medicas: z.string(),
-                alternativa_sin_equipo: z.string()
+                alternativa_sin_equipo: z.string(),
+                link_tutorial_sugerido: z.string().optional(), // Nuevo campo
+                descripcion_visual: z.string().optional()      // Nuevo campo
             }))
         }))
     })),
+    plan_nutricional: NutritionPlanSchema.optional(),
     finalizacion_sesion: z.object({
         requiere_confirmacion: z.boolean(),
         metricas_generadas: z.object({
@@ -72,12 +124,5 @@ export const RoutineSchema = z.object({
         })
     }),
     recomendaciones_post_entrenamiento: z.array(z.string()),
-    alertas_y_advertencias: z.array(z.string()).optional(),
-    plan_nutricional: z.any().optional() // Opcional según contexto
+    alertas_y_advertencias: z.array(z.string()).optional()
 });
-
-export const GEMINI_CONFIG = {
-    model: "gemini-1.5-flash",
-    temperature: 0.7,
-    maxOutputTokens: 2048,
-} as const;
