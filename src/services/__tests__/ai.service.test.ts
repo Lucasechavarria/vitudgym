@@ -7,8 +7,11 @@ jest.mock('@/lib/config/gemini', () => ({
         interactions: {
             create: jest.fn(),
         },
+        models: {
+            generateContent: jest.fn(),
+        }
     },
-    DEFAULT_MODEL: 'gemini-3-flash-preview',
+    DEFAULT_MODEL: 'gemini-1.5-flash',
     RoutineSchema: { parse: jest.fn() }
 }));
 
@@ -87,21 +90,20 @@ describe('AIService', () => {
                 weeklySchedule: []
             };
 
-            (aiClient.interactions.create as jest.Mock).mockResolvedValue({
-                outputs: [{ type: 'text', text: JSON.stringify(mockRoutine) }],
-                status: 'completed'
+            // Mock implementation for models.generateContent
+            (aiClient.models.generateContent as jest.Mock).mockResolvedValue({
+                text: JSON.stringify(mockRoutine)
             });
 
             const result = await aiService.generateRoutineFromPrompt('Dummy prompt');
 
             expect(result).toEqual(mockRoutine);
-            expect(aiClient.interactions.create).toHaveBeenCalledTimes(1);
+            expect(aiClient.models.generateContent).toHaveBeenCalledTimes(1);
         });
 
         it('should throw error if response is not valid JSON', async () => {
-            (aiClient.interactions.create as jest.Mock).mockResolvedValue({
-                outputs: [{ type: 'text', text: 'Invalid JSON' }],
-                status: 'completed'
+            (aiClient.models.generateContent as jest.Mock).mockResolvedValue({
+                text: 'Invalid JSON'
             });
 
             await expect(
