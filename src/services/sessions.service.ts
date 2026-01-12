@@ -75,8 +75,8 @@ export class SessionsService {
     /**
      * Obtiene el historial de sesiones de un usuario
      */
-    static async getUserSessionHistory(userId: string, limit = 10) {
-        const supabase = await createClient();
+    static async getUserSessionHistory(userId: string, limit = 10, supabaseClient?: any) {
+        const supabase = supabaseClient || await createClient();
 
         const { data, error } = await supabase
             .from('workout_sessions')

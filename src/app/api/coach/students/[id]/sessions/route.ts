@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { SessionsService } from '@/services/sessions.service';
 
+import { createAdminClient } from '@/lib/supabase/admin';
+
 export async function GET(
     req: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -16,7 +18,8 @@ export async function GET(
         const { searchParams } = new URL(req.url);
         const limit = parseInt(searchParams.get('limit') || '5');
 
-        const { sessions, error: sessionsError } = await SessionsService.getUserSessionHistory(studentId, limit);
+        const supabaseAdmin = createAdminClient();
+        const { sessions, error: sessionsError } = await SessionsService.getUserSessionHistory(studentId, limit, supabaseAdmin);
 
         if (sessionsError) {
             return NextResponse.json({ error: sessionsError.message }, { status: 500 });

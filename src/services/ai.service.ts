@@ -36,33 +36,56 @@ export interface Routine {
  */
 export class AIService {
   /**
-   * Genera una rutina utilizando la API de Interactions de Gemini 3
+   * Genera una rutina utilizando la API estándar de Gemini
    */
   async generateRoutineFromPrompt(prompt: string): Promise<any> {
-    try {
-      console.log('Generating routine with Gemini 3 (Thinking: High)...');
+    const maxRetries = 3;
+    let attempt = 0;
 
-      const interaction = await aiClient.interactions.create({
-        model: DEFAULT_MODEL,
-        input: prompt,
-        // @ts-ignore - La API de Interactions acepta esquemas JSON directos
-        response_format: zodToJsonSchema(RoutineSchema) as any,
-        generation_config: {
-          thinking_level: 'high', // Máximo razonamiento para biomecánica y seguridad
-          temperature: 0.1, // Baja temperatura para consistencia estructural
+    while (attempt < maxRetries) {
+      try {
+        console.log(`Generating routine with Gemini (Model: ${DEFAULT_MODEL}, Attempt: ${attempt + 1})...`);
+
+        // @ts-ignore - Schema conversion
+        const jsonSchema = zodToJsonSchema(RoutineSchema, { target: 'openApi3' });
+        // Remove $schema if present as it can cause issues
+        if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
+          delete (jsonSchema as any).$schema;
         }
-      });
 
-      const output = interaction.outputs?.[0];
-      if (!output || output.type !== 'text') {
-        throw new Error("La IA no devolvió un resultado de texto válido.");
+        const result = await aiClient.models.generateContent({
+          model: DEFAULT_MODEL,
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: jsonSchema as any,
+            temperature: 0.1,
+          }
+        });
+
+        const text = result.text;
+        if (!text) {
+          throw new Error("La IA no devolvió texto.");
+        }
+
+        return JSON.parse(text);
+
+      } catch (error: any) {
+        console.error(`Gemini Attempt ${attempt + 1} Error:`, error.message);
+
+        // Retry on 429 or 503
+        if (error.status === 429 || error.status === 503 || error.message?.includes('429')) {
+          attempt++;
+          const delay = Math.pow(2, attempt) * 1000;
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        throw new Error(`Fallo en la generación de rutina: ${error.message}`);
       }
-
-      return JSON.parse(output.text || '{}');
-    } catch (error: any) {
-      console.error("Gemini 3 Generation Error:", error.message);
-      throw new Error(`Fallo en la generación de rutina: ${error.message}`);
     }
+    throw new Error("Fallo en la generación de rutina tras varios intentos.");
   }
 
   /**

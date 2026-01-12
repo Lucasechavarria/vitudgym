@@ -11,7 +11,7 @@ export const aiClient = new GoogleGenAI({
 });
 
 // Modelo principal para interacciones rápidas
-export const DEFAULT_MODEL = "gemini-3-flash-preview";
+export const DEFAULT_MODEL = "gemini-1.5-flash";
 
 // Esquema Zod para la salida estructurada de rutinas según el Prompt Maestro
 export const RoutineSchema = z.object({
