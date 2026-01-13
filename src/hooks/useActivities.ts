@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { activitiesService } from '@/services/activities.service';
 import { Database } from '@/types/supabase';
 
-type Activity = Database['public']['Tables']['activities']['Row'];
+type Activity = Database['public']['Tables']['actividades']['Row'];
 
 /**
  * Hook para obtener actividades por tipo

@@ -2,9 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 
 import { Database } from '@/types/supabase';
 
-type GymEquipment = Database['public']['Tables']['gym_equipment']['Row'];
-type GymEquipmentInsert = Database['public']['Tables']['gym_equipment']['Insert'];
-type GymEquipmentUpdate = Database['public']['Tables']['gym_equipment']['Update'];
+type GymEquipment = Database['public']['Tables']['equipamiento']['Row'];
+type GymEquipmentInsert = Database['public']['Tables']['equipamiento']['Insert'];
+type GymEquipmentUpdate = Database['public']['Tables']['equipamiento']['Update'];
 
 /**
  * Service for managing gym equipment inventory
@@ -20,7 +20,7 @@ export const gymEquipmentService = {
     }) {
         const supabase = await createClient();
         let query = supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .select('*')
             .order('name');
 
@@ -48,7 +48,7 @@ export const gymEquipmentService = {
     async getById(id: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .select('*')
             .eq('id', id)
             .single();
@@ -63,7 +63,7 @@ export const gymEquipmentService = {
     async getByCategory(category: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .select('*')
             .eq('category', category)
             .eq('is_available', true)
@@ -79,7 +79,7 @@ export const gymEquipmentService = {
     async getAvailable() {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .select('*')
             .eq('is_available', true)
             .order('category', { ascending: true })
@@ -95,7 +95,7 @@ export const gymEquipmentService = {
     async create(equipment: GymEquipmentInsert) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .insert(equipment)
             .select()
             .single();
@@ -110,7 +110,7 @@ export const gymEquipmentService = {
     async update(id: string, updates: GymEquipmentUpdate) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .update(updates)
             .eq('id', id)
             .select()
@@ -126,7 +126,7 @@ export const gymEquipmentService = {
     async delete(id: string) {
         const supabase = await createClient();
         const { error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .delete()
             .eq('id', id);
 
@@ -155,7 +155,7 @@ export const gymEquipmentService = {
 
         // Optimización: Pedir solo los campos necesarios para reducir ancho de banda
         const { data, error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento')
             .select('category, is_available, condition');
 
         if (error) throw error;

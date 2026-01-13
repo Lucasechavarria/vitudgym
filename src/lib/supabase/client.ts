@@ -1,35 +1,15 @@
 import { createBrowserClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 
-// Lazy initialization to avoid build-time errors
-let supabaseInstance: SupabaseClient<Database> | null = null;
-
-const getSupabaseClient = (): SupabaseClient<Database> => {
-    if (supabaseInstance) return supabaseInstance;
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-        console.warn('⚠️ Missing Supabase environment variables - running in stub mode');
-        // Return a Proxy that throws meaningful errors when accessed
-        return new Proxy({} as SupabaseClient<Database>, {
-            get: (_target, prop) => {
-                throw new Error(
-                    `Supabase client not initialized. Attempted to access property '${String(prop)}'. ` +
-                    `Please check valid NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env file.`
-                );
-            }
-        });
-    }
-
-    supabaseInstance = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
-    return supabaseInstance;
+export const createClient = () => {
+    return createBrowserClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ) as any;
 };
 
-// Export as getter - call getSupabaseClient() to get the instance
-export const supabase = getSupabaseClient();
+// Singleton instance for client-side usage
+export const supabase = createClient();
 
 // Helper to get the current user
 export const getCurrentUser = async () => {

@@ -65,7 +65,7 @@ export async function requireRole(
 
         if (!role) {
             const { data: profile, error } = await supabase
-                .from('profiles')
+                .from('perfiles')
                 .select('role')
                 .eq('id', userId)
                 .single();
