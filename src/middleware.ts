@@ -42,17 +42,29 @@ export async function middleware(request: NextRequest) {
         let userRole = null;
         if (user) {
             try {
-                // Check if role is in metadata first (Performance Win)
-                userRole = user.app_metadata?.role || user.user_metadata?.role;
+                // COMENTADO: No confiar en metadatos por ahora porque pueden estar desincronizados
+                // userRole = user.app_metadata?.role || user.user_metadata?.role;
 
-                if (!userRole) {
-                    const { data: profile } = await supabase
-                        .from('perfiles')
-                        .select('role')
-                        .eq('id', user.id)
-                        .single();
-                    userRole = profile?.role;
+                // SIEMPRE consultar la BBDD 'perfiles' para tener el rol real
+                const { data: profile, error: profileError } = await supabase
+                    .from('perfiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    userRole = profile.role;
+                } else if (profileError) {
+                    console.error('Middleware: Error fetching profile role:', profileError);
                 }
+
+                // Fallback a metadata si falla la DB
+                if (!userRole) {
+                    userRole = user.app_metadata?.role || user.user_metadata?.role;
+                }
+
+                console.log(`🔐 Middleware Check: User ${user.email} has role: ${userRole}`);
+
             } catch (e) {
                 console.error('Error fetching role in middleware:', e);
             }
