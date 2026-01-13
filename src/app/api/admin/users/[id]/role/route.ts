@@ -40,7 +40,7 @@ export async function PUT(
 
         // Obtener perfil actual del usuario
         const { data: targetProfile } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('role')
             .eq('id', userId)
             .single();
@@ -48,7 +48,7 @@ export async function PUT(
         // Solo superadmin puede crear otros superadmins
         if (role === 'superadmin') {
             const { data: currentUserProfile } = await supabase
-                .from('profiles')
+                .from('perfiles')
                 .select('role')
                 .eq('id', user.id)
                 .single();
@@ -62,7 +62,7 @@ export async function PUT(
 
         // Actualizar rol
         const { error: updateError } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .update({ role })
             .eq('id', userId);
 

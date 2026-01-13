@@ -23,7 +23,7 @@ export async function GET(request: Request) {
             .from('routine_access_logs')
             .select(`
                 *,
-                user:user_id(full_name, email),
+                perfiles:user_id(full_name),
                 routine:routine_id(name)
             `)
             .gte('created_at', last30days)

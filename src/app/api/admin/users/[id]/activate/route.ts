@@ -24,7 +24,7 @@ export async function POST(
 
         // Update profile
         const { error: updateError } = await supabase!
-            .from('profiles')
+            .from('perfiles')
             .update({
                 membership_status: 'active',
                 membership_end_date: endDate.toISOString()

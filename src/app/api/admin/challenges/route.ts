@@ -51,13 +51,12 @@ export async function GET(request: Request) {
             .from('challenges')
             .select(`
                 *,
-                creator:profiles!challenges_created_by_fkey(full_name),
-                judge:profiles!challenges_judge_id_fkey(full_name),
+                creator:perfiles!challenges_created_by_fkey(full_name),
+                judge:perfiles!challenges_judge_id_fkey(full_name),
                 participants:challenge_participants(
-                    user_id,
-                    current_score,
                     status,
-                    user:profiles(full_name)
+                    progress,
+                    user:perfiles(full_name)
                 )
             `)
             .order('created_at', { ascending: false });

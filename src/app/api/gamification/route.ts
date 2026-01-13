@@ -25,7 +25,7 @@ export async function GET() {
         // 3. Fetch Leaderboard (Top 10)
         const { data: leaderboard } = await supabase
             .from('user_gamification')
-            .select('points, current_streak, profiles(first_name, last_name, avatar_url)')
+            .select('points, current_streak, perfiles(first_name, last_name, avatar_url)')
             .order('points', { ascending: false })
             .limit(10);
 
@@ -35,7 +35,7 @@ export async function GET() {
             stats: myStats || { points: 0, streak: 0, level: 1 },
             achievements: myAchievements || [],
             leaderboard: leaderboard?.map(l => {
-                const profile = Array.isArray(l.profiles) ? l.profiles[0] : l.profiles;
+                const profile = Array.isArray(l.perfiles) ? l.perfiles[0] : l.perfiles;
                 return {
                     name: `${profile?.first_name || 'Usuario'} ${profile?.last_name || ''}`,
                     points: l.points,

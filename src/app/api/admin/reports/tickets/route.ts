@@ -15,7 +15,7 @@ export async function GET(req: Request) {
             .from('student_reports')
             .select(`
                 *,
-                profiles:user_id (
+                perfiles:user_id (
                     full_name,
                     email
                 )

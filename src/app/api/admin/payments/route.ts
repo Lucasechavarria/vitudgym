@@ -16,28 +16,32 @@ export async function GET(request: Request) {
         if (error) return error;
 
         // Obtener pagos con información del usuario
-        const { data: payments, error: paymentsError } = await supabase
+        const { data, error: paymentsError } = await supabase
             .from('payments')
             .select(`
                 *,
-                profiles!payments_user_id_fkey (
+                perfiles!payments_user_id_fkey (
                     full_name,
                     email
                 )
             `)
             .order('created_at', { ascending: false });
 
-        if (paymentsError) throw paymentsError;
+        if (error) throw error;
 
-        const paymentsWithUserInfo = (payments || []).map(payment => ({
-            ...payment,
-            user_name: payment.profiles?.full_name || 'Sin nombre',
-            user_email: payment.profiles?.email || ''
+        // Transform data
+        const payments = (data || []).map((payment: any) => ({
+            id: payment.id,
+            amount: payment.amount,
+            status: payment.status,
+            date: payment.created_at,
+            user_name: payment.perfiles?.full_name || 'Sin nombre',
+            user_email: payment.perfiles?.email || ''
         }));
 
         return NextResponse.json({
             success: true,
-            payments: paymentsWithUserInfo
+            payments: payments
         });
 
     } catch (error: any) {

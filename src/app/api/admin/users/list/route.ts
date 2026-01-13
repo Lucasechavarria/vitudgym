@@ -15,8 +15,8 @@ export async function GET(request: Request) {
 
         // Fetch users
         // Nota: En Supabase Auth no podemos listar usuarios directamente desde el cliente sin service role key o funcion RPC.
-        // Pero tenemos la tabla 'profiles' que es publica/accesible.
-        // Asumimos que profiles tiene todos los usuarios.
+        // Pero tenemos la tabla 'perfiles' que es publica/accesible.
+        // Asumimos que perfiles tiene todos los usuarios.
 
         const { data: users, error: dbError } = await supabase!
             .from('perfiles')

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
                     .from('pagos' as any) // Assuming payments table might also be renamed or just issues
                     .select(`
                         *,
-                        profiles:user_id (
+                        perfiles:user_id (
                             full_name
                         )
                     `)

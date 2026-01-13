@@ -63,30 +63,29 @@ export async function GET(request: NextRequest) {
         const activeUsers = uniqueUsers.size;
 
         // Obtener logs recientes con información de usuario
-        const { data: logs } = await supabase
+        const { data: logs, error } = await supabase
             .from('routine_access_logs')
             .select(`
-                id,
-                user_id,
-                action,
-                ip_address,
-                device_info,
-                created_at,
-                profiles:user_id (
-                    full_name
+                *,
+                perfiles:user_id (
+                    full_name,
+                    email,
+                    role
                 )
             `)
             .order('created_at', { ascending: false })
             .limit(50);
 
+        if (error) throw error;
+
         // Formatear logs
-        const formattedLogs = logs?.map(log => ({
+        const formattedLogs = logs.map((log: any) => ({
             id: log.id,
-            user_name: (log.profiles as any)?.full_name || 'Usuario desconocido',
             action: log.action,
-            ip_address: log.ip_address || 'N/A',
-            device: log.device_info || 'Desconocido',
-            timestamp: log.created_at,
+            details: log.details,
+            ip_address: log.ip_address,
+            user_name: (log.perfiles as any)?.full_name || 'Usuario desconocido',
+            created_at: log.created_at,
             status: log.action === 'failed_login' ? 'failed' :
                 (ipCounts?.[log.ip_address || ''] >= 3 ? 'suspicious' : 'success')
         }));

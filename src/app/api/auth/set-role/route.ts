@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         // For now, try standard client. If RLS fails, we might need a Service Role client.
         const { error: updateError } = await supabase
             .from('perfiles')
-            .update({ role })
+            .update({ role: role })
             .eq('id', uid);
 
         if (updateError) {
