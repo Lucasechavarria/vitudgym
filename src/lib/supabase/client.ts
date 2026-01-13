@@ -2,9 +2,24 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Database } from '@/types/supabase';
 
 export const createClient = () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.warn('⚠️ Missing Supabase environment variables - running in stub mode');
+        return new Proxy({} as any, {
+            get: (_target, prop) => {
+                if (prop === 'auth') return { getUser: async () => ({ data: { user: null }, error: null }) };
+                throw new Error(
+                    `Supabase client not initialized. Missing env vars. Checked property '${String(prop)}'.`
+                );
+            }
+        });
+    }
+
     return createBrowserClient<Database>(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        supabaseUrl,
+        supabaseAnonKey
     ) as any;
 };
 

@@ -5,9 +5,28 @@ import { Database } from '@/types/supabase';
 export async function createClient() {
     const cookieStore = await cookies();
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        // En tiempo de build o si faltan las vars, retornamos un proxy dummy para no romper
+        return new Proxy({} as any, {
+            get: (_target, prop) => {
+                // Métodos comunes que podrían llamarse durante el build estático
+                if (prop === 'auth') return { getUser: async () => ({ data: { user: null }, error: null }) };
+
+                // Para todo lo demas, lanzamos error solo al invocarse
+                throw new Error(
+                    `Supabase client not initialized. Checked property '${String(prop)}'. ` +
+                    `Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY.`
+                );
+            }
+        });
+    }
+
     return createServerClient<Database>(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        supabaseUrl,
+        supabaseAnonKey,
         {
             cookies: {
                 get(name: string) {
@@ -18,8 +37,6 @@ export async function createClient() {
                         cookieStore.set({ name, value, ...options });
                     } catch (error) {
                         // The `set` method was called from a Server Component.
-                        // This can be ignored if you have middleware refreshing
-                        // user sessions.
                     }
                 },
                 remove(name: string, options: CookieOptions) {
@@ -27,8 +44,6 @@ export async function createClient() {
                         cookieStore.set({ name, value: '', ...options });
                     } catch (error) {
                         // The `delete` method was called from a Server Component.
-                        // This can be ignored if you have middleware refreshing
-                        // user sessions.
                     }
                 },
             },
