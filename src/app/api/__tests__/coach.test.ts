@@ -21,27 +21,27 @@ jest.mock('@/lib/supabase/server', () => ({
                 order: jest.fn(function () { return this; }),
                 limit: jest.fn(function () { return this; }),
                 single: jest.fn(function () {
-                    if (table === 'profiles') {
+                    if (table === 'perfiles') {
                         return Promise.resolve({ data: { id: 'coach123', role: 'coach' }, error: null });
                     }
-                    if (table === 'user_goals') {
+                    if (table === 'objetivos_del_usuario') {
                         return Promise.resolve({ data: { id: 'goal1', primary_goal: 'Hypertrophy' }, error: null });
                     }
-                    if (table === 'routines') {
+                    if (table === 'rutinas') {
                         return Promise.resolve({ data: { id: 'routine1', name: 'Morning Workout' }, error: null });
                     }
                     return Promise.resolve({ data: null, error: null });
                 }),
                 then: jest.fn(function (resolve) {
                     let data: any = [];
-                    if (table === 'profiles') {
+                    if (table === 'perfiles') {
                         data = [
                             { id: '1', full_name: 'Student 1', role: 'member' },
                             { id: '2', full_name: 'Student 2', role: 'member' }
                         ];
-                    } else if (table === 'user_goals') {
+                    } else if (table === 'objetivos_del_usuario') {
                         data = [{ id: 'goal1', user_id: '1', primary_goal: 'Muscle Gain', is_active: true }];
-                    } else if (table === 'routines') {
+                    } else if (table === 'rutinas') {
                         data = [{ id: 'routine1', user_id: '1', name: 'Push Day', is_active: true }];
                     }
                     return Promise.resolve(resolve({ data, error: null }));

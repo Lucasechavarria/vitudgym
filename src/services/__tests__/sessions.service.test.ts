@@ -31,7 +31,7 @@ describe('SessionsService', () => {
 
         const { session, error } = await SessionsService.startSession('user123', 'routine123');
 
-        expect(mockFrom).toHaveBeenCalledWith('workout_sessions');
+        expect(mockFrom).toHaveBeenCalledWith('sesiones_de_entrenamiento');
         expect(session.id).toBe('session123');
         expect(error).toBeNull();
     });
@@ -42,7 +42,7 @@ describe('SessionsService', () => {
         const performance = { exercise_id: 'ex123', actual_weight: 50 };
         const { log, error } = await SessionsService.logExercisePerformance('session123', performance);
 
-        expect(mockFrom).toHaveBeenCalledWith('exercise_performance_logs');
+        expect(mockFrom).toHaveBeenCalledWith('registros_de_ejercicio');
         expect(log.id).toBe('log123');
         expect(error).toBeNull();
     });
