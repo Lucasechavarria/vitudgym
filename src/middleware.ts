@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
 
                 if (!userRole) {
                     const { data: profile } = await supabase
-                        .from('profiles')
+                        .from('perfiles')
                         .select('role')
                         .eq('id', user.id)
                         .single();

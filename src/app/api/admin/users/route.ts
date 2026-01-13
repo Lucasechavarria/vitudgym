@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         // Obtener todos los usuarios con sus perfiles
         const { data: users, error: usersError } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('*')
             .order('created_at', { ascending: false });
 

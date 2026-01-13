@@ -1,0 +1,50 @@
+# VirtudCoach - Reglas del Proyecto & Cursor Rules
+
+## 1. Principios Fundamentales
+- **Idioma ESTRICTO:** Todo el código, comentarios, nombres de variables, funciones y UI deben ser en **ESPAÑOL**.
+- **Base de Datos (Mirroring):** Los nombres de tablas y columnas en el código deben coincidir EXACTAMENTE con el esquema en español de Supabase (e.g., `perfiles`, `rutinas`, `ejercicios`, `objetivos_del_usuario`, `reservas_de_clase`). NO traducir al inglés.
+
+## 2. Stack Tecnológico & Librerías Preferidas
+- **Framework:** Next.js (App Router). Usa `await params` en rutas dinámicas.
+- **Estilos:** Tailwind CSS v4. Prioriza diseño "premium" y moderno.
+- **Tipado:** TypeScript Estricto. Usa `import type { Database } from '@/types/supabase'`.
+- **Base de Datos:** Supabase (`@supabase/ssr` para auth cookies, `@supabase/supabase-js`).
+- **Formularios:** `react-hook-form` + `zod`.
+- **Validación:** `zod`.
+- **Iconos:** `lucide-react`.
+- **Animaciones:** `framer-motion` (para transiciones suaves y micro-interacciones).
+- **Gráficos:** `recharts` (preferido sobre chart.js para componentes React).
+- **Notificaciones:** `react-hot-toast`.
+- **Correos:** `resend`.
+- **Pagos:** `mercadopago`.
+
+## 3. Tipado y Calidad (TypeScript)
+- **NO USAR `any`:** Está prohibido a menos que sea una emergencia de compilación extrema. Usa `unknown`, genéricos o define la interfaz correcta.
+- **Tipos de Supabase:** Usa siempre los tipos generados `Database['public']['Tables']['tabla']['Row']` o `Insert`/`Update`.
+
+## 4. Estructura de Proyecto
+- `src/app/api`: Endpoints de API (Route Handlers).
+- `src/actions`: Server Actions (siempre con `'use server'` al inicio).
+- `src/services`: Lógica de negocio encapsulada y llamadas a BD. MANTÉN los queries de Supabase aquí.
+- `src/components/ui`: Componentes base reutilizables.
+- `src/components/features`: Componentes complejos específicos (e.g., `chat`, `dashboard`).
+
+## 5. Convenciones de Código
+- **Nombres de Archivos:** `kebab-case.ts`.
+- **Componentes:** `PascalCase.tsx`.
+- **Server Actions:** Maneja errores con `try/catch` y retorna `{ success, data, error }`.
+
+## 6. Rendimiento y Optimización
+- **Server Components:** Prioriza componentes de servidor por defecto. Usa `'use client'` solo para interactividad (hooks, onClick).
+- **Imágenes:** Usa siempre `<Image />` de `next/image` con `width` y `height` o `fill`. NUNCA uses `<img>`.
+- **Consultas Eficientes:** Evita `.select('*')` en tablas grandes. Selecciona campos específicos: `.select('id, nombre, email')`.
+- **Imports:** Usa `dynamic(() => import(...))` para componentes pesados (gráficos, mapas) que no son críticos para el LCP.
+- **Fuentes:** Usa `next/font` para optimizar la carga de tipografías.
+
+## 7. Reglas de Validación de IA
+- **BD en Español:** Verifica SIEMPRE (`rutinas` vs `routines`).
+- **Mobile First:** Diseño responsivo por defecto.
+
+## 8. Depuración
+- Si encuentras un error "property x does not exist on type never", probablemente falta un cast (temporalmente) o la definición en `supabase.ts` está incompleta.
+- Usa `console.error` descriptivos en bloques catch.

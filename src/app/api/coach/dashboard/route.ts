@@ -15,12 +15,12 @@ export async function GET() {
         // Ideally check role here, but middleware handles basic protection.
         // Double check just in case for data sensitivity
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('role')
             .eq('id', user.id)
-            .single();
+            .single() as { data: { role: string } | null };
 
-        if (profile?.role !== 'coach' && profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        if (!profile || (profile.role !== 'coach' && profile.role !== 'admin' && profile.role !== 'superadmin')) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -28,7 +28,7 @@ export async function GET() {
         // 2. Fetch Active Students Count
         // Assuming 'member' role and status 'active' (needs column check in profiles, or just use count)
         const { count: activeStudentsCount } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('*', { count: 'exact', head: true })
             .eq('role', 'member')
             .eq('membership_status', 'active'); // Assuming this field exists based on previous schema view
@@ -38,11 +38,11 @@ export async function GET() {
         const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
         const { data: upcomingClasses } = await supabase
-            .from('class_schedules')
+            .from('horarios_de_clase')
             .select(`
                 *,
-                activities (name, image_url),
-                class_bookings (count)
+                actividades (name, image_url),
+                reservas_de_clase (count)
             `)
             .gte('start_time', now.toISOString()) // Assuming start_time is timestamp/timestamptz
             .lte('start_time', tomorrow.toISOString())
@@ -61,10 +61,10 @@ export async function GET() {
 
         // Safe check for 'student_reports' table
         const { data: recentReports } = await supabase
-            .from('student_reports')
+            .from('reportes_de_alumnos')
             .select(`
                 *,
-                profiles:user_id (full_name, avatar_url)
+                perfiles:user_id (full_name, avatar_url)
             `)
             .eq('status', 'pending')
             .order('created_at', { ascending: false })

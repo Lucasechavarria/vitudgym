@@ -5,7 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+type Profile = Database['public']['Tables']['perfiles']['Row'];
 
 export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
@@ -52,7 +52,7 @@ export function useAuth() {
     const loadProfile = async (userId: string) => {
         try {
             const { data, error } = await supabase
-                .from('profiles')
+                .from('perfiles')
                 .select('*')
                 .eq('id', userId)
                 .single();

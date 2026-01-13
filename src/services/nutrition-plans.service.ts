@@ -2,9 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 
 import { Database } from '@/types/supabase';
 
-type NutritionPlan = Database['public']['Tables']['nutrition_plans']['Row'];
-type NutritionPlanInsert = Database['public']['Tables']['nutrition_plans']['Insert'];
-type NutritionPlanUpdate = Database['public']['Tables']['nutrition_plans']['Update'];
+type NutritionPlan = Database['public']['Tables']['planes_nutricionales']['Row'];
+type NutritionPlanInsert = Database['public']['Tables']['planes_nutricionales']['Insert'];
+type NutritionPlanUpdate = Database['public']['Tables']['planes_nutricionales']['Update'];
 
 /**
  * Service for managing nutrition plans
@@ -16,7 +16,7 @@ export const nutritionPlansService = {
     async getActiveForUser(userId: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .select('*')
             .eq('user_id', userId)
             .eq('is_active', true)
@@ -34,10 +34,10 @@ export const nutritionPlansService = {
     async getUserPlans(userId: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .select(`
                 *,
-                coach:coach_id(id, full_name, avatar_url)
+                coach:perfiles(id, full_name, avatar_url)
             `)
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
@@ -52,11 +52,11 @@ export const nutritionPlansService = {
     async getById(id: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .select(`
                 *,
-                user:user_id(id, full_name, email),
-                coach:coach_id(id, full_name, email)
+                user:perfiles(id, full_name, email),
+                coach:perfiles(id, full_name, email)
             `)
             .eq('id', id)
             .single();
@@ -71,9 +71,9 @@ export const nutritionPlansService = {
     async getByRoutineId(routineId: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .select('*')
-            .eq('routine_id', routineId)
+            .eq('routine_id' as any, routineId)
             .single();
 
         if (error && error.code !== 'PGRST116') throw error;
@@ -92,8 +92,8 @@ export const nutritionPlansService = {
         }
 
         const { data, error } = await supabase
-            .from('nutrition_plans')
-            .insert(plan)
+            .from('planes_nutricionales')
+            .insert(plan as any)
             .select()
             .single();
 
@@ -114,8 +114,8 @@ export const nutritionPlansService = {
         }
 
         const { data, error } = await supabase
-            .from('nutrition_plans')
-            .update(updates)
+            .from('planes_nutricionales')
+            .update(updates as any)
             .eq('id', id)
             .select()
             .single();
@@ -130,7 +130,7 @@ export const nutritionPlansService = {
     async deactivateUserPlans(userId: string) {
         const supabase = await createClient();
         const { error } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .update({ is_active: false })
             .eq('user_id', userId)
             .eq('is_active', true);
@@ -144,7 +144,7 @@ export const nutritionPlansService = {
     async delete(id: string) {
         const supabase = await createClient();
         const { error } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .delete()
             .eq('id', id);
 
@@ -157,10 +157,10 @@ export const nutritionPlansService = {
     async getByCoach(coachId: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .select(`
                 *,
-                user:user_id(id, full_name, email)
+                user:perfiles(id, full_name, email)
             `)
             .eq('coach_id', coachId)
             .order('created_at', { ascending: false });
@@ -172,14 +172,14 @@ export const nutritionPlansService = {
     /**
      * Update meals
      */
-    async updateMeals(id: string, meals: Database['public']['Tables']['nutrition_plans']['Update']['meals']) {
+    async updateMeals(id: string, meals: Database['public']['Tables']['planes_nutricionales']['Update']['meals']) {
         return this.update(id, { meals });
     },
 
     /**
      * Update supplements
      */
-    async updateSupplements(id: string, supplements: Database['public']['Tables']['nutrition_plans']['Update']['supplements']) {
+    async updateSupplements(id: string, supplements: Database['public']['Tables']['planes_nutricionales']['Update']['supplements']) {
         return this.update(id, { supplements });
     },
 

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
         // 2. Verify Requester is Admin/SuperAdmin
         const { data: requesterProfile } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('role')
             .eq('id', user.id)
             .single();
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         // Assuming RLS allows admins to update profiles, or using Service Role if RLS prevents it.
         // For now, try standard client. If RLS fails, we might need a Service Role client.
         const { error: updateError } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .update({ role })
             .eq('id', uid);
 

@@ -23,7 +23,7 @@ export default function BookingPage() {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
                     const { data } = await supabase
-                        .from('profiles')
+                        .from('perfiles')
                         .select('waiver_accepted')
                         .eq('id', user.id)
                         .single();

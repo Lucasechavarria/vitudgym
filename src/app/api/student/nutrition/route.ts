@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         // Obtener plan nutricional activo
         const { data: plan, error: planError } = await supabase
-            .from('nutrition_plans')
+            .from('planes_nutricionales')
             .select('*')
             .eq('user_id', user.id)
             .eq('is_active', true)

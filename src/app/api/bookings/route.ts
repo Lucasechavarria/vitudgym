@@ -11,7 +11,7 @@ export async function GET(request: Request) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        let query = supabase.from('class_bookings').select('*').eq('user_id', user.id);
+        let query = supabase.from('reservas_de_clase').select('*').eq('user_id', user.id);
 
         if (scheduleId) {
             query = query.eq('class_schedule_id', scheduleId);
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
         // Check if already booked
         const { data: existing } = await supabase
-            .from('class_bookings')
+            .from('reservas_de_clase')
             .select('*')
             .eq('user_id', user.id)
             .eq('class_schedule_id', schedule_id)
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         }
 
         const { data, error } = await supabase
-            .from('class_bookings')
+            .from('reservas_de_clase')
             .insert({
                 user_id: user.id,
                 class_schedule_id: schedule_id,
@@ -102,7 +102,7 @@ export async function DELETE(request: Request) {
         if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
         const { error } = await supabase
-            .from('class_bookings')
+            .from('reservas_de_clase')
             .delete()
             .eq('id', id)
             .eq('user_id', user.id); // Ensure user owns booking

@@ -156,7 +156,7 @@ async function handleApprovedPayment(payment: MercadoPagoPayment, userId: string
         membershipEndDate.setDate(membershipEndDate.getDate() + 30);
 
         const { error: profileError } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .update({
                 membership_status: 'active',
                 membership_end_date: membershipEndDate.toISOString()

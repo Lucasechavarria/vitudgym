@@ -13,14 +13,14 @@ export async function GET(req: Request) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        if (profile?.role !== 'coach' && profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        const { data: profile } = await supabase.from('perfiles').select('role').eq('id', user.id).single() as { data: { role: string } | null };
+        if (!profile || (profile.role !== 'coach' && profile.role !== 'admin' && profile.role !== 'superadmin')) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         // 2. Fetch Attendance Data
         let attendanceQuery = supabase
-            .from('class_bookings')
+            .from('reservas_de_clase')
             .select('date, status')
             .in('status', ['attended', 'confirmed', 'no_show']);
 
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         let measurementsData = [];
         if (studentId && viewMode === 'individual') {
             const { data } = await supabase
-                .from('measurements')
+                .from('mediciones')
                 .select('*')
                 .eq('user_id', studentId)
                 .order('recorded_at', { ascending: true });
@@ -50,19 +50,19 @@ export async function GET(req: Request) {
         // 4. Fetch Training Volume (Prescribed)
         let volumeData = [];
         const { data: upcomingClasses } = await supabase
-            .from('class_schedules')
+            .from('horarios_de_clase')
             .select(`
                 *,
-                activities (name, image_url),
-                class_bookings (count)
+                actividades (name, image_url),
+                reservas_de_clase (count)
             `);
         let routinesQuery = supabase
-            .from('routines')
+            .from('rutinas')
             .select(`
                 id,
                 name,
                 user_id,
-                exercises (sets, reps)
+                ejercicios (sets, reps)
             `)
             .eq('is_active', true);
 
@@ -73,17 +73,17 @@ export async function GET(req: Request) {
         const { data: routines } = await routinesQuery;
 
         // Cálculo de volumen con validaciones robustas
-        const totalPrescribedVolume = routines?.reduce((acc, routine) => {
+        const totalPrescribedVolume = (routines as any[])?.reduce((acc, routine) => {
             // Validar que routine tenga la estructura esperada
-            if (!routine || !Array.isArray(routine.exercises)) {
-                console.warn('⚠️ Rutina sin ejercicios válidos:', routine?.id);
+            if (!routine || !Array.isArray(routine.ejercicios)) {
+                // console.warn('⚠️ Rutina sin ejercicios válidos:', routine?.id);
                 return acc;
             }
 
-            const routineVolume = routine.exercises.reduce((sAcc: number, ex: RoutineExercise) => {
+            const routineVolume = routine.ejercicios.reduce((sAcc: number, ex: any) => { // Use 'any' for exercise to avoid strict type issues on 'never'
                 // Validar sets
                 if (!ex.sets || ex.sets <= 0) {
-                    console.warn('⚠️ Ejercicio sin sets válidos:', ex);
+                    // console.warn('⚠️ Ejercicio sin sets válidos:', ex);
                     return sAcc;
                 }
 
@@ -91,17 +91,19 @@ export async function GET(req: Request) {
                 let reps = 10; // Valor por defecto
                 if (ex.reps) {
                     // Si es un rango como "8-12", tomar el promedio
-                    if (ex.reps.includes('-')) {
-                        const [min, max] = ex.reps.split('-').map(r => parseInt(r.trim()));
+                    if (typeof ex.reps === 'string' && ex.reps.includes('-')) {
+                        const [min, max] = ex.reps.split('-').map((r: string) => parseInt(r.trim()));
                         if (!isNaN(min) && !isNaN(max)) {
                             reps = Math.round((min + max) / 2);
                         }
-                    } else if (ex.reps.toLowerCase() !== 'amrap') {
+                    } else if (typeof ex.reps === 'string' && ex.reps.toLowerCase() !== 'amrap') {
                         // Si es un número simple
                         const parsedReps = parseInt(ex.reps);
                         if (!isNaN(parsedReps) && parsedReps > 0) {
                             reps = parsedReps;
                         }
+                    } else if (typeof ex.reps === 'number') {
+                        reps = ex.reps;
                     }
                     // Si es AMRAP, usar valor por defecto de 10
                 }

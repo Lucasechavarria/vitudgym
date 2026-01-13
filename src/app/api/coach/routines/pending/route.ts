@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         // Obtener rutinas con status pending_approval
         const { data: routines, error: routinesError } = await supabase
-            .from('routines')
+            .from('rutinas')
             .select(`
                 id,
                 name,
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         const routinesWithCounts = await Promise.all(
             (routines || []).map(async (routine) => {
                 const { count } = await supabase
-                    .from('exercises')
+                    .from('ejercicios')
                     .select('*', { count: 'exact', head: true })
                     .eq('routine_id', routine.id);
 

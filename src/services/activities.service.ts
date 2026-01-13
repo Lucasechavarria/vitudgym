@@ -1,9 +1,9 @@
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 
-type Activity = Database['public']['Tables']['activities']['Row'];
-type ActivityInsert = Database['public']['Tables']['activities']['Insert'];
-type ActivityUpdate = Database['public']['Tables']['activities']['Update'];
+type Activity = Database['public']['Tables']['actividades']['Row'];
+type ActivityInsert = Database['public']['Tables']['actividades']['Insert'];
+type ActivityUpdate = Database['public']['Tables']['actividades']['Update'];
 
 /**
  * Service for managing activities
@@ -14,7 +14,7 @@ export const activitiesService = {
      */
     async getAll() {
         const { data, error } = await supabase
-            .from('activities')
+            .from('actividades')
             .select('*')
             .eq('is_active', true)
             .order('name');
@@ -28,7 +28,7 @@ export const activitiesService = {
      */
     async getByType(type: 'gym' | 'martial_arts' | 'tcm' | 'wellness') {
         const { data, error } = await supabase
-            .from('activities')
+            .from('actividades')
             .select('*')
             .eq('type', type)
             .eq('is_active', true)
@@ -43,7 +43,7 @@ export const activitiesService = {
      */
     async getById(id: string) {
         const { data, error } = await supabase
-            .from('activities')
+            .from('actividades')
             .select('*')
             .eq('id', id)
             .single();
@@ -56,9 +56,9 @@ export const activitiesService = {
      * Create new activity (admin only)
      */
     async create(activity: ActivityInsert) {
-        const { data, error } = await (supabase
-            .from('activities') as any)
-            .insert(activity)
+        const { data, error } = await supabase
+            .from('actividades')
+            .insert(activity as any)
             .select()
             .single();
 
@@ -70,9 +70,9 @@ export const activitiesService = {
      * Update activity (admin only)
      */
     async update(id: string, updates: ActivityUpdate) {
-        const { data, error } = await (supabase
-            .from('activities') as any)
-            .update(updates)
+        const { data, error } = await supabase
+            .from('actividades')
+            .update(updates as any)
             .eq('id', id)
             .select()
             .single();
@@ -85,8 +85,8 @@ export const activitiesService = {
      * Delete activity (admin only)
      */
     async delete(id: string) {
-        const { error } = await (supabase
-            .from('activities') as any)
+        const { error } = await supabase
+            .from('actividades')
             .delete()
             .eq('id', id);
 

@@ -12,7 +12,7 @@ export async function GET(request: Request) {
         if (error) return error;
 
         const { data: coaches, error: dbError } = await supabase!
-            .from('profiles')
+            .from('perfiles')
             .select('id, full_name, email, role')
             .in('role', ['coach', 'admin', 'superadmin'])
             .order('full_name', { ascending: true });

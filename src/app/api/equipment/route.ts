@@ -6,12 +6,12 @@ import { ROLES } from '@/lib/constants/app';
 // GET /api/equipment - List all equipment
 export async function GET(req: Request) {
     try {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { searchParams } = new URL(req.url);
         const category = searchParams.get('category');
         const available = searchParams.get('available');
 
-        let query = supabase.from('gym_equipment').select('*').order('name');
+        let query = supabase.from('equipamiento').select('*').order('name');
 
         if (category) query = query.eq('category', category);
         if (available) query = query.eq('is_available', available === 'true');
@@ -32,10 +32,10 @@ export async function POST(req: Request) {
         if (authError) return authError;
 
         const body = await req.json();
-        const supabase = await createClient();
+        const supabase: any = await createClient();
 
         const { data, error } = await supabase
-            .from('gym_equipment')
+            .from('equipamiento' as any)
             .insert(body)
             .select()
             .single();
@@ -51,15 +51,15 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
     try {
         // Minimum role is COACH
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('role')
             .eq('id', user.id)
-            .single();
+            .single() as any;
 
         if (!profile || ![ROLES.COACH, ROLES.ADMIN, ROLES.SUPERADMIN].includes(profile.role)) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -82,8 +82,8 @@ export async function PATCH(req: Request) {
         }
 
         const { data, error } = await supabase
-            .from('gym_equipment')
-            .update(updates)
+            .from('equipamiento' as any)
+            .update(updates as any)
             .eq('id', id)
             .select()
             .single();
@@ -105,8 +105,8 @@ export async function DELETE(req: Request) {
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-        const supabase = await createClient();
-        const { error } = await supabase.from('gym_equipment').delete().eq('id', id);
+        const supabase: any = await createClient();
+        const { error } = await supabase.from('equipamiento').delete().eq('id', id);
 
         if (error) throw error;
         return NextResponse.json({ success: true });

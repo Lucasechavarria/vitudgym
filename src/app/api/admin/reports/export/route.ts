@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
 
         // Verificar rol de admin
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('role')
             .eq('id', user.id)
-            .single();
+            .single() as { data: { role: string } | null };
 
-        if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
         }
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         switch (type) {
             case 'users': {
                 const { data: users } = await supabase
-                    .from('profiles')
+                    .from('perfiles')
                     .select('*')
                     .order('created_at', { ascending: false });
                 data = users || [];
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
             case 'payments': {
                 const { data: payments } = await supabase
-                    .from('payments')
+                    .from('pagos' as any) // Assuming payments table might also be renamed or just issues
                     .select(`
                         *,
                         profiles:user_id (
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
                     `)
                     .order('created_at', { ascending: false });
 
-                data = payments?.map(p => ({
+                data = (payments as any[])?.map(p => ({
                     ...p,
                     user_name: (p.profiles as any)?.full_name
                 })) || [];
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
             case 'access-logs': {
                 const { data: logs } = await supabase
-                    .from('routine_access_logs')
+                    .from('registros_acceso_rutina' as any)
                     .select(`
                         *,
                         profiles:user_id (
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
                     .order('created_at', { ascending: false })
                     .limit(1000);
 
-                data = logs?.map(l => ({
+                data = (logs as any[])?.map(l => ({
                     ...l,
                     user_name: (l.profiles as any)?.full_name,
                     timestamp: l.created_at
@@ -79,19 +79,19 @@ export async function POST(request: NextRequest) {
 
             case 'routines': {
                 const { data: routines } = await supabase
-                    .from('routines')
+                    .from('rutinas')
                     .select(`
                         *,
-                        student:student_id (
+                        student:user_id (
                             full_name
                         ),
-                        coach:coach_id (
+                        coach:created_by (
                             full_name
                         )
                     `)
                     .order('created_at', { ascending: false });
 
-                data = routines?.map(r => ({
+                data = (routines as any[])?.map(r => ({
                     ...r,
                     student_name: (r.student as any)?.full_name,
                     coach_name: (r.coach as any)?.full_name

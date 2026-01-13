@@ -17,10 +17,10 @@ export async function GET(request: Request) {
 
         // Obtener rutina activa
         const { data: routine, error: routineError } = await supabase
-            .from('routines')
+            .from('rutinas')
             .select(`
                 *,
-                coach:coach_id(full_name, email)
+                coach:perfiles(full_name, email)
             `)
             .eq('user_id', user.id)
             .eq('is_active', true)
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 
         // Obtener ejercicios de la rutina
         const { data: exercises, error: exercisesError } = await supabase
-            .from('exercises')
+            .from('ejercicios')
             .select('*')
             .eq('routine_id', routine.id)
             .order('day_number', { ascending: true })
@@ -46,11 +46,11 @@ export async function GET(request: Request) {
 
         // Incrementar contador de vistas
         await supabase
-            .from('routines')
+            .from('rutinas')
             .update({
                 view_count: (routine.view_count || 0) + 1,
                 last_viewed_at: new Date().toISOString()
-            })
+            } as any)
             .eq('id', routine.id);
 
         return NextResponse.json({

@@ -15,7 +15,14 @@ export async function GET(request: Request) {
 
         if (error) return error;
 
-        // Mock data - en producción vendría de la base de datos
+        // Obtener mediciones reales
+        const { data: measurements } = await supabase
+            .from('mediciones')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('recorded_at', { ascending: true });
+
+        // Mock data fallback or mix
         const progress = {
             weight_history: [
                 { date: '2024-01-01', weight: 80 },
@@ -28,10 +35,7 @@ export async function GET(request: Request) {
             total_workouts: 60,
             current_streak: 7,
             best_streak: 12,
-            measurements: [
-                { date: '2024-01-01', chest: 100, waist: 85, hips: 95, arms: 35, legs: 55 },
-                { date: '2024-03-01', chest: 102, waist: 82, hips: 94, arms: 36, legs: 56 },
-            ]
+            measurements: measurements || [] // Use fetched data, or an empty array if null
         };
 
         return NextResponse.json({

@@ -19,7 +19,7 @@ export class SessionsService {
         const supabase = await createClient();
 
         const { data, error } = await supabase
-            .from('workout_sessions')
+            .from('sesiones_de_entrenamiento')
             .insert({
                 user_id: userId,
                 routine_id: routineId,
@@ -39,7 +39,7 @@ export class SessionsService {
         const supabase = await createClient();
 
         const { data, error } = await supabase
-            .from('exercise_performance_logs')
+            .from('registros_de_ejercicio')
             .insert({
                 session_id: sessionId,
                 ...performance
@@ -57,7 +57,7 @@ export class SessionsService {
         const supabase = await createClient();
 
         const { data, error } = await supabase
-            .from('workout_sessions')
+            .from('sesiones_de_entrenamiento')
             .update({
                 status: 'completed',
                 end_time: new Date().toISOString(),
@@ -79,11 +79,11 @@ export class SessionsService {
         const supabase = supabaseClient || await createClient();
 
         const { data, error } = await supabase
-            .from('workout_sessions')
+            .from('sesiones_de_entrenamiento')
             .select(`
                 *,
-                routine:routines(name),
-                logs:exercise_performance_logs(*)
+                routine:rutinas(name),
+                logs:registros_de_ejercicio(*)
             `)
             .eq('user_id', userId)
             .order('start_time', { ascending: false })

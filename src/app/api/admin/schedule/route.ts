@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         // Validation could go here
 
         const { data, error } = await supabase
-            .from('class_schedules')
+            .from('horarios_de_clase')
             .insert(body)
             .select()
             .single();
@@ -35,7 +35,7 @@ export async function PUT(request: Request) {
         const body = await request.json();
 
         const { data, error } = await supabase
-            .from('class_schedules')
+            .from('horarios_de_clase')
             .update(body)
             .eq('id', id)
             .select()
@@ -58,7 +58,7 @@ export async function DELETE(request: Request) {
 
     try {
         const { error } = await supabase
-            .from('class_schedules')
+            .from('horarios_de_clase')
             .delete()
             .eq('id', id);
 

@@ -6,7 +6,7 @@ export async function GET() {
 
     try {
         const { data: schedule, error } = await supabase
-            .from('class_schedules')
+            .from('horarios_de_clase')
             .select(`
         id,
         day_of_week,

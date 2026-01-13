@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { Database } from '@/types/supabase';
 
-type UserGoal = Database['public']['Tables']['user_goals']['Row'];
-type UserGoalInsert = Database['public']['Tables']['user_goals']['Insert'];
-type UserGoalUpdate = Database['public']['Tables']['user_goals']['Update'];
+type UserGoal = Database['public']['Tables']['objetivos_del_usuario']['Row'];
+type UserGoalInsert = Database['public']['Tables']['objetivos_del_usuario']['Insert'];
+type UserGoalUpdate = Database['public']['Tables']['objetivos_del_usuario']['Update'];
 
 /**
  * Service for managing user fitness goals
@@ -13,9 +13,9 @@ export const userGoalsService = {
      * Get user's active goal
      */
     async getActiveGoal(userId: string) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { data, error } = await supabase
-            .from('user_goals')
+            .from('objetivos_del_usuario' as any)
             .select('*')
             .eq('user_id', userId)
             .eq('is_active', true)
@@ -31,9 +31,9 @@ export const userGoalsService = {
      * Get all goals for a user
      */
     async getUserGoals(userId: string) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { data, error } = await supabase
-            .from('user_goals')
+            .from('objetivos_del_usuario' as any)
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
@@ -46,9 +46,9 @@ export const userGoalsService = {
      * Get goal by ID
      */
     async getById(id: string) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { data, error } = await supabase
-            .from('user_goals')
+            .from('objetivos_del_usuario' as any)
             .select('*')
             .eq('id', id)
             .single();
@@ -61,7 +61,7 @@ export const userGoalsService = {
      * Create new goal
      */
     async create(goal: UserGoalInsert) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
 
         // If this is set as active, deactivate other goals
         if (goal.is_active) {
@@ -69,8 +69,8 @@ export const userGoalsService = {
         }
 
         const { data, error } = await supabase
-            .from('user_goals')
-            .insert(goal)
+            .from('objetivos_del_usuario' as any)
+            .insert(goal as any)
             .select()
             .single();
 
@@ -82,7 +82,7 @@ export const userGoalsService = {
      * Update goal
      */
     async update(id: string, updates: UserGoalUpdate) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
 
         // If setting as active, deactivate other goals first
         if (updates.is_active) {
@@ -91,8 +91,8 @@ export const userGoalsService = {
         }
 
         const { data, error } = await supabase
-            .from('user_goals')
-            .update(updates)
+            .from('objetivos_del_usuario' as any)
+            .update(updates as any)
             .eq('id', id)
             .select()
             .single();
@@ -105,10 +105,10 @@ export const userGoalsService = {
      * Deactivate all goals for a user
      */
     async deactivateUserGoals(userId: string) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { error } = await supabase
-            .from('user_goals')
-            .update({ is_active: false })
+            .from('objetivos_del_usuario' as any)
+            .update({ is_active: false } as any)
             .eq('user_id', userId)
             .eq('is_active', true);
 
@@ -119,9 +119,9 @@ export const userGoalsService = {
      * Delete goal
      */
     async delete(id: string) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { error } = await supabase
-            .from('user_goals')
+            .from('objetivos_del_usuario' as any)
             .delete()
             .eq('id', id);
 
@@ -139,9 +139,9 @@ export const userGoalsService = {
      * Get goals by primary goal type (for analytics)
      */
     async getByPrimaryGoal(primaryGoal: string) {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         const { data, error } = await supabase
-            .from('user_goals')
+            .from('objetivos_del_usuario' as any)
             .select('*')
             .eq('primary_goal', primaryGoal)
             .eq('is_active', true);
@@ -154,12 +154,12 @@ export const userGoalsService = {
      * Get goal statistics
      */
     async getStats() {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
 
         // Optimización: Pedir solo campos mínimos
         const { data, error } = await supabase
-            .from('user_goals')
-            .select('primary_goal, training_frequency_per_week, is_active');
+            .from('objetivos_del_usuario' as any)
+            .select('primary_goal, training_frequency_per_week, is_active') as any;
 
         if (error) throw error;
 

@@ -19,7 +19,7 @@ export async function GET(request: Request) {
         // Asumimos que profiles tiene todos los usuarios.
 
         const { data: users, error: dbError } = await supabase!
-            .from('profiles')
+            .from('perfiles')
             .select('*')
             .order('created_at', { ascending: false });
 

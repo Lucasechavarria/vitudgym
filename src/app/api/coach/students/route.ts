@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
         // 1. Obtener perfiles (En producción hay: admin, superadmin, coach. Permitimos todos para pruebas)
         const { data: profiles, error: profilesError } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('id, email, full_name, avatar_url, onboarding_completed, medical_info, emergency_contact, role')
             .order('full_name', { ascending: true });
 
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 
         // 2. Obtener objetivos activos
         const { data: allGoals, error: goalsError } = await supabase
-            .from('user_goals')
+            .from('objetivos_del_usuario')
             .select('id, user_id, primary_goal, target_date, is_active')
             .in('user_id', studentIds);
 
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 
         // 3. Obtener rutinas activas
         const { data: allRoutines, error: routinesError } = await supabase
-            .from('routines')
+            .from('rutinas')
             .select('id, user_id, name, status, is_active')
             .in('user_id', studentIds);
 

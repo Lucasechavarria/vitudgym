@@ -21,7 +21,7 @@ export default function SettingsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setUser(user);
-                const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single() as { data: any; error: any };
+                const { data } = await supabase.from('perfiles').select('*').eq('id', user.id).single() as { data: any; error: any };
                 if (data) {
                     setProfile(data);
                     setFullName(data.full_name || '');
@@ -43,7 +43,7 @@ export default function SettingsPage() {
                 updated_at: new Date().toISOString(),
             };
 
-            const { error } = await (supabase.from('profiles') as any).upsert(updates);
+            const { error } = await (supabase.from('perfiles') as any).upsert(updates);
 
             if (error) throw error;
             toast.success('Perfil actualizado correctamente');

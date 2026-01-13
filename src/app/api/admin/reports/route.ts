@@ -8,7 +8,7 @@ export async function GET() {
     try {
         // 1. Fetch Key Metrics
         const { count: totalMembers } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('*', { count: 'exact', head: true })
             .eq('role', 'user');
 
@@ -17,13 +17,13 @@ export async function GET() {
         startOfMonth.setHours(0, 0, 0, 0);
 
         const { count: newMembers } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('*', { count: 'exact', head: true })
             .eq('role', 'user')
             .gte('created_at', startOfMonth.toISOString());
 
         const { count: attendanceCount } = await supabase
-            .from('class_bookings')
+            .from('reservas_de_clase')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'attended')
             .gte('date', startOfMonth.toISOString());
@@ -47,7 +47,7 @@ export async function GET() {
         const netRevenue = totalRevenue - totalExpenses;
 
         const { data: userDates } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('created_at')
             .eq('role', 'user')
             .order('created_at', { ascending: true });

@@ -7,12 +7,12 @@ export default async function AdminDashboard() {
 
     // Fetch real data
     const { data: profiles } = await supabase
-        .from('profiles')
+        .from('perfiles')
         .select('id, role, membership_status')
         .in('role', ['member', 'student', 'user']);
 
-    const activeMembers = profiles?.filter(p => p.membership_status === 'active').length || 0;
-    const totalUsers = profiles?.filter(p => p.role !== 'admin' && p.role !== 'superadmin').length || 0;
+    const activeMembers = (profiles as any)?.filter((p: any) => p.membership_status === 'active').length || 0;
+    const totalUsers = (profiles as any)?.filter((p: any) => p.role !== 'admin' && p.role !== 'superadmin').length || 0;
 
     // Fetch Classes for Today
     const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
@@ -24,7 +24,7 @@ export default async function AdminDashboard() {
 
     // Fetch Expiring Memberships
     const { data: expiringMemberships } = await supabase
-        .from('profiles')
+        .from('perfiles')
         .select('full_name, membership_end_date')
         .eq('membership_status', 'active')
         .lte('membership_end_date', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
 
     // Fetch recent activity
     const { data: recentProfiles } = await supabase
-        .from('profiles')
+        .from('perfiles')
         .select('full_name, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
@@ -60,7 +60,7 @@ export default async function AdminDashboard() {
                 <div className="bg-[#2c2c2e] rounded-2xl p-6 border border-[#3a3a3c]">
                     <h3 className="text-lg font-bold mb-4 text-white">Actividad Reciente</h3>
                     <div className="space-y-4">
-                        {recentProfiles?.map((profile, i) => (
+                        {(recentProfiles as any)?.map((profile: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-3 bg-[#1c1c1e] rounded-xl border border-[#3a3a3c]/50 hover:bg-[#3a3a3c]/30 transition-colors cursor-pointer">
                                 <div className="flex items-center gap-3">
                                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -80,7 +80,7 @@ export default async function AdminDashboard() {
                     <h3 className="text-lg font-bold mb-4 text-white">Membresías por Vencer (Próximos 7 días)</h3>
                     <div className="space-y-4">
                         {expiringMemberships?.length === 0 && <p className="text-gray-500 text-sm">No hay membresías por vencer pronto.</p>}
-                        {expiringMemberships?.map((m, i) => (
+                        {(expiringMemberships as any)?.map((m: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-3 bg-red-500/10 rounded-xl border border-red-500/20">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-bold text-white">{m.full_name}</span>

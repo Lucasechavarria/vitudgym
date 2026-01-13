@@ -29,12 +29,12 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                 // For simplicity, we fetch all relevant profiles.
                 // In production, optimize this query.
 
-                let query = supabase.from('profiles').select('id, full_name, avatar_url, role');
+                let query = supabase.from('perfiles').select('id, full_name, avatar_url, role');
 
                 if (currentUser.role === 'member') {
                     query = query.in('role', ['coach', 'admin']);
                 } else if (currentUser.role === 'coach') {
-                    query = query.in('role', ['member']);
+                    query = query.in('role', ['member' as any]);
                 }
 
                 const { data, error } = await query;
@@ -56,7 +56,7 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
 
         const fetchMessages = async () => {
             const { data, error } = await supabase
-                .from('messages')
+                .from('mensajes')
                 .select('*')
                 .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedRecipient}),and(sender_id.eq.${selectedRecipient},receiver_id.eq.${currentUser.id})`)
                 .order('created_at', { ascending: true });
@@ -76,7 +76,7 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                 {
                     event: 'INSERT',
                     schema: 'public',
-                    table: 'messages',
+                    table: 'mensajes',
                     filter: `receiver_id=eq.${currentUser.id}`, // Listen for incoming
                 },
                 (payload) => {
@@ -119,13 +119,13 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
         };
         setMessages((prev) => [...prev, optimisticMsg]);
 
-        const { data, error } = await (supabase
-            .from('messages') as any)
+        const { data, error } = await supabase
+            .from('mensajes')
             .insert({
                 sender_id: currentUser.id,
                 receiver_id: selectedRecipient,
                 content: msgContent
-            })
+            } as any)
             .select()
             .single();
 

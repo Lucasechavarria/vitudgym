@@ -133,7 +133,7 @@ export default function RoutinesPage() {
         try {
             setLoadingHistory(true);
             const { data, error } = await supabase
-                .from('routines')
+                .from('rutinas')
                 .select(`
                     *,
                     profiles:user_id (

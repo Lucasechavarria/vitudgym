@@ -79,7 +79,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
             const emergency_contact = data.emergency;
 
             const { error } = await (supabase
-                .from('profiles') as any)
+                .from('perfiles') as any)
                 .update({
                     dni: data.dni,
                     gender: data.gender,

@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+type Profile = Database['public']['Tables']['perfiles']['Row'];
 
 /**
  * Authentication service using Supabase Auth
@@ -92,7 +92,7 @@ export const authService = {
         if (!id) throw new Error('No user ID provided');
 
         const { data, error } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('*')
             .eq('id', id)
             .single();
@@ -105,9 +105,9 @@ export const authService = {
      * Update user profile
      */
     async updateProfile(userId: string, updates: Partial<Profile>) {
-        const { data, error } = await (supabase
-            .from('profiles') as any)
-            .update(updates)
+        const { data, error } = await supabase
+            .from('perfiles')
+            .update(updates as any)
             .eq('id', userId)
             .select()
             .single();

@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
         // Validar que el userId exista
         const { data: userExists, error: userCheckError } = await supabase!
-            .from('profiles')
+            .from('perfiles')
             .select('id')
             .eq('id', userId)
             .single();
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         membershipEndDate.setDate(membershipEndDate.getDate() + 30);
 
         const { error: profileError } = await supabase!
-            .from('profiles')
+            .from('perfiles')
             .update({
                 membership_status: 'active',
                 membership_end_date: membershipEndDate.toISOString()

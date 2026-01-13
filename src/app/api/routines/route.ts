@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
         // 2. Create Routine
         const { data: routine, error: routineError } = await supabase
-            .from('routines')
+            .from('rutinas')
             .insert({
                 user_id: studentId, // Assigned to student
                 coach_id: user.id, // Created by current coach
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 
         // 4. Insert Exercises
         const { error: exercisesError } = await supabase
-            .from('exercises')
+            .from('ejercicios')
             .insert(exercisesToInsert);
 
         if (exercisesError) {

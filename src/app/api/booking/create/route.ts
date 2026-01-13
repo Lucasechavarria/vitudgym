@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         } else if (action === 'cancel') {
             // Buscar la reserva del usuario para esta clase y fecha
             const { data: bookings } = await supabase!
-                .from('class_bookings')
+                .from('reservas_de_clase')
                 .select('id')
                 .eq('user_id', user!.id)
                 .eq('class_schedule_id', classId)

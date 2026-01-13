@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { Database } from '@/types/supabase';
 
-type UserGoalInsert = Database['public']['Tables']['user_goals']['Insert'];
+type UserGoalInsert = Database['public']['Tables']['objetivos_del_usuario']['Insert'];
 
 /**
  * Create a new user goal (Server Action)
@@ -27,15 +27,15 @@ export async function createUserGoal(goalData: Omit<UserGoalInsert, 'user_id' | 
 
     // If active, deactivate others (logic from service)
     if (dataToInsert.is_active) {
-        await supabase
-            .from('user_goals')
+        await (supabase
+            .from('objetivos_del_usuario') as any)
             .update({ is_active: false })
             .eq('user_id', user.id)
             .eq('is_active', true);
     }
 
-    const { data, error } = await supabase
-        .from('user_goals')
+    const { data, error } = await (supabase
+        .from('objetivos_del_usuario') as any)
         .insert(dataToInsert)
         .select()
         .single();

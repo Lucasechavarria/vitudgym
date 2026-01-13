@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
         // 1. Obtener información completa del alumno
         const { data: studentProfile, error: profileError } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('*')
             .eq('id', studentId)
             .single();
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         const routineName = metadata.objetivo_principal || goalText || 'Rutina Personalizada';
 
         const { data: routine, error: routineError } = await supabase
-            .from('routines')
+            .from('rutinas')
             .insert({
                 user_id: studentId,
                 coach_id: profile.role === 'member' ? null : user.id,
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
                 medical_considerations: metadata.observaciones_medicas || '',
                 equipment_used: gymEquipment.map(eq => eq.id),
                 is_active: profile.role === 'member' ? false : true,
-            })
+            } as any)
             .select()
             .single();
 
@@ -154,8 +154,8 @@ export async function POST(request: Request) {
 
         if (exercises.length > 0) {
             const { error: exercisesError } = await supabase
-                .from('exercises')
-                .insert(exercises);
+                .from('ejercicios')
+                .insert(exercises as any);
 
             if (exercisesError) throw exercisesError;
         }
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
         let nutritionPlan = null;
         if (includeNutrition && aiResponse.plan_nutricional) {
             const { data: nutrition, error: nutritionError } = await supabase
-                .from('nutrition_plans')
+                .from('planes_nutricionales')
                 .insert({
                     user_id: studentId,
                     coach_id: user.id,
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
                     general_guidelines: aiResponse.plan_nutricional.pautas_generales,
                     restrictions: aiResponse.plan_nutricional.restricciones,
                     is_active: false, // Coach debe aprobar primero
-                })
+                } as any)
                 .select()
                 .single();
 
@@ -188,8 +188,8 @@ export async function POST(request: Request) {
 
             // Vincular plan nutricional con rutina
             await supabase
-                .from('routines')
-                .update({ nutrition_plan_id: nutrition.id })
+                .from('rutinas')
+                .update({ nutrition_plan_id: nutrition.id } as any)
                 .eq('id', routine.id);
         }
 

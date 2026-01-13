@@ -7,7 +7,7 @@ export async function GET() {
 
     try {
         const { data, error } = await supabase
-            .from('activities')
+            .from('actividades')
             .select('*')
             .order('name', { ascending: true });
 
@@ -30,8 +30,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 });
         }
 
-        const { data, error } = await supabase
-            .from('activities')
+        const { data, error } = await (supabase
+            .from('actividades') as any)
             .insert([
                 {
                     name: body.name,
@@ -64,8 +64,8 @@ export async function PUT(req: Request) {
             return NextResponse.json({ error: 'ID is required' }, { status: 400 });
         }
 
-        const { data, error } = await supabase
-            .from('activities')
+        const { data, error } = await (supabase
+            .from('actividades') as any)
             .update({
                 name: body.name,
                 description: body.description,
@@ -99,7 +99,7 @@ export async function DELETE(req: Request) {
         }
 
         const { error } = await supabase
-            .from('activities')
+            .from('actividades')
             .delete()
             .eq('id', id);
 

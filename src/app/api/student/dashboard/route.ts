@@ -15,7 +15,7 @@ export async function GET() {
 
         // 2. Fetch Progress (Measurements)
         const { data: measurements } = await supabase
-            .from('measurements')
+            .from('mediciones')
             .select('*')
             .eq('user_id', user.id)
             .order('recorded_at', { ascending: true })
@@ -23,7 +23,7 @@ export async function GET() {
 
         // 3. Fetch Recent Attendance (Bookings)
         const { data: bookings } = await (supabase
-            .from('class_bookings') as any) // Changed 'class_bookings' to 'class_bookings' (no change here based on instruction, but snippet showed 'class_schedules')
+            .from('reservas_de_clase') as any) // Changed 'class_bookings' to 'class_bookings' (no change here based on instruction, but snippet showed 'class_schedules')
             .select('*')
             .eq('user_id', user.id)
             .eq('status', 'attended')
@@ -31,10 +31,10 @@ export async function GET() {
 
         // 4. Fetch Active Routine
         const { data: activeRoutine } = await supabase
-            .from('routines')
+            .from('rutinas')
             .select(`
                 *,
-                exercises (*)
+                ejercicios (*)
             `)
             .eq('user_id', user.id)
             .eq('is_active', true)
@@ -42,18 +42,18 @@ export async function GET() {
 
         // 5. Fetch Profile Status
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('waiver_accepted, full_name, avatar_url, membership_end_date, gender')
             .eq('id', user.id)
-            .single();
+            .single() as any;
 
         // 6. Fetch Workout Volume (New - Functional Training)
         const { data: sessionLogs } = await supabase
-            .from('workout_sessions')
+            .from('sesiones_de_entrenamiento')
             .select(`
                 id,
                 start_time,
-                logs:exercise_performance_logs(
+                logs:registros_de_ejercicio(
                     actual_reps,
                     actual_weight,
                     actual_sets
@@ -76,10 +76,10 @@ export async function GET() {
             attendance: attendanceByMonth,
             routine: activeRoutine || null,
             volume: volumeByWeek,
-            profile: {
+            profile: profile ? {
                 ...profile,
-                waiver_accepted: profile?.waiver_accepted || false
-            }
+                waiver_accepted: profile.waiver_accepted || false
+            } : null
         });
 
     } catch (error) {

@@ -23,7 +23,7 @@ export async function GET(
 
         // Obtener perfil completo del alumno
         const { data: student, error: studentError } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('*')
             .eq('id', studentId)
             .single();
@@ -32,7 +32,7 @@ export async function GET(
 
         // Obtener rutinas del alumno
         const { data: routines, error: routinesError } = await supabase
-            .from('routines')
+            .from('rutinas')
             .select('id, name, status, created_at')
             .eq('user_id', studentId)
             .order('created_at', { ascending: false });

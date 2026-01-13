@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
         // Verificar rol de admin
         const { data: profile } = await supabase
-            .from('profiles')
+            .from('perfiles')
             .select('role')
             .eq('id', user.id)
             .single();
