@@ -11,7 +11,7 @@ export const useLandingActivities = () => {
         const fetchActivities = async () => {
             try {
                 const { data, error } = await supabase
-                    .from('activities')
+                    .from('actividades')
                     .select('*')
                     .limit(20);
 
