@@ -95,14 +95,26 @@ export async function middleware(request: NextRequest) {
 
         // Role-based access control (RBAC)
         if (user) {
+            console.log(`🛡️ RBAC Check - Path: ${pathname}, Role: ${userRole}`);
+
             // Admin routes
-            if (pathname.startsWith('/admin') && !['admin', 'superadmin'].includes(userRole)) {
-                return NextResponse.redirect(new URL('/dashboard', request.url));
+            if (pathname.startsWith('/admin')) {
+                const isAdmin = ['admin', 'superadmin'].includes(userRole);
+                console.log(`👤 User accessing /admin. Is Admin? ${isAdmin}`);
+
+                if (!isAdmin) {
+                    console.warn(`⛔ Access denied to /admin for user ${user.email} (Role: ${userRole})`);
+                    return NextResponse.redirect(new URL('/dashboard', request.url));
+                }
             }
 
             // Coach routes
-            if (pathname.startsWith('/coach') && !['coach', 'admin', 'superadmin'].includes(userRole)) {
-                return NextResponse.redirect(new URL('/dashboard', request.url));
+            if (pathname.startsWith('/coach')) {
+                const isCoach = ['coach', 'admin', 'superadmin'].includes(userRole);
+                if (!isCoach) {
+                    console.warn(`⛔ Access denied to /coach for user ${user.email} (Role: ${userRole})`);
+                    return NextResponse.redirect(new URL('/dashboard', request.url));
+                }
             }
         }
 

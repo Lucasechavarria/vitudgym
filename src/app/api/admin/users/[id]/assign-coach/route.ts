@@ -12,14 +12,14 @@ export async function PUT(
         const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
         if (error) return error;
 
-        const { id: studentId } = await params;
+        const { id: userId } = await params; // Changed studentId to userId
         const { coachId } = await request.json();
 
         // Si coachId es null, se desasigna el coach
         const { error: updateError } = await supabase!
-            .from('profiles')
+            .from('perfiles') // Changed profiles to perfiles
             .update({ assigned_coach_id: coachId })
-            .eq('id', studentId);
+            .eq('id', userId); // Changed studentId to userId
 
         if (updateError) throw updateError;
 

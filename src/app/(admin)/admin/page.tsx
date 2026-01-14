@@ -6,13 +6,12 @@ export default async function AdminDashboard() {
     const supabase = await createClient();
 
     // Fetch real data
-    const { data: profiles } = await supabase
+    const { data: perfiles } = await supabase
         .from('perfiles')
-        .select('id, role, membership_status')
-        .in('role', ['member', 'student', 'user']);
+        .select('*');
 
-    const activeMembers = (profiles as any)?.filter((p: any) => p.membership_status === 'active').length || 0;
-    const totalUsers = (profiles as any)?.filter((p: any) => p.role !== 'admin' && p.role !== 'superadmin').length || 0;
+    const activeMembers = (perfiles as any)?.filter((p: any) => p.membership_status === 'active').length || 0;
+    const totalUsers = (perfiles as any)?.filter((p: any) => p.role !== 'admin' && p.role !== 'superadmin').length || 0;
 
     // Fetch Classes for Today
     const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)

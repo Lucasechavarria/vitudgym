@@ -33,8 +33,8 @@ export default async function CoachLayout({
     }
 
     const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, full_name')
+        .from('perfiles')
+        .select('*')
         .eq('id', user.id)
         .single();
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { createClient } from '@/lib/supabase/client';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
@@ -22,6 +23,7 @@ interface Coach {
 }
 
 export default function UsersPage() {
+    const supabase = createClient();
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
     const [coaches, setCoaches] = useState<Coach[]>([]);
@@ -46,15 +48,33 @@ export default function UsersPage() {
     };
 
     const fetchUsers = async () => {
+        setLoading(true);
         try {
-            const res = await fetch('/api/admin/users/list');
-            const data = await res.json();
-            if (data.users) {
-                setUsers(data.users);
+            const { data, error } = await supabase
+                .from('perfiles') // Changed from 'profiles' to 'perfiles'
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                throw new Error(error.message);
             }
-        } catch (_error) {
+
+            // Assuming 'data' directly contains the user profiles and needs mapping
+            // to the 'User' interface, especially for 'name' and membership status.
+            // This part might need adjustment based on your 'perfiles' table structure
+            // and how 'membershipStatus' and 'membershipEnds' are derived.
+            const formattedUsers: User[] = data.map((profile: any) => ({
+                ...profile,
+                name: profile.full_name || profile.email, // Assuming 'full_name' or 'email' can be used for 'name'
+                membershipStatus: profile.is_active ? 'active' : 'inactive', // Example mapping
+                membershipEnds: profile.membership_ends_at || null, // Example mapping
+            }));
+            setUsers(formattedUsers);
+        } catch (_error: any) {
             console.error(_error);
-            toast.error('Error cargando usuarios');
+            toast.error('Error cargando usuarios: ' + _error.message);
+        } finally {
+            setLoading(false);
         }
     };
 

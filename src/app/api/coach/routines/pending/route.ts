@@ -26,32 +26,26 @@ export async function GET(request: Request) {
                 duration_weeks,
                 difficulty,
                 nutrition_plan_id,
-                profiles!routines_user_id_fkey (
+                perfiles!routines_user_id_fkey (
                     full_name,
                     email
                 )
             `)
-            .eq('status', 'pending_approval')
+            .eq('status', 'detailed_plan_generated') // Or whatever status means "AI done, waiting approval"
             .order('created_at', { ascending: false });
 
         if (routinesError) throw routinesError;
 
-        // Contar ejercicios por rutina
-        const routinesWithCounts = await Promise.all(
-            (routines || []).map(async (routine) => {
-                const { count } = await supabase
-                    .from('ejercicios')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('routine_id', routine.id);
-
-                return {
-                    ...routine,
-                    student_name: routine.profiles?.full_name || 'Sin nombre',
-                    student_email: routine.profiles?.email || '',
-                    exercises_count: count || 0
-                };
-            })
-        );
+        // Transform data
+        const routinesWithCounts = (routines || []).map((routine: any) => ({
+            id: routine.id,
+            name: routine.name,
+            goal: routine.goal,
+            student_name: routine.perfiles?.full_name || 'Sin nombre',
+            student_email: routine.perfiles?.email || '',
+            created_at: routine.created_at,
+            status: routine.status
+        }));
 
         return NextResponse.json({
             success: true,
