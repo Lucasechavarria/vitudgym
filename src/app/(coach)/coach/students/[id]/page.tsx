@@ -9,7 +9,7 @@ interface StudentDetail {
     full_name: string;
     email: string;
     phone: string;
-    date_of_birth: string;
+    birth_date: string;
     gender: string;
     role: string;
     onboarding_completed: boolean;
@@ -143,9 +143,9 @@ export default function StudentDetailPage() {
         }
     };
 
-    const calculateAge = (dateOfBirth: string) => {
+    const calculateAge = (birthDateStr: string) => {
         const today = new Date();
-        const birthDate = new Date(dateOfBirth);
+        const birthDate = new Date(birthDateStr);
         let age = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
@@ -202,7 +202,7 @@ export default function StudentDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <div className="text-gray-400 text-sm mb-1">Edad</div>
-                        <div className="text-2xl font-bold text-white">{student.date_of_birth ? calculateAge(student.date_of_birth) + ' años' : '--'}</div>
+                        <div className="text-2xl font-bold text-white">{student.birth_date ? calculateAge(student.birth_date) + ' años' : '--'}</div>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <div className="text-gray-400 text-sm mb-1">Peso</div>
@@ -271,7 +271,7 @@ export default function StudentDetailPage() {
                                 </div>
                                 <div>
                                     <div className="text-gray-400 text-sm">Fecha de Nacimiento</div>
-                                    <div className="text-white">{new Date(student.date_of_birth).toLocaleDateString('es-AR')}</div>
+                                    <div className="text-white">{new Date(student.birth_date).toLocaleDateString('es-AR')}</div>
                                 </div>
                                 <div>
                                     <div className="text-gray-400 text-sm">Miembro desde</div>

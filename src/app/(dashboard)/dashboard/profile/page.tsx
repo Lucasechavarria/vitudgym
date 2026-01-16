@@ -9,7 +9,7 @@ interface ProfileData {
     full_name: string;
     email: string;
     phone: string;
-    date_of_birth: string;
+    birth_date: string;
     gender: 'male' | 'female' | 'other' | 'prefer_not_to_say';
     emergency_contact_name: string;
     emergency_contact_phone: string;
@@ -25,7 +25,7 @@ export default function StudentProfilePage() {
         full_name: '',
         email: '',
         phone: '',
-        date_of_birth: '',
+        birth_date: '',
         gender: 'prefer_not_to_say',
         emergency_contact_name: '',
         emergency_contact_phone: ''
@@ -58,7 +58,7 @@ export default function StudentProfilePage() {
                 full_name: profile.full_name || '',
                 email: user?.email || '',
                 phone: profile.phone || '',
-                date_of_birth: profile.date_of_birth || '',
+                birth_date: profile.birth_date || '',
                 gender,
                 emergency_contact_name: emergencyContact.full_name || '',
                 emergency_contact_phone: emergencyContact.phone || ''
@@ -81,7 +81,7 @@ export default function StudentProfilePage() {
             const updates = {
                 full_name: profileData.full_name,
                 phone: profileData.phone,
-                date_of_birth: profileData.date_of_birth,
+                birth_date: profileData.birth_date,
                 gender: profileData.gender,
                 emergency_contact: {
                     full_name: profileData.emergency_contact_name,
@@ -221,8 +221,8 @@ export default function StudentProfilePage() {
                                     </label>
                                     <input
                                         type="date"
-                                        value={profileData.date_of_birth}
-                                        onChange={(e) => setProfileData({ ...profileData, date_of_birth: e.target.value })}
+                                        value={profileData.birth_date}
+                                        onChange={(e) => setProfileData({ ...profileData, birth_date: e.target.value })}
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     />
                                 </div>

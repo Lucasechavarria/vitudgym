@@ -23,7 +23,7 @@ describe('AIService', () => {
 
     const mockStudentProfile = {
         full_name: 'Juan Pérez',
-        date_of_birth: '1995-01-01',
+        birth_date: '1995-01-01',
         medical_info: {
             chronic_diseases: 'Ninguna',
             injuries: 'Rodilla izquierda',

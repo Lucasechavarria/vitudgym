@@ -139,7 +139,7 @@ export const reports = {
             'email',
             'role',
             'phone',
-            'date_of_birth',
+            'birth_date',
             'gender',
             'created_at'
         ];

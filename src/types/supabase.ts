@@ -870,6 +870,7 @@ export type Database = {
                     full_name: string | null
                     avatar_url: string | null
                     phone: string | null
+                    gender: string | null
                     role: Database["public"]["Enums"]["user_role"]
                     membership_status: Database["public"]["Enums"]["membership_status_enum"] | null
                     membership_start_date: string | null
@@ -898,6 +899,7 @@ export type Database = {
                     full_name?: string | null
                     avatar_url?: string | null
                     phone?: string | null
+                    gender?: string | null
                     role?: Database["public"]["Enums"]["user_role"]
                     membership_status?: Database["public"]["Enums"]["membership_status_enum"] | null
                     membership_start_date?: string | null
@@ -926,6 +928,7 @@ export type Database = {
                     full_name?: string | null
                     avatar_url?: string | null
                     phone?: string | null
+                    gender?: string | null
                     role?: Database["public"]["Enums"]["user_role"]
                     membership_status?: Database["public"]["Enums"]["membership_status_enum"] | null
                     membership_start_date?: string | null

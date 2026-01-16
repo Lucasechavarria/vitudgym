@@ -6,13 +6,13 @@ import { ROLES } from '@/lib/constants/app';
 // GET /api/admin/reports/tickets - List all tickets
 export async function GET(req: Request) {
     try {
-        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN, ROLES.SUPERADMIN]);
+        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN]);
         if (authError) return authError;
 
         const supabase = await createClient();
 
         const { data, error } = await supabase
-            .from('student_reports')
+            .from('reportes_de_alumnos')
             .select(`
                 *,
                 perfiles:user_id (
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
 // PATCH /api/admin/reports/tickets - Update ticket status/response
 export async function PATCH(req: Request) {
     try {
-        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN, ROLES.SUPERADMIN]);
+        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN]);
         if (authError) return authError;
 
         const body = await req.json();
@@ -51,7 +51,7 @@ export async function PATCH(req: Request) {
         const supabase = await createClient();
 
         const { data, error } = await supabase
-            .from('student_reports')
+            .from('reportes_de_alumnos')
             .update({
                 status,
                 admin_response,
