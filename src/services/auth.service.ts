@@ -151,14 +151,14 @@ export const authService = {
      * Check if user is admin
      */
     async isAdmin() {
-        return this.hasRole(['admin', 'superadmin']);
+        return this.hasRole('admin');
     },
 
     /**
      * Check if user is coach
      */
     async isCoach() {
-        return this.hasRole(['coach', 'admin', 'superadmin']);
+        return this.hasRole(['coach', 'admin']);
     },
 
     /**

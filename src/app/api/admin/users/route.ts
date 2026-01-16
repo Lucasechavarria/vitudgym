@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     try {
         const { supabase, error } = await authenticateAndRequireRole(
             request,
-            ['admin', 'superadmin']
+            ['admin']
         );
 
         if (error) return error;

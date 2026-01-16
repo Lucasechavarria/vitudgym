@@ -12,7 +12,7 @@ export interface User {
     updatedAt: Date;
 }
 
-export type UserRole = 'admin' | 'coach' | 'member' | 'superadmin';
+export type UserRole = 'admin' | 'coach' | 'member';
 
 export interface UserProfile extends User {
     nombre: string;

@@ -8,13 +8,13 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
  */
 export async function GET(request: Request) {
     try {
-        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
+        const { supabase, error } = await authenticateAndRequireRole(request, ['admin']);
         if (error) return error;
 
         const { data: coaches, error: dbError } = await supabase!
             .from('perfiles')
             .select('id, full_name, email, role')
-            .in('role', ['coach', 'admin', 'superadmin'])
+            .in('role', ['coach', 'admin'])
             .order('full_name', { ascending: true });
 
         if (dbError) throw dbError;

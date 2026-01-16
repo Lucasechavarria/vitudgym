@@ -20,7 +20,7 @@ export async function GET() {
             .eq('id', user.id)
             .single() as { data: { role: string } | null };
 
-        if (!profile || (profile.role !== 'coach' && profile.role !== 'admin' && profile.role !== 'superadmin')) {
+        if (!profile || (profile.role !== 'coach' && profile.role !== 'admin')) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 

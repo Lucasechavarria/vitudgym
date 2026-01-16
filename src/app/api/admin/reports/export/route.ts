@@ -12,14 +12,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        // Verificar rol de admin
-        const { data: profile } = await supabase
+        // Fetch user profile to check role
+        const { data: profile, error: profileError } = await supabase
             .from('perfiles')
             .select('role')
             .eq('id', user.id)
-            .single() as { data: { role: string } | null };
+            .single();
 
-        if (!profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
+        if (profileError || !profile) {
+            return NextResponse.json({ error: 'Perfil de usuario no encontrado' }, { status: 403 });
+        }
+
+        if (profile.role !== 'coach' && profile.role !== 'admin') {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
         }
 
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
 
                 data = (payments as any[])?.map(p => ({
                     ...p,
-                    user_name: (p.profiles as any)?.full_name
+                    user_name: (p.perfiles as any)?.full_name
                 })) || [];
                 break;
             }
@@ -71,7 +75,7 @@ export async function POST(request: NextRequest) {
 
                 data = (logs as any[])?.map(l => ({
                     ...l,
-                    user_name: (l.profiles as any)?.full_name,
+                    user_name: (l.perfiles as any)?.full_name,
                     timestamp: l.created_at
                 })) || [];
                 break;
@@ -93,8 +97,8 @@ export async function POST(request: NextRequest) {
 
                 data = (routines as any[])?.map(r => ({
                     ...r,
-                    student_name: (r.student as any)?.full_name,
-                    coach_name: (r.coach as any)?.full_name
+                    student_name: (r.perfiles_user_id as any)?.full_name,
+                    coach_name: (r.perfiles_created_by as any)?.full_name
                 })) || [];
                 break;
             }

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         // Verificar autenticación y rol (Estudiantes pueden solicitar, Coaches/Admins pueden generar directamente)
         const { user, profile, supabase, error } = await authenticateAndRequireRole(
             request,
-            ['member', 'coach', 'admin', 'superadmin']
+            ['member', 'coach', 'admin']
         );
 
         if (error) return error;

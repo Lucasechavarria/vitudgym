@@ -77,7 +77,6 @@ export async function middleware(request: NextRequest) {
             if (userRole) {
                 switch (userRole) {
                     case 'admin':
-                    case 'superadmin':
                         redirectUrl.pathname = '/admin';
                         break;
                     case 'coach':
@@ -99,7 +98,7 @@ export async function middleware(request: NextRequest) {
 
             // Admin routes
             if (pathname.startsWith('/admin')) {
-                const isAdmin = ['admin', 'superadmin'].includes(userRole);
+                const isAdmin = userRole === 'admin';
                 console.log(`👤 User accessing /admin. Is Admin? ${isAdmin}`);
 
                 if (!isAdmin) {
@@ -110,7 +109,7 @@ export async function middleware(request: NextRequest) {
 
             // Coach routes
             if (pathname.startsWith('/coach')) {
-                const isCoach = ['coach', 'admin', 'superadmin'].includes(userRole);
+                const isCoach = ['coach', 'admin'].includes(userRole);
                 if (!isCoach) {
                     console.warn(`⛔ Access denied to /coach for user ${user.email} (Role: ${userRole})`);
                     return NextResponse.redirect(new URL('/dashboard', request.url));

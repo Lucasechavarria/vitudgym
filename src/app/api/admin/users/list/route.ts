@@ -10,32 +10,43 @@ import type { SupabaseUserProfile } from '@/types/user.ts';
  */
 export async function GET(request: Request) {
     try {
-        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
+        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'coach']);
         if (error) return error;
-
-        // Fetch users
-        // Nota: En Supabase Auth no podemos listar usuarios directamente desde el cliente sin service role key o funcion RPC.
-        // Pero tenemos la tabla 'perfiles' que es publica/accesible.
-        // Asumimos que perfiles tiene todos los usuarios.
 
         const { data: users, error: dbError } = await supabase!
             .from('perfiles')
-            .select('*')
+            .select(`
+                *,
+                relacion_alumno_coach (
+                    is_primary,
+                    coach:perfiles!coach_id (
+                        id,
+                        full_name,
+                        email
+                    )
+                )
+            `)
             .order('created_at', { ascending: false });
 
         if (dbError) throw dbError;
 
-        // Formatear respuesta
         // Formatear respuesta con tipos seguros
-        const formattedUsers = (users as SupabaseUserProfile[]).map(u => ({
-            ...u, // Include ALL profile fields
-            id: u.id,
-            name: u.full_name || 'Sin Nombre',
-            email: u.email,
-            role: u.role,
-            membershipStatus: u.membership_status || 'inactive',
-            membershipEnds: u.membership_end_date
-        }));
+        const formattedUsers = (users as any[]).map(u => {
+            // Find primary coach if exists
+            const primaryRelation = u.relacion_alumno_coach?.find((r: any) => r.is_primary);
+            const assignedCoachId = primaryRelation?.coach?.id || null;
+
+            return {
+                ...u,
+                id: u.id,
+                name: u.full_name || 'Sin Nombre',
+                email: u.email,
+                role: u.role,
+                membershipStatus: u.membership_status || 'inactive',
+                membershipEnds: u.membership_end_date,
+                assigned_coach_id: assignedCoachId // Compatibility field
+            };
+        });
 
         return NextResponse.json({ users: formattedUsers });
 

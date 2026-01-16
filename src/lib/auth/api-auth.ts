@@ -50,7 +50,7 @@ export async function authenticateRequest(request: Request) {
  * @returns Object with profile and error (if any)
  * 
  * @example
- * const { profile, error } = await requireRole(supabase, user.id, ['admin', 'superadmin']);
+ * const { profile, error } = await requireRole(supabase, user.id, ['admin']);
  * if (error) return error;
  */
 export async function requireRole(

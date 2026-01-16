@@ -12,16 +12,6 @@ interface NavItem {
 }
 
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
-    superadmin: [
-        { href: '/admin', label: 'Panel de Control', icon: '📊' },
-        { href: '/admin/users', label: 'Usuarios', icon: '👥' },
-        { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
-        { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
-        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
-        { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
-        { href: '/admin/schedule', label: 'Horarios', icon: '📅' },
-        { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
-    ],
     admin: [
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
@@ -46,7 +36,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
         { href: '/dashboard/settings', label: 'Configuración', icon: '⚙️' },
     ],
-    user: [
+    member: [
         { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
         { href: '/dashboard/messages', label: 'Mensajes', icon: '💬' },
         { href: '/schedule', label: 'Cronograma', icon: '🗓️' },
@@ -59,10 +49,9 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 };
 
 const ROLE_COLORS: Record<string, string> = {
-    superadmin: 'purple',
     admin: 'purple',
     coach: 'orange',
-    user: 'blue',
+    member: 'blue',
 };
 
 export function UniversalSidebar({
@@ -83,16 +72,15 @@ export function UniversalSidebar({
     // Determine nav items based on path first, then fallback to role
     let viewRole = role;
 
-    // For admin and superadmin, always keep their role menu unless they explicitly want to see another view
-    // (though for now, standardizing to their primary role menu as requested)
-    if (role === 'superadmin' || role === 'admin') {
+    if (role === 'admin') {
         viewRole = role;
     } else {
         if (pathname.startsWith('/coach')) viewRole = 'coach';
-        else if (pathname.startsWith('/dashboard')) viewRole = 'user';
+        else if (pathname.startsWith('/dashboard')) viewRole = 'member';
+        else if (pathname.startsWith('/admin')) viewRole = 'admin';
     }
 
-    const navItems = NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.user;
+    const navItems = NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.member;
     const color = ROLE_COLORS[viewRole] || 'blue';
 
     return (
@@ -155,10 +143,10 @@ export function UniversalSidebar({
             <div className="p-4 border-t border-[#3a3a3c] shrink-0">
                 <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full bg-${color}-500/20 text-${color}-500 flex items-center justify-center font-bold border border-${color}-500 shrink-0`}>
-                        {profileName?.charAt(0).toUpperCase() || 'U'}
+                        {profileName?.charAt(0).toUpperCase() || 'M'}
                     </div>
                     <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{profileName || 'Usuario'}</p>
+                        <p className="text-sm font-medium truncate">{profileName || 'Miembro'}</p>
                         <p className="text-xs text-gray-400 capitalize truncate">{role}</p>
                     </div>
                 </div>

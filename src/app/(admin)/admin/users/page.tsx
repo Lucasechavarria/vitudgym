@@ -223,11 +223,10 @@ export default function UsersPage() {
                                             <option value="member">Miembro</option>
                                             <option value="coach">Profesor</option>
                                             <option value="admin">Admin</option>
-                                            <option value="superadmin">SuperAdmin</option>
                                         </select>
                                     </td>
                                     <td className="px-6 py-4">
-                                        {['admin', 'superadmin', 'coach'].includes(user.role) ? (
+                                        {['admin', 'coach'].includes(user.role) ? (
                                             <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30">
                                                 🛡️ Staff
                                             </span>
@@ -276,7 +275,7 @@ export default function UsersPage() {
                                             </button>
 
                                             {/* Solo mostrar renovación para miembros */}
-                                            {!['admin', 'superadmin', 'coach'].includes(user.role) && (
+                                            {!['admin', 'coach'].includes(user.role) && (
                                                 <button
                                                     onClick={() => handleActivateMembership(user.id)}
                                                     className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold border border-green-600/30 transition-all"

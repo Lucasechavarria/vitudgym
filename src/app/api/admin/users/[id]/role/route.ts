@@ -13,7 +13,7 @@ export async function PUT(
     try {
         const { user, supabase, error } = await authenticateAndRequireRole(
             request,
-            ['admin', 'superadmin']
+            ['admin']
         );
 
         if (error) return error;
@@ -24,7 +24,7 @@ export async function PUT(
         const { role } = body;
 
         // Validar rol
-        const validRoles = ['member', 'coach', 'admin', 'superadmin'];
+        const validRoles = ['member', 'coach', 'admin'];
         if (!validRoles.includes(role)) {
             return NextResponse.json({
                 error: 'Rol inválido'
@@ -45,20 +45,7 @@ export async function PUT(
             .eq('id', userId)
             .single();
 
-        // Solo superadmin puede crear otros superadmins
-        if (role === 'superadmin') {
-            const { data: currentUserProfile } = await supabase
-                .from('perfiles')
-                .select('role')
-                .eq('id', user.id)
-                .single();
 
-            if (currentUserProfile?.role !== 'superadmin') {
-                return NextResponse.json({
-                    error: 'Solo un superadmin puede asignar el rol de superadmin'
-                }, { status: 403 });
-            }
-        }
 
         // Actualizar rol
         const { error: updateError } = await supabase
@@ -70,14 +57,14 @@ export async function PUT(
 
         // Registrar cambio en historial
         await supabase
-            .from('profile_change_history')
+            .from('historial_cambios_perfil')
             .insert({
                 profile_id: userId,
                 changed_by: user.id,
-                field_name: 'role',
+                field_changed: 'role',
                 old_value: targetProfile?.role || 'unknown',
                 new_value: role,
-                change_reason: `Cambio de rol por admin: ${user.email}`
+                reason: `Cambio de rol por admin: ${user.email}`
             });
 
         return NextResponse.json({

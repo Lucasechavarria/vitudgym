@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 // POST /api/equipment - Create equipment (Admin only)
 export async function POST(req: Request) {
     try {
-        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN, ROLES.SUPERADMIN]);
+        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN]);
         if (authError) return authError;
 
         const body = await req.json();
@@ -61,7 +61,7 @@ export async function PATCH(req: Request) {
             .eq('id', user.id)
             .single() as any;
 
-        if (!profile || ![ROLES.COACH, ROLES.ADMIN, ROLES.SUPERADMIN].includes(profile.role)) {
+        if (!profile || ![ROLES.COACH, ROLES.ADMIN].includes(profile.role)) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -98,7 +98,7 @@ export async function PATCH(req: Request) {
 // DELETE /api/equipment - Delete equipment (Admin only)
 export async function DELETE(req: Request) {
     try {
-        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN, ROLES.SUPERADMIN]);
+        const { error: authError } = await authenticateAndRequireRole(req, [ROLES.ADMIN]);
         if (authError) return authError;
 
         const { searchParams } = new URL(req.url);

@@ -14,13 +14,13 @@ export async function GET() {
         end_time,
         is_active,
         notes,
-        activities (
+        actividades (
           id,
           name,
           color,
           duration_minutes
         ),
-        profiles (
+        perfiles (
           id,
           full_name,
           email,

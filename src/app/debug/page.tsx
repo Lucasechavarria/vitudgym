@@ -54,7 +54,7 @@ export default function DebugPage() {
                     </pre>
                     <p className="mt-2 text-gray-400">
                         * Esta es tu ficha real en la base de datos. <br />
-                        Si aquí `role` dice &quot;member&quot; pero tú quieres ser &quot;superadmin&quot;,
+                        Si aquí `role` dice &quot;member&quot; pero tú quieres ser &quot;admin&quot;,
                         tienes que editarlo manualmente en la tabla `perfiles` de Supabase.
                     </p>
                 </div>

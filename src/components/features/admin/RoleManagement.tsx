@@ -5,10 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const AVAILABLE_ROLES = [
-    { id: 'user', label: 'Alumno', icon: '🏃', color: 'text-blue-400' },
+    { id: 'member', label: 'Alumno', icon: '🏃', color: 'text-blue-400' },
     { id: 'coach', label: 'Profesor', icon: '🎓', color: 'text-orange-400' },
     { id: 'admin', label: 'Admin', icon: '⚙️', color: 'text-purple-400' },
-    { id: 'superadmin', label: 'SuperAdmin', icon: '👑', color: 'text-red-400' },
 ];
 
 export function RoleManagement() {
@@ -170,8 +169,8 @@ export function RoleManagement() {
                                         onClick={() => handleRoleChange(role.id)}
                                         disabled={role.id === selectedUser.role}
                                         className={`w-full p-4 rounded-xl border-2 transition-all text-left ${role.id === selectedUser.role
-                                                ? 'bg-white/5 border-white/10 cursor-not-allowed opacity-50'
-                                                : 'bg-white/5 border-white/10 hover:border-purple-500 hover:bg-purple-500/10'
+                                            ? 'bg-white/5 border-white/10 cursor-not-allowed opacity-50'
+                                            : 'bg-white/5 border-white/10 hover:border-purple-500 hover:bg-purple-500/10'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">

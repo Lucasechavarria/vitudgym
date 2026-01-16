@@ -11,20 +11,20 @@ export async function GET() {
 
         // 1. Fetch My Stats
         const { data: myStats } = await supabase
-            .from('user_gamification')
+            .from('gamificación_del_usuario')
             .select('*')
             .eq('user_id', user.id)
             .single();
 
         // 2. Fetch My Achievements
         const { data: myAchievements } = await supabase
-            .from('user_achievements')
-            .select('*, achievements(*)')
+            .from('logros_del_usuario')
+            .select('*, logros(*)')
             .eq('user_id', user.id);
 
         // 3. Fetch Leaderboard (Top 10)
         const { data: leaderboard } = await supabase
-            .from('user_gamification')
+            .from('gamificación_del_usuario')
             .select('points, current_streak, perfiles(first_name, last_name, avatar_url)')
             .order('points', { ascending: false })
             .limit(10);
@@ -32,9 +32,9 @@ export async function GET() {
         // 4. Determine Rank (Logic duplicated from frontend or shared lib? Let's just return raw points for now)
 
         return NextResponse.json({
-            stats: myStats || { points: 0, streak: 0, level: 1 },
+            stats: myStats || { points: 0, current_streak: 0, level: 1 },
             achievements: myAchievements || [],
-            leaderboard: leaderboard?.map(l => {
+            leaderboard: leaderboard?.map((l: any) => {
                 const profile = Array.isArray(l.perfiles) ? l.perfiles[0] : l.perfiles;
                 return {
                     name: `${profile?.first_name || 'Usuario'} ${profile?.last_name || ''}`,

@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     try {
         const { supabase, user, error } = await authenticateAndRequireRole(
             request,
-            [ROLES.COACH, ROLES.ADMIN, ROLES.SUPERADMIN]
+            [ROLES.COACH, ROLES.ADMIN]
         );
 
         if (error) return error;
@@ -64,7 +64,7 @@ export async function PUT(request: Request) {
     try {
         const { supabase, user, error } = await authenticateAndRequireRole(
             request,
-            [ROLES.COACH, ROLES.ADMIN, ROLES.SUPERADMIN]
+            [ROLES.COACH, ROLES.ADMIN]
         );
 
         if (error) return error;
@@ -115,7 +115,7 @@ export async function GET(request: Request) {
     try {
         const { supabase, user, error } = await authenticateAndRequireRole(
             request,
-            [ROLES.COACH, ROLES.ADMIN, ROLES.SUPERADMIN]
+            [ROLES.COACH, ROLES.ADMIN]
         );
 
         if (error) return error;
@@ -154,7 +154,7 @@ export async function PATCH(request: Request) {
     try {
         const { supabase, user, error } = await authenticateAndRequireRole(
             request,
-            [ROLES.COACH, ROLES.ADMIN, ROLES.SUPERADMIN]
+            [ROLES.COACH, ROLES.ADMIN]
         );
 
         if (error) return error;

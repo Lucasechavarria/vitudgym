@@ -8,7 +8,7 @@ export async function POST(request: Request) {
         // Permitir acceso sin autenticación estricta para demo
         const authResult = await authenticateAndRequireRole(
             request,
-            ['coach', 'admin', 'superadmin', 'user']
+            ['member', 'coach', 'admin']
         );
 
         // Log de debug pero continuar incluso si falla auth (para demo)

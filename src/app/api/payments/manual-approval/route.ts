@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         // Verificar autenticación y rol de admin
         const { user, profile, supabase, error } = await authenticateAndRequireRole(
             request,
-            ['admin', 'superadmin']
+            ['admin']
         );
 
         if (error) return error;
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
         // Crear registro de pago en Supabase
         const { data: payment, error: paymentError } = await supabase!
-            .from('payments')
+            .from('pagos')
             .insert({
                 user_id: userId,
                 amount: numericAmount,
@@ -170,18 +170,18 @@ export async function GET(request: Request) {
         // Verificar autenticación y rol de admin
         const { user, profile, supabase, error } = await authenticateAndRequireRole(
             request,
-            ['admin', 'superadmin']
+            ['admin']
         );
 
         if (error) return error;
 
         // Obtener pagos manuales con información del usuario y aprobador
         const { data: payments, error: paymentsError } = await supabase!
-            .from('payments')
+            .from('pagos')
             .select(`
                 *,
-                user:profiles!payments_user_id_fkey(id, full_name, email),
-                approver:profiles!payments_approved_by_fkey(id, full_name, email)
+                user:perfiles!user_id (id, full_name, email),
+                approver:perfiles!approved_by (id, full_name, email)
             `)
             .eq('payment_method', 'cash')
             .order('created_at', { ascending: false })

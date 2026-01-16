@@ -19,7 +19,7 @@ const FREE_TIER_LIMIT = 5; // Analisis por día
 
 export async function POST(request: Request) {
     try {
-        const { user, error } = await authenticateAndRequireRole(request, ['coach', 'admin', 'superadmin']);
+        const { user, error } = await authenticateAndRequireRole(request, ['coach', 'admin']);
         if (error) return error;
 
         // 1. Verificar límite de uso

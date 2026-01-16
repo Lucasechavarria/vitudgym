@@ -301,41 +301,130 @@ export type Database = {
                     }
                 ]
             }
-            asistencia_del_coach: {
+            asistencias: {
                 Row: {
                     id: string
-                    coach_id: string | null
+                    user_id: string
+                    role_at_time: Database["public"]["Enums"]["user_role"]
                     check_in: string | null
                     check_out: string | null
-                    is_absent: boolean | null
-                    absence_reason: string | null
+                    source: string | null
                     created_at: string | null
-                    updated_at: string | null
                 }
                 Insert: {
                     id?: string
-                    coach_id?: string | null
+                    user_id: string
+                    role_at_time: Database["public"]["Enums"]["user_role"]
                     check_in?: string | null
                     check_out?: string | null
-                    is_absent?: boolean | null
-                    absence_reason?: string | null
+                    source?: string | null
                     created_at?: string | null
-                    updated_at?: string | null
                 }
                 Update: {
                     id?: string
-                    coach_id?: string | null
+                    user_id?: string
+                    role_at_time?: Database["public"]["Enums"]["user_role"]
                     check_in?: string | null
                     check_out?: string | null
-                    is_absent?: boolean | null
-                    absence_reason?: string | null
+                    source?: string | null
                     created_at?: string | null
-                    updated_at?: string | null
                 }
                 Relationships: [
                     {
-                        foreignKeyName: "coach_attendance_coach_id_fkey"
+                        foreignKeyName: "asistencias_user_id_fkey"
+                        columns: ["user_id"]
+                        referencedRelation: "perfiles"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            relacion_alumno_coach: {
+                Row: {
+                    id: string
+                    user_id: string
+                    coach_id: string
+                    is_primary: boolean | null
+                    assigned_at: string | null
+                    is_active: boolean | null
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    coach_id: string
+                    is_primary?: boolean | null
+                    assigned_at?: string | null
+                    is_active?: boolean | null
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    coach_id?: string
+                    is_primary?: boolean | null
+                    assigned_at?: string | null
+                    is_active?: boolean | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "relacion_alumno_coach_coach_id_fkey"
                         columns: ["coach_id"]
+                        referencedRelation: "perfiles"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "relacion_alumno_coach_user_id_fkey"
+                        columns: ["user_id"]
+                        referencedRelation: "perfiles"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            conversaciones: {
+                Row: {
+                    id: string
+                    created_at: string | null
+                    type: string | null
+                    metadata: Json | null
+                }
+                Insert: {
+                    id?: string
+                    created_at?: string | null
+                    type?: string | null
+                    metadata?: Json | null
+                }
+                Update: {
+                    id?: string
+                    created_at?: string | null
+                    type?: string | null
+                    metadata?: Json | null
+                }
+                Relationships: []
+            }
+            participantes_conversacion: {
+                Row: {
+                    conversation_id: string
+                    user_id: string
+                    joined_at: string | null
+                }
+                Insert: {
+                    conversation_id: string
+                    user_id: string
+                    joined_at?: string | null
+                }
+                Update: {
+                    conversation_id?: string
+                    user_id?: string
+                    joined_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "participantes_conversacion_conversation_id_fkey"
+                        columns: ["conversation_id"]
+                        referencedRelation: "conversaciones"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "participantes_conversacion_user_id_fkey"
+                        columns: ["user_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -781,16 +870,8 @@ export type Database = {
                     full_name: string | null
                     avatar_url: string | null
                     phone: string | null
-                    role: string
-                    date_of_birth: string | null
-                    gender: string | null
-                    emergency_contact_name: string | null
-                    emergency_contact_phone: string | null
-                    medical_conditions: string[] | null
-                    injuries: string[] | null
-                    medications: string | null
-                    restrictions: string | null
-                    membership_status: string | null
+                    role: Database["public"]["Enums"]["user_role"]
+                    membership_status: Database["public"]["Enums"]["membership_status_enum"] | null
                     membership_start_date: string | null
                     membership_end_date: string | null
                     created_at: string | null
@@ -810,7 +891,6 @@ export type Database = {
                     medical_info: Json | null
                     waiver_accepted: boolean | null
                     waiver_date: string | null
-                    assigned_coach_id: string | null
                 }
                 Insert: {
                     id: string
@@ -818,16 +898,8 @@ export type Database = {
                     full_name?: string | null
                     avatar_url?: string | null
                     phone?: string | null
-                    role?: string
-                    date_of_birth?: string | null
-                    gender?: string | null
-                    emergency_contact_name?: string | null
-                    emergency_contact_phone?: string | null
-                    medical_conditions?: string[] | null
-                    injuries?: string[] | null
-                    medications?: string | null
-                    restrictions?: string | null
-                    membership_status?: string | null
+                    role?: Database["public"]["Enums"]["user_role"]
+                    membership_status?: Database["public"]["Enums"]["membership_status_enum"] | null
                     membership_start_date?: string | null
                     membership_end_date?: string | null
                     created_at?: string | null
@@ -847,7 +919,6 @@ export type Database = {
                     medical_info?: Json | null
                     waiver_accepted?: boolean | null
                     waiver_date?: string | null
-                    assigned_coach_id?: string | null
                 }
                 Update: {
                     id?: string
@@ -855,16 +926,8 @@ export type Database = {
                     full_name?: string | null
                     avatar_url?: string | null
                     phone?: string | null
-                    role?: string
-                    date_of_birth?: string | null
-                    gender?: string | null
-                    emergency_contact_name?: string | null
-                    emergency_contact_phone?: string | null
-                    medical_conditions?: string[] | null
-                    injuries?: string[] | null
-                    medications?: string | null
-                    restrictions?: string | null
-                    membership_status?: string | null
+                    role?: Database["public"]["Enums"]["user_role"]
+                    membership_status?: Database["public"]["Enums"]["membership_status_enum"] | null
                     membership_start_date?: string | null
                     membership_end_date?: string | null
                     created_at?: string | null
@@ -884,16 +947,8 @@ export type Database = {
                     medical_info?: Json | null
                     waiver_accepted?: boolean | null
                     waiver_date?: string | null
-                    assigned_coach_id?: string | null
                 }
-                Relationships: [
-                    {
-                        foreignKeyName: "profiles_assigned_coach_id_fkey"
-                        columns: ["assigned_coach_id"]
-                        referencedRelation: "perfiles"
-                        referencedColumns: ["id"]
-                    }
-                ]
+                Relationships: []
             }
             registros_acceso_rutina: {
                 Row: {
@@ -1332,7 +1387,8 @@ export type Database = {
             [_ in never]: never
         }
         Enums: {
-            [_ in never]: never
+            user_role: "admin" | "coach" | "member"
+            membership_status_enum: "active" | "inactive" | "suspended" | "expired"
         }
         CompositeTypes: {
             [_ in never]: never

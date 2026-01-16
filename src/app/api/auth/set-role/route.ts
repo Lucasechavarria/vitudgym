@@ -19,7 +19,7 @@ export async function POST(request: Request) {
             .single();
 
         const isAuthorized = requesterProfile &&
-            ['admin', 'superadmin'].includes(requesterProfile.role);
+            ['admin'].includes(requesterProfile.role);
 
         if (!isAuthorized) {
             return NextResponse.json({ error: 'Forbidden: Requires Admin privileges' }, { status: 403 });
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing uid or role' }, { status: 400 });
         }
 
-        const validRoles = ['user', 'coach', 'admin', 'superadmin'];
+        const validRoles = ['member', 'coach', 'admin'];
         if (!validRoles.includes(role)) {
             return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
         }
