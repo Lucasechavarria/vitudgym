@@ -18,9 +18,9 @@ export const nutritionPlansService = {
         const { data, error } = await supabase
             .from('planes_nutricionales')
             .select('*')
-            .eq('user_id', userId)
-            .eq('is_active', true)
-            .order('created_at', { ascending: false })
+            .eq('usuario_id', userId)
+            .eq('esta_activo', true)
+            .order('creado_en', { ascending: false })
             .limit(1)
             .single();
 
@@ -37,10 +37,10 @@ export const nutritionPlansService = {
             .from('planes_nutricionales')
             .select(`
                 *,
-                coach:perfiles(id, full_name, avatar_url)
+                coach:perfiles(id, nombre_completo, url_avatar)
             `)
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
+            .eq('usuario_id', userId)
+            .order('creado_en', { ascending: false });
 
         if (error) throw error;
         return data;
@@ -55,8 +55,8 @@ export const nutritionPlansService = {
             .from('planes_nutricionales')
             .select(`
                 *,
-                user:perfiles(id, full_name, email),
-                coach:perfiles(id, full_name, email)
+                user:perfiles(id, nombre_completo, email),
+                coach:perfiles(id, nombre_completo, email)
             `)
             .eq('id', id)
             .single();
@@ -87,8 +87,8 @@ export const nutritionPlansService = {
         const supabase = await createClient();
 
         // If this is set as active, deactivate other plans for the user
-        if (plan.is_active) {
-            await this.deactivateUserPlans(plan.user_id!);
+        if (plan.esta_activo) {
+            await this.deactivateUserPlans(plan.usuario_id!);
         }
 
         const { data, error } = await supabase
@@ -108,9 +108,9 @@ export const nutritionPlansService = {
         const supabase = await createClient();
 
         // If setting as active, deactivate other plans first
-        if (updates.is_active) {
+        if (updates.esta_activo) {
             const plan = await this.getById(id);
-            await this.deactivateUserPlans(plan.user_id);
+            await this.deactivateUserPlans(plan.usuario_id);
         }
 
         const { data, error } = await supabase
@@ -131,9 +131,9 @@ export const nutritionPlansService = {
         const supabase = await createClient();
         const { error } = await supabase
             .from('planes_nutricionales')
-            .update({ is_active: false })
-            .eq('user_id', userId)
-            .eq('is_active', true);
+            .update({ esta_activo: false })
+            .eq('usuario_id', userId)
+            .eq('esta_activo', true);
 
         if (error) throw error;
     },
@@ -160,10 +160,10 @@ export const nutritionPlansService = {
             .from('planes_nutricionales')
             .select(`
                 *,
-                user:perfiles(id, full_name, email)
+                user:perfiles(id, nombre_completo, email)
             `)
-            .eq('coach_id', coachId)
-            .order('created_at', { ascending: false });
+            .eq('entrenador_id', coachId)
+            .order('creado_en', { ascending: false });
 
         if (error) throw error;
         return data;
@@ -172,25 +172,25 @@ export const nutritionPlansService = {
     /**
      * Update meals
      */
-    async updateMeals(id: string, meals: Database['public']['Tables']['planes_nutricionales']['Update']['meals']) {
-        return this.update(id, { meals });
+    async updateMeals(id: string, meals: Database['public']['Tables']['planes_nutricionales']['Update']['comidas']) {
+        return this.update(id, { comidas: meals });
     },
 
     /**
      * Update supplements
      */
-    async updateSupplements(id: string, supplements: Database['public']['Tables']['planes_nutricionales']['Update']['supplements']) {
-        return this.update(id, { supplements });
+    async updateSupplements(id: string, supplements: Database['public']['Tables']['planes_nutricionales']['Update']['suplementos']) {
+        return this.update(id, { suplementos: supplements });
     },
 
     /**
      * Update macros
      */
     async updateMacros(id: string, macros: {
-        daily_calories?: number;
-        protein_grams?: number;
-        carbs_grams?: number;
-        fats_grams?: number;
+        calorias_diarias?: number;
+        gramos_proteina?: number;
+        gramos_carbohidratos?: number;
+        gramos_grasas?: number;
     }) {
         return this.update(id, macros);
     },
