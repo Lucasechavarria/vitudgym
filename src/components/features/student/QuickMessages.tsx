@@ -8,10 +8,10 @@ import { toast } from 'react-hot-toast';
 
 interface Message {
     id: string;
-    sender_id: string;
-    receiver_id: string;
-    content: string;
-    created_at: string;
+    remitente_id: string;
+    receptor_id: string;
+    contenido: string;
+    creado_en: string;
 }
 
 interface QuickMessagesProps {
@@ -31,10 +31,10 @@ export function QuickMessages({ itemVariants }: QuickMessagesProps) {
 
             // Fetch latest message
             const { data, error } = await supabase
-                .from('messages')
+                .from('mensajes')
                 .select('*')
-                .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-                .order('created_at', { ascending: false })
+                .or(`remitente_id.eq.${user.id},receptor_id.eq.${user.id}`)
+                .order('creado_en', { ascending: false })
                 .limit(1)
                 .single();
 
@@ -51,8 +51,8 @@ export function QuickMessages({ itemVariants }: QuickMessagesProps) {
                     {
                         event: 'INSERT',
                         schema: 'public',
-                        table: 'messages',
-                        filter: `receiver_id=eq.${user.id}`,
+                        table: 'mensajes',
+                        filter: `receptor_id=eq.${user.id}`,
                     },
                     (payload) => {
                         setLatestMessage(payload.new as Message);
@@ -93,17 +93,17 @@ export function QuickMessages({ itemVariants }: QuickMessagesProps) {
                     >
                         <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold shrink-0 shadow-lg">
-                                {latestMessage.sender_id === userId ? 'Yo' : 'C'}
+                                {latestMessage.remitente_id === userId ? 'Yo' : 'C'}
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-white">
-                                    {latestMessage.sender_id === userId ? 'Tu último mensaje' : 'Tu Coach'}
+                                    {latestMessage.remitente_id === userId ? 'Tu último mensaje' : 'Tu Coach'}
                                 </p>
                                 <p className="text-xs text-gray-400 mt-1 line-clamp-2">
-                                    {latestMessage.content}
+                                    {latestMessage.contenido}
                                 </p>
                                 <p className="text-[10px] text-gray-600 mt-1">
-                                    {new Date(latestMessage.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {latestMessage.creado_en ? new Date(latestMessage.creado_en).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                                 </p>
                             </div>
                         </div>

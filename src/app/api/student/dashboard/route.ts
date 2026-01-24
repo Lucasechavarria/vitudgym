@@ -59,7 +59,7 @@ export async function GET() {
             .from('reservas_de_clase') as any) // Changed 'class_bookings' to 'class_bookings' (no change here based on instruction, but snippet showed 'class_schedules')
             .select('*')
             .eq('usuario_id', user.id)
-            .eq('estado', 'attended')
+            .eq('estado', 'asistida')
             .gte('fecha', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString());
 
         // 4. Fetch Active Routine

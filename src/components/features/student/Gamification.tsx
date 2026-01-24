@@ -134,7 +134,7 @@ export function Gamification() {
                         <div className="flex justify-between text-sm font-bold">
                             <span className="flex items-center gap-2">
                                 <span className="text-xl">📈</span>
-                                {myStats.points.toLocaleString()} XP
+                                {myStats?.points?.toLocaleString() || '0'} XP
                             </span>
                             <span>{nextRank ? `Próximo: ${nextRank.name}` : '¡Nivel Máximo!'}</span>
                         </div>
@@ -210,7 +210,7 @@ export function Gamification() {
                                     <div className="absolute -bottom-1 -left-1 w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gray-400 rounded-full flex items-center justify-center font-black text-white text-xs sm:text-base md:text-lg shadow-lg">2</div>
                                 </div>
                                 <p className="mt-3 font-bold text-gray-300 text-sm md:text-base truncate max-w-[80px] md:max-w-none">{leaderboard[1].name.split(' ')[0]}</p>
-                                <p className="text-gray-500 text-xs font-mono">{leaderboard[1].points.toLocaleString()} XP</p>
+                                <p className="text-gray-500 text-xs font-mono">{leaderboard[1].points?.toLocaleString() || '0'} XP</p>
                                 <div className="h-16 md:h-20 w-16 md:w-24 bg-gray-400/20 backdrop-blur-sm rounded-t-2xl mt-4 border-x border-t border-white/10" />
                             </motion.div>
                         )}
@@ -238,7 +238,7 @@ export function Gamification() {
                                     <div className="absolute -bottom-2 -left-2 sm:-bottom-3 sm:-left-3 w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 bg-yellow-500 rounded-full flex items-center justify-center font-black text-white text-base sm:text-xl md:text-2xl shadow-xl border-4 border-yellow-600">1</div>
                                 </div>
                                 <p className="mt-4 font-black text-white text-base md:text-xl uppercase tracking-tighter drop-shadow-md">{leaderboard[0].name.split(' ')[0]}</p>
-                                <p className="text-yellow-500 font-black font-mono text-sm md:text-base">{leaderboard[0].points.toLocaleString()} XP</p>
+                                <p className="text-yellow-500 font-black font-mono text-sm md:text-base">{leaderboard[0].points?.toLocaleString() || '0'} XP</p>
                                 <div className="h-28 md:h-36 w-24 md:w-32 bg-yellow-500/20 backdrop-blur-md rounded-t-2xl mt-4 border-x border-t border-yellow-500/30 flex flex-col items-center pt-2">
                                     <span className="text-yellow-500 text-sm font-bold tracking-widest uppercase mb-1">MVP</span>
                                     <span className="text-2xl">🔥</span>
@@ -263,7 +263,7 @@ export function Gamification() {
                                     <div className="absolute -bottom-1 -left-1 w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-amber-700 rounded-full flex items-center justify-center font-black text-white text-xs sm:text-base md:text-lg shadow-lg">3</div>
                                 </div>
                                 <p className="mt-3 font-bold text-gray-400 text-sm md:text-base truncate max-w-[80px] md:max-w-none">{leaderboard[2].name.split(' ')[0]}</p>
-                                <p className="text-gray-500 text-xs font-mono">{leaderboard[2].points.toLocaleString()} XP</p>
+                                <p className="text-gray-500 text-xs font-mono">{leaderboard[2].points?.toLocaleString() || '0'} XP</p>
                                 <div className="h-12 md:h-16 w-16 md:w-24 bg-amber-700/20 backdrop-blur-sm rounded-t-2xl mt-4 border-x border-t border-white/10" />
                             </motion.div>
                         )}
@@ -298,7 +298,7 @@ export function Gamification() {
 
                                     <div className="text-right">
                                         <p className="text-lg font-black text-gray-100 tabular-nums leading-none">
-                                            {user.points.toLocaleString()}
+                                            {user.points?.toLocaleString() || '0'}
                                         </p>
                                         <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">XP</p>
                                     </div>

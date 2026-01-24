@@ -40,7 +40,7 @@ export default function StudentDashboard() {
   const daysRemaining = membershipEndDate ? Math.ceil((membershipEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
   const chartData = progress.length > 0 ? progress.map((p: any) => ({
-    week: new Date(p.registrado_en).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
+    week: p.registrado_en ? new Date(p.registrado_en).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }) : '--/--',
     peso: p.peso,
     grasa: p.grasa_corporal,
     musculo: p.masa_muscular
