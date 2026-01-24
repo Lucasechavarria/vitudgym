@@ -4,7 +4,19 @@ import { Database } from '@/types/supabase';
 type Class = Database['public']['Tables']['horarios_de_clase']['Row'];
 type ClassInsert = Database['public']['Tables']['horarios_de_clase']['Insert'];
 type ClassUpdate = Database['public']['Tables']['horarios_de_clase']['Update'];
-type ClassWithAvailability = Database['public']['Views']['clases_con_disponibilidad']['Row'];
+// Manual definition to avoid build errors with 'Views' property resolution
+interface ClassWithAvailability {
+    id: string;
+    actividad_id: string | null;
+    entrenador_id: string | null;
+    dia_de_la_semana: number;
+    hora_inicio: string;
+    hora_fin: string;
+    capacidad_maxima: number;
+    capacidad_actual: number;
+    esta_activa: boolean;
+    nombre_actividad: string;
+}
 
 /**
  * Service for managing classes
