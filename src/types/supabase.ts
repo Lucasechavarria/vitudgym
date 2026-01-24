@@ -1534,60 +1534,58 @@ export type Database = {
                 }
             ]
         }
-    }
-    Views: {
-        clases_con_disponibilidad: {
-            Row: {
-                id: string
-                actividad_id: string | null
-                entrenador_id: string | null
-                dia_de_la_semana: number
-                hora_inicio: string
-                hora_fin: string
-                capacidad_maxima: number
-                capacidad_actual: number
-                esta_activa: boolean
-                nombre_actividad: string
+        Views: {
+            clases_con_disponibilidad: {
+                Row: {
+                    id: string
+                    actividad_id: string | null
+                    entrenador_id: string | null
+                    dia_de_la_semana: number
+                    hora_inicio: string
+                    hora_fin: string
+                    capacidad_maxima: number
+                    capacidad_actual: number
+                    esta_activa: boolean
+                    nombre_actividad: string
+                }
+            }
+            user_bookings_detailed: {
+                Row: {
+                    id: string
+                    usuario_id: string
+                    fecha: string
+                    estado: string
+                    horario_clase_id: string
+                    hora_inicio: string
+                    hora_fin: string
+                    nombre_actividad: string
+                    nombre_entrenador: string
+                }
             }
         }
-        user_bookings_detailed: {
-            Row: {
-                id: string
-                usuario_id: string
-                fecha: string
-                estado: string
-                horario_clase_id: string
-                hora_inicio: string
-                hora_fin: string
-                nombre_actividad: string
-                nombre_entrenador: string
-            }
-        }
-    }
 
-}
-Functions: {
-    [_ in never]: never
-}
-Enums: {
-    nivel_dificultad: "principiante" | "intermedio" | "avanzado" | "competitivo"
-    tipo_conversacion: "individual" | "grupal" | "soporte"
-    categoria_equipamiento: "cardio" | "fuerza" | "flexibilidad" | "accesorios" | "otros"
-    estado_condicion: "nuevo" | "bueno" | "regular" | "mantenimiento" | "fuera_de_servicio"
-    tipo_objetivo_principal: "perder_peso" | "ganar_musculo" | "mejorar_resistencia" | "flexibilidad" | "salud_general"
-    tiempo_entrenamiento_preferido: "mañana" | "mediodia" | "tarde" | "noche"
-    tipo_metodo_pago: "efectivo" | "tarjeta" | "transferencia" | "mercado_pago" | "otro"
-    estado_pago: "pendiente" | "completado" | "fallido" | "reembolsado" | "cancelado"
-    estado_clase: "confirmada" | "cancelada" | "asistida" | "no_asistio"
-    estado_rutina: "borrador" | "pendiente_aprobacion" | "activa" | "completada" | "archivada"
-    estado_sesion: "en_progreso" | "completada" | "cancelada" | "pausada"
-    user_role: "admin" | "coach" | "member"
-    membership_status_enum: "active" | "inactive" | "suspended" | "expired"
-}
-CompositeTypes: {
-    [_ in never]: never
-}
-}
+        Functions: {
+            [_ in never]: never
+        }
+        Enums: {
+            nivel_dificultad: "principiante" | "intermedio" | "avanzado" | "competitivo"
+            tipo_conversacion: "individual" | "grupal" | "soporte"
+            categoria_equipamiento: "cardio" | "fuerza" | "flexibilidad" | "accesorios" | "otros"
+            estado_condicion: "nuevo" | "bueno" | "regular" | "mantenimiento" | "fuera_de_servicio"
+            tipo_objetivo_principal: "perder_peso" | "ganar_musculo" | "mejorar_resistencia" | "flexibilidad" | "salud_general"
+            tiempo_entrenamiento_preferido: "mañana" | "mediodia" | "tarde" | "noche"
+            tipo_metodo_pago: "efectivo" | "tarjeta" | "transferencia" | "mercado_pago" | "otro"
+            estado_pago: "pendiente" | "completado" | "fallido" | "reembolsado" | "cancelado"
+            estado_clase: "confirmada" | "cancelada" | "asistida" | "no_asistio"
+            estado_rutina: "borrador" | "pendiente_aprobacion" | "activa" | "completada" | "archivada"
+            estado_sesion: "en_progreso" | "completada" | "cancelada" | "pausada"
+            user_role: "admin" | "coach" | "member"
+            membership_status_enum: "active" | "inactive" | "suspended" | "expired"
+        }
+        CompositeTypes: {
+            [_ in never]: never
+        }
+    }
 }
 
 type PublicSchema = Database[Extract<keyof Database, "public">]

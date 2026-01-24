@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '@/hooks/useChat';
 import { MessageBubble } from './MessageBubble';
 import { Send } from 'lucide-react';
