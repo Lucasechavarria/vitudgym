@@ -86,16 +86,16 @@ export async function POST(request: Request) {
         const { data: payment, error: paymentError } = await supabase!
             .from('pagos')
             .insert({
-                user_id: userId,
-                amount: numericAmount,
-                currency: 'ARS', // Siempre ARS para pagos manuales
-                concept,
-                notes: notes || '',
-                status: 'approved',
-                payment_method: 'cash',
-                payment_provider: 'manual',
-                approved_by: user!.id,
-                approved_at: new Date().toISOString()
+                usuario_id: userId,
+                monto: numericAmount,
+                moneda: 'ARS', // Siempre ARS para pagos manuales
+                concepto: concept,
+                notas: notes || '',
+                estado: 'approved',
+                metodo_pago: 'cash',
+                proveedor_pago: 'manual',
+                aprobado_por: user!.id,
+                aprobado_en: new Date().toISOString()
             })
             .select()
             .single();
@@ -116,8 +116,8 @@ export async function POST(request: Request) {
         const { error: profileError } = await supabase!
             .from('perfiles')
             .update({
-                membership_status: 'active',
-                membership_end_date: membershipEndDate.toISOString()
+                estado_membresia: 'active',
+                fecha_fin_membresia: membershipEndDate.toISOString()
             })
             .eq('id', userId);
 
@@ -180,11 +180,11 @@ export async function GET(request: Request) {
             .from('pagos')
             .select(`
                 *,
-                user:perfiles!user_id (id, full_name, email),
-                approver:perfiles!approved_by (id, full_name, email)
+                user:perfiles!usuario_id (id, nombre_completo, email),
+                approver:perfiles!aprobado_por (id, nombre_completo, email)
             `)
-            .eq('payment_method', 'cash')
-            .order('created_at', { ascending: false })
+            .eq('metodo_pago', 'cash')
+            .order('creado_en', { ascending: false })
             .limit(100);
 
         if (paymentsError) {

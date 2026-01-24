@@ -4,10 +4,10 @@ import { toast } from 'react-hot-toast';
 
 interface Routine {
     id: string;
-    name: string;
-    goal?: string;
-    exercises: any[];
-    nutrition_plan_id?: string;
+    nombre: string;
+    objetivo?: string;
+    ejercicios: any[];
+    plan_nutricional_id?: string;
 }
 
 interface DashboardData {

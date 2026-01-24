@@ -8,28 +8,30 @@ import toast from 'react-hot-toast';
 
 interface Exercise {
     id: string;
-    name: string;
-    description: string;
-    sets: number;
-    reps: string;
-    rest_seconds: number;
-    muscle_group?: string;
-    equipment?: string[];
-    instructions?: string;
-    day_number: number;
-    order_in_day: number;
-    completed?: boolean;
+    nombre: string;
+    descripcion: string;
+    series: number;
+    repeticiones: string;
+    descanso_segundos: number;
+    grupo_muscular?: string;
+    equipamiento?: string[];
+    instrucciones?: string; // Assuming 'instrucciones' exists or mapped
+    numero_dia?: number;
+    dia_numero: number;
+    orden_en_dia: number;
+    esta_completado?: boolean;
+    url_video?: string;
 }
 
 interface Routine {
     id: string;
-    name: string;
-    description: string;
-    goal: string;
-    duration_weeks: number;
-    medical_considerations?: string;
+    nombre: string;
+    descripcion: string;
+    objetivo: string;
+    duracion_semanas: number;
+    consideraciones_medicas?: string;
     coach: {
-        full_name: string;
+        nombre_completo: string;
     };
 }
 
@@ -81,7 +83,7 @@ export default function MyRoutinePage() {
                 setExercises(prev =>
                     prev.map(ex =>
                         ex.id === exerciseId
-                            ? { ...ex, completed: !ex.completed }
+                            ? { ...ex, esta_completado: !ex.esta_completado }
                             : ex
                     )
                 );
@@ -92,8 +94,9 @@ export default function MyRoutinePage() {
         }
     };
 
-    const dayExercises = exercises.filter(ex => ex.day_number === selectedDay);
-    const totalDays = Math.max(...exercises.map(ex => ex.day_number), 0);
+    // Use dia_numero if available, fallback to numero_dia for compatibility if needed
+    const dayExercises = exercises.filter(ex => (ex.dia_numero || ex.numero_dia) === selectedDay);
+    const totalDays = Math.max(...exercises.map(ex => ex.dia_numero || ex.numero_dia || 0), 0);
 
     // Stagger settings for animations
     const container = {
@@ -148,7 +151,7 @@ export default function MyRoutinePage() {
         );
     }
 
-    const progress = dayExercises.length > 0 ? (dayExercises.filter(ex => ex.completed).length / dayExercises.length) * 100 : 0;
+    const progress = dayExercises.length > 0 ? (dayExercises.filter(ex => ex.esta_completado).length / dayExercises.length) * 100 : 0;
 
     return (
         <SecureRoutineViewer routineId={routine.id} userId={userId}>
@@ -170,19 +173,19 @@ export default function MyRoutinePage() {
                         <div className="relative z-10">
                             <div className="flex items-center gap-3 mb-2 text-white/80 text-sm font-medium uppercase tracking-wider">
                                 <span className="bg-white/20 px-2 py-1 rounded-md">Rutina Activa</span>
-                                <span>{routine.duration_weeks} Semanas</span>
+                                <span>{routine.duracion_semanas} Semanas</span>
                             </div>
                             <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
-                                {routine.name}
+                                {routine.nombre}
                             </h1>
                             <div className="flex flex-wrap gap-6 text-sm md:text-base font-medium text-white/90">
                                 <div className="flex items-center gap-2">
                                     <span className="bg-white/20 p-1.5 rounded-lg">👨‍🏫</span>
-                                    <span>{routine.coach.full_name}</span>
+                                    <span>{routine.coach.nombre_completo}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="bg-white/20 p-1.5 rounded-lg">🎯</span>
-                                    <span>{routine.goal}</span>
+                                    <span>{routine.objetivo}</span>
                                 </div>
                             </div>
                         </div>
@@ -190,7 +193,7 @@ export default function MyRoutinePage() {
 
                     {/* Medical Alert */}
                     <AnimatePresence>
-                        {routine.medical_considerations && (
+                        {routine.consideraciones_medicas && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
@@ -199,7 +202,7 @@ export default function MyRoutinePage() {
                                 <div className="text-2xl mt-1">⚠️</div>
                                 <div>
                                     <h3 className="text-yellow-400 font-bold mb-1">Consideraciones Médicas</h3>
-                                    <p className="text-yellow-200/80 leading-relaxed">{routine.medical_considerations}</p>
+                                    <p className="text-yellow-200/80 leading-relaxed">{routine.consideraciones_medicas}</p>
                                 </div>
                             </motion.div>
                         )}
@@ -241,7 +244,7 @@ export default function MyRoutinePage() {
                                 />
                             </div>
                             <p className="text-right text-xs text-gray-500 mt-2">
-                                {dayExercises.filter(ex => ex.completed).length} de {dayExercises.length} ejercicios
+                                {dayExercises.filter(ex => ex.esta_completado).length} de {dayExercises.length} ejercicios
                             </p>
                         </div>
                     </div>
@@ -262,7 +265,7 @@ export default function MyRoutinePage() {
                                 <motion.div
                                     variants={item}
                                     key={exercise.id}
-                                    className={`group relative rounded-2xl p-6 border transition-all duration-300 ${exercise.completed
+                                    className={`group relative rounded-2xl p-6 border transition-all duration-300 ${exercise.esta_completado
                                         ? 'bg-green-500/10 border-green-500/30'
                                         : 'bg-white/5 border-white/10 hover:border-orange-500/50 hover:bg-white/10'
                                         }`}
@@ -271,12 +274,12 @@ export default function MyRoutinePage() {
                                         {/* Status Button */}
                                         <button
                                             onClick={() => toggleExerciseComplete(exercise.id)}
-                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 transform group-hover:scale-110 ${exercise.completed
+                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 transform group-hover:scale-110 ${exercise.esta_completado
                                                 ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
                                                 : 'bg-white/5 text-gray-500 hover:bg-orange-500 hover:text-white border-2 border-transparent hover:shadow-lg hover:shadow-orange-500/30'
                                                 }`}
                                         >
-                                            {exercise.completed ? (
+                                            {exercise.esta_completado ? (
                                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                                             ) : (
                                                 <span className="text-lg font-bold">{index + 1}</span>
@@ -286,25 +289,25 @@ export default function MyRoutinePage() {
                                         {/* Content */}
                                         <div className="flex-1">
                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                                                <h4 className={`text-xl font-bold transition-colors ${exercise.completed ? 'text-green-400 line-through decoration-2 decoration-green-500/50' : 'text-white group-hover:text-orange-400'}`}>
-                                                    {exercise.name}
+                                                <h4 className={`text-xl font-bold transition-colors ${exercise.esta_completado ? 'text-green-400 line-through decoration-2 decoration-green-500/50' : 'text-white group-hover:text-orange-400'}`}>
+                                                    {exercise.nombre}
                                                 </h4>
-                                                {exercise.muscle_group && (
+                                                {exercise.grupo_muscular && (
                                                     <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/5 text-gray-400 border border-white/5 uppercase tracking-wide">
-                                                        {exercise.muscle_group}
+                                                        {exercise.grupo_muscular}
                                                     </span>
                                                 )}
                                             </div>
 
-                                            {exercise.description && (
-                                                <p className="text-gray-400 mb-4 leading-relaxed text-sm md:text-base">{exercise.description}</p>
+                                            {exercise.descripcion && (
+                                                <p className="text-gray-400 mb-4 leading-relaxed text-sm md:text-base">{exercise.descripcion}</p>
                                             )}
 
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                                                 {[
-                                                    { label: 'Series', value: exercise.sets, icon: '📊' },
-                                                    { label: 'Reps', value: exercise.reps, icon: '🔁' },
-                                                    { label: 'Descanso', value: exercise.rest_seconds ? `${exercise.rest_seconds}s` : null, icon: '⏱️' },
+                                                    { label: 'Series', value: exercise.series, icon: '📊' },
+                                                    { label: 'Reps', value: exercise.repeticiones, icon: '🔁' },
+                                                    { label: 'Descanso', value: exercise.descanso_segundos ? `${exercise.descanso_segundos}s` : null, icon: '⏱️' },
                                                     { label: 'Peso', value: null, icon: '⚖️' } // Future feature: Weight tracking
                                                 ].filter(stat => stat.value).map((stat, i) => (
                                                     <div key={i} className="bg-black/40 rounded-xl p-3 border border-white/5 flex items-center gap-3">
@@ -317,9 +320,9 @@ export default function MyRoutinePage() {
                                                 ))}
                                             </div>
 
-                                            {exercise.instructions && (
+                                            {exercise.instrucciones && (
                                                 <div className="bg-black/20 rounded-xl p-4 border-l-4 border-orange-500/50">
-                                                    <p className="text-sm text-gray-300 italic">"{exercise.instructions}"</p>
+                                                    <p className="text-sm text-gray-300 italic">"{exercise.instrucciones}"</p>
                                                 </div>
                                             )}
                                         </div>

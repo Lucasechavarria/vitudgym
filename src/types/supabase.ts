@@ -12,189 +12,189 @@ export type Database = {
             logros: {
                 Row: {
                     id: string
-                    name: string
-                    description: string | null
-                    icon: string | null
-                    points_reward: number | null
-                    category: string | null
-                    condition_type: string | null
-                    condition_value: number | null
-                    created_at: string | null
+                    nombre: string
+                    descripcion: string | null
+                    icono: string | null
+                    recompensa_puntos: number | null
+                    categoria: string | null
+                    tipo_condicion: string | null
+                    valor_condicion: number | null
+                    creado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    name: string
-                    description?: string | null
-                    icon?: string | null
-                    points_reward?: number | null
-                    category?: string | null
-                    condition_type?: string | null
-                    condition_value?: number | null
-                    created_at?: string | null
+                    nombre: string
+                    descripcion?: string | null
+                    icono?: string | null
+                    recompensa_puntos?: number | null
+                    categoria?: string | null
+                    tipo_condicion?: string | null
+                    valor_condicion?: number | null
+                    creado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    name?: string
-                    description?: string | null
-                    icon?: string | null
-                    points_reward?: number | null
-                    category?: string | null
-                    condition_type?: string | null
-                    condition_value?: number | null
-                    created_at?: string | null
+                    nombre?: string
+                    descripcion?: string | null
+                    icono?: string | null
+                    recompensa_puntos?: number | null
+                    categoria?: string | null
+                    tipo_condicion?: string | null
+                    valor_condicion?: number | null
+                    creado_en?: string | null
                 }
                 Relationships: []
             }
             actividades: {
                 Row: {
                     id: string
-                    name: string
-                    description: string | null
-                    type: string | null
-                    category: string | null
-                    image_url: string | null
-                    duration_minutes: number | null
-                    difficulty: string | null
-                    max_capacity: number | null
-                    is_active: boolean | null
-                    created_at: string | null
-                    updated_at: string | null
+                    nombre: string
+                    descripcion: string | null
+                    tipo: string | null
+                    categoria: string | null
+                    url_imagen: string | null
+                    duracion_minutos: number | null
+                    dificultad: string | null
+                    capacidad_maxima: number | null
+                    esta_activa: boolean | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                     color: string | null
                 }
                 Insert: {
                     id?: string
-                    name: string
-                    description?: string | null
-                    type?: string | null
-                    category?: string | null
-                    image_url?: string | null
-                    duration_minutes?: number | null
-                    difficulty?: string | null
-                    max_capacity?: number | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    nombre: string
+                    descripcion?: string | null
+                    tipo?: string | null
+                    categoria?: string | null
+                    url_imagen?: string | null
+                    duracion_minutos?: number | null
+                    dificultad?: string | null
+                    capacidad_maxima?: number | null
+                    esta_activa?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                     color?: string | null
                 }
                 Update: {
                     id?: string
-                    name?: string
-                    description?: string | null
-                    type?: string | null
-                    category?: string | null
-                    image_url?: string | null
-                    duration_minutes?: number | null
-                    difficulty?: string | null
+                    nombre?: string
+                    descripcion?: string | null
+                    tipo?: string | null
+                    categoria?: string | null
+                    url_imagen?: string | null
+                    duracion_minutos?: number | null
+                    dificultad?: string | null
                     max_capacity?: number | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    esta_activa?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                     color?: string | null
                 }
                 Relationships: []
             }
-            participantes_del_desafío: {
+            participantes_desafio: {
                 Row: {
                     id: string
-                    challenge_id: string | null
-                    user_id: string | null
-                    current_score: number | null
-                    status: string | null
-                    joined_at: string | null
-                    updated_at: string | null
+                    desafio_id: string | null
+                    usuario_id: string | null
+                    puntuacion_actual: number | null
+                    estado: string | null
+                    unido_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    challenge_id?: string | null
-                    user_id?: string | null
-                    current_score?: number | null
-                    status?: string | null
-                    joined_at?: string | null
-                    updated_at?: string | null
+                    desafio_id?: string | null
+                    usuario_id?: string | null
+                    puntuacion_actual?: number | null
+                    estado?: string | null
+                    unido_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    challenge_id?: string | null
-                    user_id?: string | null
-                    current_score?: number | null
-                    status?: string | null
-                    joined_at?: string | null
-                    updated_at?: string | null
+                    desafio_id?: string | null
+                    usuario_id?: string | null
+                    puntuacion_actual?: number | null
+                    estado?: string | null
+                    unido_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "challenge_participants_challenge_id_fkey"
-                        columns: ["challenge_id"]
-                        referencedRelation: "desafíos"
+                        columns: ["desafio_id"]
+                        referencedRelation: "desafios"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "challenge_participants_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
                 ]
             }
-            desafíos: {
+            desafios: {
                 Row: {
                     id: string
-                    title: string
-                    description: string | null
-                    rules: string | null
-                    type: string | null
-                    points_reward: number | null
-                    status: string | null
-                    created_by: string | null
-                    judge_id: string | null
-                    winner_id: string | null
-                    start_date: string | null
-                    end_date: string | null
-                    created_at: string | null
-                    updated_at: string | null
+                    titulo: string
+                    descripcion: string | null
+                    reglas: string | null
+                    tipo: string | null
+                    recompensa_puntos: number | null
+                    estado: string | null
+                    creado_por: string | null
+                    juez_id: string | null
+                    ganador_id: string | null
+                    fecha_inicio: string | null
+                    fecha_fin: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    title: string
-                    description?: string | null
-                    rules?: string | null
-                    type?: string | null
-                    points_reward?: number | null
-                    status?: string | null
-                    created_by?: string | null
-                    judge_id?: string | null
-                    winner_id?: string | null
-                    start_date?: string | null
-                    end_date?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    titulo: string
+                    descripcion?: string | null
+                    reglas?: string | null
+                    tipo?: string | null
+                    recompensa_puntos?: number | null
+                    estado?: string | null
+                    creado_por?: string | null
+                    juez_id?: string | null
+                    ganador_id?: string | null
+                    fecha_inicio?: string | null
+                    fecha_fin?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    title?: string
-                    description?: string | null
-                    rules?: string | null
-                    type?: string | null
-                    points_reward?: number | null
-                    status?: string | null
-                    created_by?: string | null
-                    judge_id?: string | null
-                    winner_id?: string | null
-                    start_date?: string | null
-                    end_date?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    titulo?: string
+                    descripcion?: string | null
+                    reglas?: string | null
+                    tipo?: string | null
+                    recompensa_puntos?: number | null
+                    estado?: string | null
+                    creado_por?: string | null
+                    juez_id?: string | null
+                    ganador_id?: string | null
+                    fecha_inicio?: string | null
+                    fecha_fin?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "challenges_created_by_fkey"
-                        columns: ["created_by"]
+                        columns: ["creado_por"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "challenges_judge_id_fkey"
-                        columns: ["judge_id"]
+                        columns: ["juez_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
@@ -209,41 +209,41 @@ export type Database = {
             reservas_de_clase: {
                 Row: {
                     id: string
-                    user_id: string
-                    class_schedule_id: string
-                    date: string
-                    status: string | null
-                    created_at: string | null
-                    updated_at: string | null
+                    usuario_id: string
+                    horario_clase_id: string
+                    fecha: string
+                    estado: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    class_schedule_id: string
-                    date: string
-                    status?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    usuario_id: string
+                    horario_clase_id: string
+                    fecha: string
+                    estado?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    class_schedule_id?: string
-                    date?: string
-                    status?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    usuario_id?: string
+                    horario_clase_id?: string
+                    fecha?: string
+                    estado?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "class_bookings_class_schedule_id_fkey"
-                        columns: ["class_schedule_id"]
+                        columns: ["horario_clase_id"]
                         referencedRelation: "horarios_de_clase"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "class_bookings_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -252,50 +252,50 @@ export type Database = {
             horarios_de_clase: {
                 Row: {
                     id: string
-                    activity_id: string | null
-                    coach_id: string | null
-                    day_of_week: number
-                    start_time: string
-                    end_time: string
-                    is_active: boolean | null
-                    created_at: string | null
-                    updated_at: string | null
-                    teacher_text: string | null
+                    actividad_id: string | null
+                    entrenador_id: string | null
+                    dia_de_la_semana: number
+                    hora_inicio: string
+                    hora_fin: string
+                    esta_activa: boolean | null
+                    creado_en: string | null
+                    actualizado_en: string | null
+                    notas_entrenador: string | null
                 }
                 Insert: {
                     id?: string
-                    activity_id?: string | null
-                    coach_id?: string | null
-                    day_of_week: number
-                    start_time: string
-                    end_time: string
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    teacher_text?: string | null
+                    actividad_id?: string | null
+                    entrenador_id?: string | null
+                    dia_de_la_semana: number
+                    hora_inicio: string
+                    hora_fin: string
+                    esta_activa?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    notas_entrenador?: string | null
                 }
                 Update: {
                     id?: string
-                    activity_id?: string | null
-                    coach_id?: string | null
-                    day_of_week?: number
-                    start_time?: string
-                    end_time?: string
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    teacher_text?: string | null
+                    actividad_id?: string | null
+                    entrenador_id?: string | null
+                    dia_de_la_semana?: number
+                    hora_inicio?: string
+                    hora_fin?: string
+                    esta_activa?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    notas_entrenador?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "class_schedules_activity_id_fkey"
-                        columns: ["activity_id"]
+                        columns: ["actividad_id"]
                         referencedRelation: "actividades"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "class_schedules_coach_id_fkey"
-                        columns: ["coach_id"]
+                        columns: ["entrenador_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -304,35 +304,35 @@ export type Database = {
             asistencias: {
                 Row: {
                     id: string
-                    user_id: string
-                    role_at_time: Database["public"]["Enums"]["user_role"]
-                    check_in: string | null
-                    check_out: string | null
+                    usuario_id: string
+                    rol_asistencia: Database["public"]["Enums"]["user_role"]
+                    entrada: string | null
+                    salida: string | null
                     source: string | null
-                    created_at: string | null
+                    creado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    role_at_time: Database["public"]["Enums"]["user_role"]
-                    check_in?: string | null
-                    check_out?: string | null
+                    usuario_id: string
+                    rol_asistencia: Database["public"]["Enums"]["user_role"]
+                    entrada?: string | null
+                    salida?: string | null
                     source?: string | null
-                    created_at?: string | null
+                    creado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    role_at_time?: Database["public"]["Enums"]["user_role"]
-                    check_in?: string | null
-                    check_out?: string | null
+                    usuario_id?: string
+                    rol_asistencia?: Database["public"]["Enums"]["user_role"]
+                    entrada?: string | null
+                    salida?: string | null
                     source?: string | null
-                    created_at?: string | null
+                    creado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "asistencias_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -341,38 +341,38 @@ export type Database = {
             relacion_alumno_coach: {
                 Row: {
                     id: string
-                    user_id: string
-                    coach_id: string
-                    is_primary: boolean | null
-                    assigned_at: string | null
-                    is_active: boolean | null
+                    usuario_id: string
+                    entrenador_id: string
+                    es_principal: boolean | null
+                    asignado_en: string | null
+                    esta_activo: boolean | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    coach_id: string
-                    is_primary?: boolean | null
-                    assigned_at?: string | null
-                    is_active?: boolean | null
+                    usuario_id: string
+                    entrenador_id: string
+                    es_principal?: boolean | null
+                    asignado_en?: string | null
+                    esta_activo?: boolean | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    coach_id?: string
-                    is_primary?: boolean | null
-                    assigned_at?: string | null
-                    is_active?: boolean | null
+                    usuario_id?: string
+                    entrenador_id?: string
+                    es_principal?: boolean | null
+                    asignado_en?: string | null
+                    esta_activo?: boolean | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "relacion_alumno_coach_coach_id_fkey"
-                        columns: ["coach_id"]
+                        columns: ["entrenador_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "relacion_alumno_coach_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -381,50 +381,50 @@ export type Database = {
             conversaciones: {
                 Row: {
                     id: string
-                    created_at: string | null
-                    type: string | null
-                    metadata: Json | null
+                    creado_en: string | null
+                    tipo: string | null
+                    metadatos: Json | null
                 }
                 Insert: {
                     id?: string
-                    created_at?: string | null
-                    type?: string | null
-                    metadata?: Json | null
+                    creado_en?: string | null
+                    tipo?: string | null
+                    metadatos?: Json | null
                 }
                 Update: {
                     id?: string
-                    created_at?: string | null
-                    type?: string | null
-                    metadata?: Json | null
+                    creado_en?: string | null
+                    tipo?: string | null
+                    metadatos?: Json | null
                 }
                 Relationships: []
             }
             participantes_conversacion: {
                 Row: {
-                    conversation_id: string
-                    user_id: string
-                    joined_at: string | null
+                    conversacion_id: string
+                    usuario_id: string
+                    unido_en: string | null
                 }
                 Insert: {
-                    conversation_id: string
-                    user_id: string
-                    joined_at?: string | null
+                    conversacion_id: string
+                    usuario_id: string
+                    unido_en?: string | null
                 }
                 Update: {
-                    conversation_id?: string
-                    user_id?: string
-                    joined_at?: string | null
+                    conversacion_id?: string
+                    usuario_id?: string
+                    unido_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "participantes_conversacion_conversation_id_fkey"
-                        columns: ["conversation_id"]
+                        columns: ["conversacion_id"]
                         referencedRelation: "conversaciones"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "participantes_conversacion_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -433,50 +433,50 @@ export type Database = {
             registros_de_ejercicio: {
                 Row: {
                     id: string
-                    session_id: string
-                    exercise_id: string
-                    actual_sets: number | null
-                    actual_reps: string | null
-                    actual_weight: number | null
-                    rest_time_seconds: number | null
-                    is_completed: boolean | null
-                    difficulty_rating: number | null
-                    created_at: string | null
+                    sesion_id: string
+                    ejercicio_id: string
+                    series_reales: number | null
+                    repeticiones_reales: string | null
+                    peso_real: number | null
+                    tiempo_descanso_segundos: number | null
+                    esta_completado: boolean | null
+                    calificacion_dificultad: number | null
+                    creado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    session_id: string
-                    exercise_id: string
-                    actual_sets?: number | null
-                    actual_reps?: string | null
-                    actual_weight?: number | null
-                    rest_time_seconds?: number | null
-                    is_completed?: boolean | null
-                    difficulty_rating?: number | null
-                    created_at?: string | null
+                    sesion_id: string
+                    ejercicio_id: string
+                    series_reales?: number | null
+                    repeticiones_reales?: string | null
+                    peso_real?: number | null
+                    tiempo_descanso_segundos?: number | null
+                    esta_completado?: boolean | null
+                    calificacion_dificultad?: number | null
+                    creado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    session_id?: string
-                    exercise_id?: string
-                    actual_sets?: number | null
-                    actual_reps?: string | null
-                    actual_weight?: number | null
-                    rest_time_seconds?: number | null
-                    is_completed?: boolean | null
-                    difficulty_rating?: number | null
-                    created_at?: string | null
+                    sesion_id?: string
+                    ejercicio_id?: string
+                    series_reales?: number | null
+                    repeticiones_reales?: string | null
+                    peso_real?: number | null
+                    tiempo_descanso_segundos?: number | null
+                    esta_completado?: boolean | null
+                    calificacion_dificultad?: number | null
+                    creado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "exercise_performance_logs_exercise_id_fkey"
-                        columns: ["exercise_id"]
+                        columns: ["ejercicio_id"]
                         referencedRelation: "ejercicios"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "exercise_performance_logs_session_id_fkey"
-                        columns: ["session_id"]
+                        columns: ["sesion_id"]
                         referencedRelation: "sesiones_de_entrenamiento"
                         referencedColumns: ["id"]
                     }
@@ -485,59 +485,59 @@ export type Database = {
             ejercicios: {
                 Row: {
                     id: string
-                    routine_id: string
-                    name: string
-                    description: string | null
-                    muscle_group: string | null
-                    equipment: string[] | null
-                    sets: number | null
-                    reps: string | null
-                    rest_seconds: number | null
-                    day_number: number
-                    order_in_day: number
-                    instructions: string | null
-                    video_url: string | null
-                    created_at: string | null
-                    updated_at: string | null
+                    rutina_id: string
+                    nombre: string
+                    descripcion: string | null
+                    grupo_muscular: string | null
+                    equipamiento: string[] | null
+                    series: number | null
+                    repeticiones: string | null
+                    descanso_segundos: number | null
+                    dia_numero: number
+                    orden_en_dia: number
+                    instrucciones: string | null
+                    url_video: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    routine_id: string
-                    name: string
-                    description?: string | null
-                    muscle_group?: string | null
-                    equipment?: string[] | null
-                    sets?: number | null
-                    reps?: string | null
-                    rest_seconds?: number | null
-                    day_number: number
-                    order_in_day: number
-                    instructions?: string | null
-                    video_url?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    rutina_id: string
+                    nombre: string
+                    descripcion?: string | null
+                    grupo_muscular?: string | null
+                    equipamiento?: string[] | null
+                    series?: number | null
+                    repeticiones?: string | null
+                    descanso_segundos?: number | null
+                    dia_numero: number
+                    orden_en_dia: number
+                    instrucciones?: string | null
+                    url_video?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    routine_id?: string
-                    name?: string
-                    description?: string | null
-                    muscle_group?: string | null
-                    equipment?: string[] | null
-                    sets?: number | null
-                    reps?: string | null
-                    rest_seconds?: number | null
-                    day_number?: number
-                    order_in_day?: number
-                    instructions?: string | null
-                    video_url?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    rutina_id?: string
+                    nombre?: string
+                    descripcion?: string | null
+                    grupo_muscular?: string | null
+                    equipamiento?: string[] | null
+                    series?: number | null
+                    repeticiones?: string | null
+                    descanso_segundos?: number | null
+                    dia_numero?: number
+                    orden_en_dia?: number
+                    instrucciones?: string | null
+                    url_video?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "exercises_routine_id_fkey"
-                        columns: ["routine_id"]
+                        columns: ["rutina_id"]
                         referencedRelation: "rutinas"
                         referencedColumns: ["id"]
                     }
@@ -546,92 +546,92 @@ export type Database = {
             equipamiento: {
                 Row: {
                     id: string
-                    name: string
-                    category: string
-                    brand: string | null
-                    quantity: number | null
-                    is_available: boolean | null
-                    condition: string | null
-                    notes: string | null
-                    image_url: string | null
-                    created_at: string | null
-                    updated_at: string | null
+                    nombre: string
+                    categoria: string
+                    marca: string | null
+                    cantidad: number | null
+                    esta_disponible: boolean | null
+                    condicion: string | null
+                    notas: string | null
+                    url_imagen: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    name: string
-                    category: string
-                    brand?: string | null
-                    quantity?: number | null
-                    is_available?: boolean | null
-                    condition?: string | null
-                    notes?: string | null
-                    image_url?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    nombre: string
+                    categoria: string
+                    marca?: string | null
+                    cantidad?: number | null
+                    esta_disponible?: boolean | null
+                    condicion?: string | null
+                    notas?: string | null
+                    url_imagen?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    name?: string
-                    category?: string
-                    brand?: string | null
-                    quantity?: number | null
-                    is_available?: boolean | null
-                    condition?: string | null
-                    notes?: string | null
-                    image_url?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    nombre?: string
+                    categoria?: string
+                    marca?: string | null
+                    cantidad?: number | null
+                    esta_disponible?: boolean | null
+                    condicion?: string | null
+                    notas?: string | null
+                    url_imagen?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: []
             }
             mediciones: {
                 Row: {
                     id: string
-                    user_id: string
-                    weight: number | null
-                    body_fat: number | null
-                    muscle_mass: number | null
+                    usuario_id: string
+                    peso: number | null
+                    grasa_corporal: number | null
+                    masa_muscular: number | null
                     notes: string | null
-                    recorded_at: string | null
-                    created_by: string | null
-                    created_at: string | null
-                    updated_at: string | null
+                    registrado_en: string | null
+                    creado_por: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    weight?: number | null
-                    body_fat?: number | null
-                    muscle_mass?: number | null
+                    usuario_id: string
+                    peso?: number | null
+                    grasa_corporal?: number | null
+                    masa_muscular?: number | null
                     notes?: string | null
-                    recorded_at?: string | null
-                    created_by?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    registrado_en?: string | null
+                    creado_por?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    weight?: number | null
-                    body_fat?: number | null
-                    muscle_mass?: number | null
+                    usuario_id?: string
+                    peso?: number | null
+                    grasa_corporal?: number | null
+                    masa_muscular?: number | null
                     notes?: string | null
-                    recorded_at?: string | null
-                    created_by?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    registrado_en?: string | null
+                    creado_por?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "measurements_created_by_fkey"
-                        columns: ["created_by"]
+                        columns: ["creado_por"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "measurements_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -640,44 +640,44 @@ export type Database = {
             mensajes: {
                 Row: {
                     id: string
-                    sender_id: string
-                    receiver_id: string
-                    content: string
-                    is_read: boolean | null
-                    read_at: string | null
-                    created_at: string | null
-                    updated_at: string | null
+                    remitente_id: string
+                    receptor_id: string
+                    contenido: string
+                    esta_leido: boolean | null
+                    leido_en: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    sender_id: string
-                    receiver_id: string
-                    content: string
-                    is_read?: boolean | null
-                    read_at?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    remitente_id: string
+                    receptor_id: string
+                    contenido: string
+                    esta_leido?: boolean | null
+                    leido_en?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    sender_id?: string
-                    receiver_id?: string
-                    content?: string
-                    is_read?: boolean | null
-                    read_at?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    remitente_id?: string
+                    receptor_id?: string
+                    contenido?: string
+                    esta_leido?: boolean | null
+                    leido_en?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "messages_receiver_id_fkey"
-                        columns: ["receiver_id"]
+                        columns: ["receptor_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "messages_sender_id_fkey"
-                        columns: ["sender_id"]
+                        columns: ["remitente_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -686,65 +686,65 @@ export type Database = {
             planes_nutricionales: {
                 Row: {
                     id: string
-                    user_id: string | null
-                    coach_id: string | null
-                    daily_calories: number | null
-                    protein_grams: number | null
-                    carbs_grams: number | null
-                    fats_grams: number | null
-                    meals: Json | null
-                    supplements: Json | null
-                    water_liters: number | null
-                    general_guidelines: string | null
-                    restrictions: string[] | null
-                    is_active: boolean | null
-                    created_at: string | null
-                    updated_at: string | null
+                    usuario_id: string | null
+                    entrenador_id: string | null
+                    calorias_diarias: number | null
+                    gramos_proteina: number | null
+                    gramos_carbohidratos: number | null
+                    gramos_grasas: number | null
+                    comidas: Json | null
+                    suplementos: Json | null
+                    litros_agua: number | null
+                    pautas_generales: string | null
+                    restricciones: string[] | null
+                    esta_activo: boolean | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id?: string | null
-                    coach_id?: string | null
-                    daily_calories?: number | null
-                    protein_grams?: number | null
-                    carbs_grams?: number | null
-                    fats_grams?: number | null
-                    meals?: Json | null
-                    supplements?: Json | null
-                    water_liters?: number | null
-                    general_guidelines?: string | null
-                    restrictions?: string[] | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    usuario_id?: string | null
+                    entrenador_id?: string | null
+                    calorias_diarias?: number | null
+                    gramos_proteina?: number | null
+                    gramos_carbohidratos?: number | null
+                    gramos_grasas?: number | null
+                    comidas?: Json | null
+                    suplementos?: Json | null
+                    litros_agua?: number | null
+                    pautas_generales?: string | null
+                    restricciones?: string[] | null
+                    esta_activo?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string | null
-                    coach_id?: string | null
-                    daily_calories?: number | null
-                    protein_grams?: number | null
-                    carbs_grams?: number | null
-                    fats_grams?: number | null
-                    meals?: Json | null
-                    supplements?: Json | null
-                    water_liters?: number | null
-                    general_guidelines?: string | null
-                    restrictions?: string[] | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    usuario_id?: string | null
+                    entrenador_id?: string | null
+                    calorias_diarias?: number | null
+                    gramos_proteina?: number | null
+                    gramos_carbohidratos?: number | null
+                    gramos_grasas?: number | null
+                    comidas?: Json | null
+                    suplementos?: Json | null
+                    litros_agua?: number | null
+                    pautas_generales?: string | null
+                    restricciones?: string[] | null
+                    esta_activo?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "nutrition_plans_coach_id_fkey"
-                        columns: ["coach_id"]
+                        columns: ["entrenador_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "nutrition_plans_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -753,65 +753,65 @@ export type Database = {
             pagos: {
                 Row: {
                     id: string
-                    user_id: string | null
-                    amount: number
-                    currency: string | null
-                    concept: string
-                    payment_method: string
+                    usuario_id: string | null
+                    monto: number
+                    moneda: string | null
+                    concepto: string
+                    metodo_pago: string
                     payment_provider: string | null
                     provider_payment_id: string | null
-                    status: string
-                    approved_by: string | null
-                    approved_at: string | null
+                    estado: string
+                    aprobado_por: string | null
+                    aprobado_en: string | null
                     notes: string | null
-                    metadata: Json | null
-                    created_at: string | null
-                    updated_at: string | null
+                    metadatos: Json | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id?: string | null
-                    amount: number
-                    currency?: string | null
-                    concept: string
-                    payment_method: string
+                    usuario_id?: string | null
+                    monto: number
+                    moneda?: string | null
+                    concepto: string
+                    metodo_pago: string
                     payment_provider?: string | null
                     provider_payment_id?: string | null
-                    status?: string
-                    approved_by?: string | null
-                    approved_at?: string | null
+                    estado?: string
+                    aprobado_por?: string | null
+                    aprobado_en?: string | null
                     notes?: string | null
-                    metadata?: Json | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    metadatos?: Json | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string | null
-                    amount?: number
-                    currency?: string | null
-                    concept?: string
-                    payment_method?: string
+                    usuario_id?: string | null
+                    monto?: number
+                    moneda?: string | null
+                    concepto?: string
+                    metodo_pago?: string
                     payment_provider?: string | null
                     provider_payment_id?: string | null
-                    status?: string
-                    approved_by?: string | null
-                    approved_at?: string | null
+                    estado?: string
+                    aprobado_por?: string | null
+                    aprobado_en?: string | null
                     notes?: string | null
-                    metadata?: Json | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    metadatos?: Json | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "payments_approved_by_fkey"
-                        columns: ["approved_by"]
+                        columns: ["aprobado_por"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "payments_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -820,33 +820,33 @@ export type Database = {
             historial_de_cambios_de_perfil: {
                 Row: {
                     id: string
-                    profile_id: string | null
-                    changed_by: string | null
-                    field_changed: string
-                    old_value: string | null
-                    new_value: string | null
-                    reason: string | null
-                    created_at: string | null
+                    perfil_id: string | null
+                    cambiado_por: string | null
+                    campo_cambiado: string
+                    valor_anterior: string | null
+                    valor_nuevo: string | null
+                    razon: string | null
+                    creado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    profile_id?: string | null
-                    changed_by?: string | null
-                    field_changed: string
-                    old_value?: string | null
-                    new_value?: string | null
-                    reason?: string | null
-                    created_at?: string | null
+                    perfil_id?: string | null
+                    cambiado_por?: string | null
+                    campo_cambiado: string
+                    valor_anterior?: string | null
+                    valor_nuevo?: string | null
+                    razon?: string | null
+                    creado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    profile_id?: string | null
-                    changed_by?: string | null
-                    field_changed?: string
-                    old_value?: string | null
-                    new_value?: string | null
-                    reason?: string | null
-                    created_at?: string | null
+                    perfil_id?: string | null
+                    cambiado_por?: string | null
+                    campo_cambiado?: string
+                    valor_anterior?: string | null
+                    valor_nuevo?: string | null
+                    razon?: string | null
+                    creado_en?: string | null
                 }
                 Relationships: [
                     {
@@ -867,139 +867,145 @@ export type Database = {
                 Row: {
                     id: string
                     email: string
-                    full_name: string | null
-                    avatar_url: string | null
-                    phone: string | null
+                    nombre_completo: string | null
+                    url_avatar: string | null
+                    telefono: string | null
                     gender: string | null
-                    role: Database["public"]["Enums"]["user_role"]
-                    membership_status: Database["public"]["Enums"]["membership_status_enum"] | null
-                    membership_start_date: string | null
-                    membership_end_date: string | null
-                    created_at: string | null
-                    updated_at: string | null
-                    coach_observations: string | null
-                    additional_restrictions: string | null
-                    recommended_modifications: string | null
-                    onboarding_completed: boolean | null
-                    onboarding_completed_at: string | null
-                    first_name: string | null
-                    last_name: string | null
+                    rol: Database["public"]["Enums"]["user_role"]
+                    estado_membresia: Database["public"]["Enums"]["membership_status_enum"] | null
+                    fecha_inicio_membresia: string | null
+                    fecha_fin_membresia: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
+                    observaciones_entrenador: string | null
+                    restricciones_adicionales: string | null
+                    modificaciones_recomendadas: string | null
+                    onboarding_completado: boolean | null
+                    onboarding_completado_en: string | null
+                    nombre: string | null
+                    apellido: string | null
                     dni: string | null
-                    address: string | null
-                    city: string | null
-                    birth_date: string | null
-                    emergency_contact: Json | null
-                    medical_info: Json | null
-                    waiver_accepted: boolean | null
-                    waiver_date: string | null
+                    direccion: string | null
+                    ciudad: string | null
+                    fecha_nacimiento: string | null
+                    contacto_emergencia: Json | null
+                    informacion_medica: Json | null
+                    exencion_aceptada: boolean | null
+                    fecha_exencion: string | null
                 }
                 Insert: {
                     id: string
                     email: string
-                    full_name?: string | null
-                    avatar_url?: string | null
-                    phone?: string | null
+                    nombre_completo?: string | null
+                    url_avatar?: string | null
+                    telefono?: string | null
                     gender?: string | null
-                    role?: Database["public"]["Enums"]["user_role"]
-                    membership_status?: Database["public"]["Enums"]["membership_status_enum"] | null
-                    membership_start_date?: string | null
-                    membership_end_date?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    coach_observations?: string | null
-                    additional_restrictions?: string | null
-                    recommended_modifications?: string | null
-                    onboarding_completed?: boolean | null
-                    onboarding_completed_at?: string | null
-                    first_name?: string | null
-                    last_name?: string | null
+                    rol?: Database["public"]["Enums"]["user_role"]
+                    estado_membresia?: Database["public"]["Enums"]["membership_status_enum"] | null
+                    fecha_inicio_membresia?: string | null
+                    fecha_fin_membresia?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    observaciones_entrenador?: string | null
+                    restricciones_adicionales?: string | null
+                    modificaciones_recomendadas?: string | null
+                    onboarding_completado?: boolean | null
+                    onboarding_completado_en?: string | null
+                    nombre?: string | null
+                    apellido?: string | null
                     dni?: string | null
-                    address?: string | null
-                    city?: string | null
-                    birth_date?: string | null
-                    emergency_contact?: Json | null
-                    medical_info?: Json | null
-                    waiver_accepted?: boolean | null
-                    waiver_date?: string | null
+                    direccion?: string | null
+                    ciudad?: string | null
+                    fecha_nacimiento?: string | null
+                    contacto_emergencia?: Json | null
+                    informacion_medica?: Json | null
+                    exencion_aceptada?: boolean | null
+                    fecha_exencion?: string | null
                 }
                 Update: {
                     id?: string
                     email?: string
-                    full_name?: string | null
-                    avatar_url?: string | null
-                    phone?: string | null
+                    nombre_completo?: string | null
+                    url_avatar?: string | null
+                    telefono?: string | null
                     gender?: string | null
-                    role?: Database["public"]["Enums"]["user_role"]
-                    membership_status?: Database["public"]["Enums"]["membership_status_enum"] | null
-                    membership_start_date?: string | null
-                    membership_end_date?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    coach_observations?: string | null
-                    additional_restrictions?: string | null
-                    recommended_modifications?: string | null
-                    onboarding_completed?: boolean | null
-                    onboarding_completed_at?: string | null
-                    first_name?: string | null
-                    last_name?: string | null
+                    rol?: Database["public"]["Enums"]["user_role"]
+                    estado_membresia?: Database["public"]["Enums"]["membership_status_enum"] | null
+                    fecha_inicio_membresia?: string | null
+                    fecha_fin_membresia?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    observaciones_entrenador?: string | null
+                    restricciones_adicionales?: string | null
+                    modificaciones_recomendadas?: string | null
+                    onboarding_completado?: boolean | null
+                    onboarding_completado_en?: string | null
+                    nombre?: string | null
+                    apellido?: string | null
                     dni?: string | null
-                    address?: string | null
-                    city?: string | null
-                    birth_date?: string | null
-                    emergency_contact?: Json | null
-                    medical_info?: Json | null
-                    waiver_accepted?: boolean | null
-                    waiver_date?: string | null
+                    direccion?: string | null
+                    ciudad?: string | null
+                    fecha_nacimiento?: string | null
+                    contacto_emergencia?: Json | null
+                    informacion_medica?: Json | null
+                    exencion_aceptada?: boolean | null
+                    fecha_exencion?: string | null
                 }
                 Relationships: []
             }
             registros_acceso_rutina: {
                 Row: {
                     id: string
-                    routine_id: string | null
-                    user_id: string | null
+                    rutina_id: string | null
+                    usuario_id: string | null
                     action: string
                     ip_address: string | null
                     user_agent: string | null
-                    device_info: Json | null
+                    info_dispositivo: Json | null
                     latitude: number | null
                     longitude: number | null
-                    created_at: string | null
+                    creado_en: string | null
+                    fue_resuelto: boolean | null
+                    resuelto_en: string | null
                 }
                 Insert: {
                     id?: string
-                    routine_id?: string | null
-                    user_id?: string | null
+                    rutina_id?: string | null
+                    usuario_id?: string | null
                     action: string
                     ip_address?: string | null
                     user_agent?: string | null
-                    device_info?: Json | null
+                    info_dispositivo?: Json | null
                     latitude?: number | null
                     longitude?: number | null
-                    created_at?: string | null
+                    creado_en?: string | null
+                    fue_resuelto?: boolean | null
+                    resuelto_en?: string | null
                 }
                 Update: {
                     id?: string
-                    routine_id?: string | null
-                    user_id?: string | null
+                    rutina_id?: string | null
+                    usuario_id?: string | null
                     action?: string
                     ip_address?: string | null
                     user_agent?: string | null
-                    device_info?: Json | null
+                    info_dispositivo?: Json | null
                     latitude?: number | null
                     longitude?: number | null
-                    created_at?: string | null
+                    creado_en?: string | null
+                    fue_resuelto?: boolean | null
+                    resuelto_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "routine_access_logs_routine_id_fkey"
-                        columns: ["routine_id"]
+                        columns: ["rutina_id"]
                         referencedRelation: "rutinas"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "routine_access_logs_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -1008,101 +1014,101 @@ export type Database = {
             rutinas: {
                 Row: {
                     id: string
-                    user_id: string
-                    coach_id: string | null
-                    name: string
-                    description: string | null
-                    goal: string | null
-                    duration_weeks: number | null
-                    generated_by_ai: boolean | null
-                    ai_prompt: string | null
-                    is_active: boolean | null
-                    created_at: string | null
-                    updated_at: string | null
-                    nutrition_plan_id: string | null
-                    user_goal_id: string | null
-                    status: string | null
-                    approved_by: string | null
-                    approved_at: string | null
-                    medical_considerations: string | null
-                    equipment_used: string[] | null
-                    view_count: number | null
-                    last_viewed_at: string | null
+                    usuario_id: string
+                    entrenador_id: string | null
+                    nombre: string
+                    descripcion: string | null
+                    objetivo: string | null
+                    duracion_semanas: number | null
+                    generada_por_ia: boolean | null
+                    prompt_ia: string | null
+                    esta_activa: boolean | null
+                    creado_en: string | null
+                    actualizado_en: string | null
+                    plan_nutricional_id: string | null
+                    objetivo_usuario_id: string | null
+                    estado: string | null
+                    aprobado_por: string | null
+                    aprobado_en: string | null
+                    consideraciones_medicas: string | null
+                    equipamiento_usado: string[] | null
+                    contador_vistas: number | null
+                    ultima_vista_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    coach_id?: string | null
-                    name: string
-                    description?: string | null
-                    goal?: string | null
-                    duration_weeks?: number | null
-                    generated_by_ai?: boolean | null
-                    ai_prompt?: string | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    nutrition_plan_id?: string | null
-                    user_goal_id?: string | null
-                    status?: string | null
-                    approved_by?: string | null
-                    approved_at?: string | null
-                    medical_considerations?: string | null
-                    equipment_used?: string[] | null
-                    view_count?: number | null
-                    last_viewed_at?: string | null
+                    usuario_id: string
+                    entrenador_id?: string | null
+                    nombre: string
+                    descripcion?: string | null
+                    objetivo?: string | null
+                    duracion_semanas?: number | null
+                    generada_por_ia?: boolean | null
+                    prompt_ia?: string | null
+                    esta_activa?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    plan_nutricional_id?: string | null
+                    objetivo_usuario_id?: string | null
+                    estado?: string | null
+                    aprobado_por?: string | null
+                    aprobado_en?: string | null
+                    consideraciones_medicas?: string | null
+                    equipamiento_usado?: string[] | null
+                    contador_vistas?: number | null
+                    ultima_vista_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    coach_id?: string | null
-                    name?: string
-                    description?: string | null
-                    goal?: string | null
-                    duration_weeks?: number | null
-                    generated_by_ai?: boolean | null
-                    ai_prompt?: string | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    nutrition_plan_id?: string | null
-                    user_goal_id?: string | null
-                    status?: string | null
-                    approved_by?: string | null
-                    approved_at?: string | null
-                    medical_considerations?: string | null
-                    equipment_used?: string[] | null
-                    view_count?: number | null
-                    last_viewed_at?: string | null
+                    usuario_id?: string
+                    entrenador_id?: string | null
+                    nombre?: string
+                    descripcion?: string | null
+                    objetivo?: string | null
+                    duracion_semanas?: number | null
+                    generada_por_ia?: boolean | null
+                    prompt_ia?: string | null
+                    esta_activa?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    plan_nutricional_id?: string | null
+                    objetivo_usuario_id?: string | null
+                    estado?: string | null
+                    aprobado_por?: string | null
+                    aprobado_en?: string | null
+                    consideraciones_medicas?: string | null
+                    equipamiento_usado?: string[] | null
+                    contador_vistas?: number | null
+                    ultima_vista_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "routines_approved_by_fkey"
-                        columns: ["approved_by"]
+                        columns: ["aprobado_por"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "routines_coach_id_fkey"
-                        columns: ["coach_id"]
+                        columns: ["entrenador_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "routines_nutrition_plan_id_fkey"
-                        columns: ["nutrition_plan_id"]
+                        columns: ["plan_nutricional_id"]
                         referencedRelation: "planes_nutricionales"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "routines_user_goal_id_fkey"
-                        columns: ["user_goal_id"]
+                        columns: ["objetivo_usuario_id"]
                         referencedRelation: "objetivos_del_usuario"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "routines_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -1111,50 +1117,50 @@ export type Database = {
             reportes_de_alumnos: {
                 Row: {
                     id: string
-                    user_id: string
-                    title: string
-                    description: string | null
-                    type: string
-                    status: string | null
-                    created_at: string | null
-                    updated_at: string | null
-                    resolved_at: string | null
-                    resolved_by: string | null
+                    usuario_id: string
+                    titulo: string
+                    descripcion: string | null
+                    tipo: string
+                    estado: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
+                    resuelto_en: string | null
+                    resuelto_por: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    title: string
-                    description?: string | null
-                    type: string
-                    status?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    resolved_at?: string | null
-                    resolved_by?: string | null
+                    usuario_id: string
+                    titulo: string
+                    descripcion?: string | null
+                    tipo: string
+                    estado?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    resuelto_en?: string | null
+                    resuelto_por?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    title?: string
-                    description?: string | null
-                    type?: string
-                    status?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
-                    resolved_at?: string | null
-                    resolved_by?: string | null
+                    usuario_id?: string
+                    titulo?: string
+                    descripcion?: string | null
+                    tipo?: string
+                    estado?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
+                    resuelto_en?: string | null
+                    resuelto_por?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "student_reports_resolved_by_fkey"
-                        columns: ["resolved_by"]
+                        columns: ["resuelto_por"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "student_reports_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -1163,72 +1169,72 @@ export type Database = {
             logros_del_usuario: {
                 Row: {
                     id: string
-                    user_id: string
-                    achievement_id: string
-                    unlocked_at: string | null
+                    usuario_id: string
+                    logro_id: string
+                    desbloqueado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    achievement_id: string
-                    unlocked_at?: string | null
+                    usuario_id: string
+                    logro_id: string
+                    desbloqueado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    achievement_id?: string
-                    unlocked_at?: string | null
+                    usuario_id?: string
+                    logro_id?: string
+                    desbloqueado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "user_achievements_achievement_id_fkey"
-                        columns: ["achievement_id"]
+                        columns: ["logro_id"]
                         referencedRelation: "logros"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "user_achievements_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
                 ]
             }
-            gamificación_del_usuario: {
+            gamificacion_del_usuario: {
                 Row: {
-                    user_id: string
+                    usuario_id: string
                     points: number | null
-                    current_streak: number | null
-                    longest_streak: number | null
+                    racha_actual: number | null
+                    racha_mas_larga: number | null
                     level: number | null
-                    last_activity_date: string | null
-                    created_at: string | null
-                    updated_at: string | null
+                    fecha_ultima_actividad: string | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
-                    user_id: string
+                    usuario_id: string
                     points?: number | null
-                    current_streak?: number | null
-                    longest_streak?: number | null
+                    racha_actual?: number | null
+                    racha_mas_larga?: number | null
                     level?: number | null
-                    last_activity_date?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    fecha_ultima_actividad?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
-                    user_id?: string
+                    usuario_id?: string
                     points?: number | null
-                    current_streak?: number | null
-                    longest_streak?: number | null
+                    racha_actual?: number | null
+                    racha_mas_larga?: number | null
                     level?: number | null
-                    last_activity_date?: string | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    fecha_ultima_actividad?: string | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "user_gamification_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -1237,68 +1243,68 @@ export type Database = {
             objetivos_del_usuario: {
                 Row: {
                     id: string
-                    user_id: string | null
-                    primary_goal: string
-                    secondary_goals: string[] | null
-                    target_weight: number | null
-                    target_body_fat_percentage: number | null
-                    target_muscle_mass: number | null
-                    start_date: string
-                    target_date: string | null
-                    training_frequency_per_week: number | null
-                    preferred_training_time: string | null
-                    available_days: string[] | null
-                    time_per_session_minutes: number | null
-                    equipment_access: string[] | null
-                    coach_notes: string | null
-                    is_active: boolean | null
-                    created_at: string | null
-                    updated_at: string | null
+                    usuario_id: string | null
+                    objetivo_principal: string
+                    objetivos_secundarios: string[] | null
+                    peso_objetivo: number | null
+                    porcentaje_grasa_corporal_objetivo: number | null
+                    masa_muscular_objetivo: number | null
+                    fecha_inicio: string
+                    fecha_objetivo: string | null
+                    frecuencia_entrenamiento_por_semana: number | null
+                    tiempo_entrenamiento_preferido: string | null
+                    dias_disponibles: string[] | null
+                    tiempo_por_sesion_minutos: number | null
+                    acceso_a_equipamiento: string[] | null
+                    notas_entrenador: string | null
+                    esta_activo: boolean | null
+                    creado_en: string | null
+                    actualizado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id?: string | null
-                    primary_goal: string
-                    secondary_goals?: string[] | null
-                    target_weight?: number | null
-                    target_body_fat_percentage?: number | null
-                    target_muscle_mass?: number | null
-                    start_date?: string
-                    target_date?: string | null
-                    training_frequency_per_week?: number | null
-                    preferred_training_time?: string | null
-                    available_days?: string[] | null
-                    time_per_session_minutes?: number | null
-                    equipment_access?: string[] | null
-                    coach_notes?: string | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    usuario_id?: string | null
+                    objetivo_principal: string
+                    objetivos_secundarios?: string[] | null
+                    peso_objetivo?: number | null
+                    porcentaje_grasa_corporal_objetivo?: number | null
+                    masa_muscular_objetivo?: number | null
+                    fecha_inicio?: string
+                    fecha_objetivo?: string | null
+                    frecuencia_entrenamiento_por_semana?: number | null
+                    tiempo_entrenamiento_preferido?: string | null
+                    dias_disponibles?: string[] | null
+                    tiempo_por_sesion_minutos?: number | null
+                    acceso_a_equipamiento?: string[] | null
+                    notas_entrenador?: string | null
+                    esta_activo?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string | null
-                    primary_goal?: string
-                    secondary_goals?: string[] | null
-                    target_weight?: number | null
-                    target_body_fat_percentage?: number | null
-                    target_muscle_mass?: number | null
-                    start_date?: string
-                    target_date?: string | null
-                    training_frequency_per_week?: number | null
-                    preferred_training_time?: string | null
-                    available_days?: string[] | null
-                    time_per_session_minutes?: number | null
-                    equipment_access?: string[] | null
-                    coach_notes?: string | null
-                    is_active?: boolean | null
-                    created_at?: string | null
-                    updated_at?: string | null
+                    usuario_id?: string | null
+                    objetivo_principal?: string
+                    objetivos_secundarios?: string[] | null
+                    peso_objetivo?: number | null
+                    porcentaje_grasa_corporal_objetivo?: number | null
+                    masa_muscular_objetivo?: number | null
+                    fecha_inicio?: string
+                    fecha_objetivo?: string | null
+                    frecuencia_entrenamiento_por_semana?: number | null
+                    tiempo_entrenamiento_preferido?: string | null
+                    dias_disponibles?: string[] | null
+                    tiempo_por_sesion_minutos?: number | null
+                    acceso_a_equipamiento?: string[] | null
+                    notas_entrenador?: string | null
+                    esta_activo?: boolean | null
+                    creado_en?: string | null
+                    actualizado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "user_goals_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
@@ -1307,96 +1313,281 @@ export type Database = {
             sesiones_de_entrenamiento: {
                 Row: {
                     id: string
-                    user_id: string
-                    routine_id: string
-                    start_time: string | null
-                    end_time: string | null
-                    status: string | null
+                    usuario_id: string
+                    rutina_id: string
+                    hora_inicio: string | null
+                    hora_fin: string | null
+                    estado: string | null
                     total_points: number | null
                     mood_rating: number | null
                     notes: string | null
-                    created_at: string | null
+                    creado_en: string | null
                 }
                 Insert: {
                     id?: string
-                    user_id: string
-                    routine_id: string
-                    start_time?: string | null
-                    end_time?: string | null
-                    status?: string | null
+                    usuario_id: string
+                    rutina_id: string
+                    hora_inicio?: string | null
+                    hora_fin?: string | null
+                    estado?: string | null
                     total_points?: number | null
                     mood_rating?: number | null
                     notes?: string | null
-                    created_at?: string | null
+                    creado_en?: string | null
                 }
                 Update: {
                     id?: string
-                    user_id?: string
-                    routine_id?: string
-                    start_time?: string | null
-                    end_time?: string | null
-                    status?: string | null
+                    usuario_id?: string
+                    rutina_id?: string
+                    hora_inicio?: string | null
+                    hora_fin?: string | null
+                    estado?: string | null
                     total_points?: number | null
                     mood_rating?: number | null
                     notes?: string | null
-                    created_at?: string | null
+                    creado_en?: string | null
                 }
                 Relationships: [
                     {
                         foreignKeyName: "workout_sessions_routine_id_fkey"
-                        columns: ["routine_id"]
+                        columns: ["rutina_id"]
                         referencedRelation: "rutinas"
                         referencedColumns: ["id"]
                     },
                     {
                         foreignKeyName: "workout_sessions_user_id_fkey"
-                        columns: ["user_id"]
+                        columns: ["usuario_id"]
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     }
                 ]
             }
-        }
-        Views: {
-            clases_con_disponibilidad: {
-                Row: {
-                    id: string
-                    activity_id: string | null
-                    coach_id: string | null
-                    day_of_week: number
-                    start_time: string
-                    end_time: string
-                    max_capacity: number
-                    current_capacity: number
-                    is_active: boolean
-                    activity_name: string
-                }
+        },
+        audit_logs: {
+            Row: {
+                id: string
+                tabla: string
+                operacion: "INSERT" | "UPDATE" | "DELETE"
+                registro_id: string | null
+                usuario_id: string | null
+                datos_anteriores: Json | null
+                datos_nuevos: Json | null
+                direccion_ip: string | null
+                agente_usuario: string | null
+                creado_en: string | null
             }
-            user_bookings_detailed: {
-                Row: {
-                    id: string
-                    user_id: string
-                    date: string
-                    status: string
-                    class_schedule_id: string
-                    start_time: string
-                    end_time: string
-                    activity_name: string
-                    coach_name: string
-                }
+            Insert: {
+                id?: string
+                tabla: string
+                operacion: "INSERT" | "UPDATE" | "DELETE"
+                registro_id?: string | null
+                usuario_id?: string | null
+                datos_anteriores?: Json | null
+                datos_nuevos?: Json | null
+                direccion_ip?: string | null
+                agente_usuario?: string | null
+                creado_en?: string | null
             }
-        }
-        Functions: {
-            [_ in never]: never
-        }
-        Enums: {
-            user_role: "admin" | "coach" | "member"
-            membership_status_enum: "active" | "inactive" | "suspended" | "expired"
-        }
-        CompositeTypes: {
-            [_ in never]: never
+            Update: {
+                id?: string
+                tabla?: string
+                operacion?: "INSERT" | "UPDATE" | "DELETE"
+                registro_id?: string | null
+                usuario_id?: string | null
+                datos_anteriores?: Json | null
+                datos_nuevos?: Json | null
+                direccion_ip?: string | null
+                agente_usuario?: string | null
+                creado_en?: string | null
+            }
+            Relationships: [
+                {
+                    foreignKeyName: "audit_logs_usuario_id_fkey"
+                    columns: ["usuario_id"]
+                    isOneToOne: false
+                    referencedRelation: "perfiles"
+                    referencedColumns: ["id"]
+                }
+            ]
+        },
+        videos_ejercicio: {
+            Row: {
+                id: string
+                usuario_id: string
+                subido_por: string
+                ejercicio_id: string | null
+                url_video: string
+                url_thumbnail: string | null
+                duracion_segundos: number | null
+                estado: "subido" | "procesando" | "analizado" | "error" | null
+                procesado_en: string | null
+                correcciones_ia: Json | null
+                puntaje_confianza: number | null
+                compartido_con_alumno: boolean | null
+                compartido_en: string | null
+                feedback_alumno: string | null
+                calificacion_alumno: number | null
+                creado_en: string | null
+                actualizado_en: string | null
+            }
+            Insert: {
+                id?: string
+                usuario_id: string
+                subido_por: string
+                ejercicio_id?: string | null
+                url_video: string
+                url_thumbnail?: string | null
+                duracion_segundos?: number | null
+                estado?: "subido" | "procesando" | "analizado" | "error" | null
+                procesado_en?: string | null
+                correcciones_ia?: Json | null
+                puntaje_confianza?: number | null
+                compartido_con_alumno?: boolean | null
+                compartido_en?: string | null
+                feedback_alumno?: string | null
+                calificacion_alumno?: number | null
+                creado_en?: string | null
+                actualizado_en?: string | null
+            }
+            Update: {
+                id?: string
+                usuario_id?: string
+                subido_por?: string
+                ejercicio_id?: string | null
+                url_video?: string
+                url_thumbnail?: string | null
+                duracion_segundos?: number | null
+                estado?: "subido" | "procesando" | "analizado" | "error" | null
+                procesado_en?: string | null
+                correcciones_ia?: Json | null
+                puntaje_confianza?: number | null
+                compartido_con_alumno?: boolean | null
+                compartido_en?: string | null
+                feedback_alumno?: string | null
+                calificacion_alumno?: number | null
+                creado_en?: string | null
+                actualizado_en?: string | null
+            }
+            Relationships: [
+                {
+                    foreignKeyName: "videos_ejercicio_usuario_id_fkey"
+                    columns: ["usuario_id"]
+                    isOneToOne: false
+                    referencedRelation: "perfiles"
+                    referencedColumns: ["id"]
+                },
+                {
+                    foreignKeyName: "videos_ejercicio_subido_por_fkey"
+                    columns: ["subido_por"]
+                    isOneToOne: false
+                    referencedRelation: "perfiles"
+                    referencedColumns: ["id"]
+                },
+                {
+                    foreignKeyName: "videos_ejercicio_ejercicio_id_fkey"
+                    columns: ["ejercicio_id"]
+                    isOneToOne: false
+                    referencedRelation: "ejercicios"
+                    referencedColumns: ["id"]
+                }
+            ]
+        },
+        ejercicios_equipamiento: {
+            Row: {
+                id: string
+                ejercicio_id: string
+                equipamiento_id: string
+                es_opcional: boolean | null
+                alternativa_id: string | null
+                creado_en: string | null
+            }
+            Insert: {
+                id?: string
+                ejercicio_id: string
+                equipamiento_id: string
+                es_opcional?: boolean | null
+                alternativa_id?: string | null
+                creado_en?: string | null
+            }
+            Update: {
+                id?: string
+                ejercicio_id?: string
+                equipamiento_id?: string
+                es_opcional?: boolean | null
+                alternativa_id?: string | null
+                creado_en?: string | null
+            }
+            Relationships: [
+                {
+                    foreignKeyName: "ejercicios_equipamiento_ejercicio_id_fkey"
+                    columns: ["ejercicio_id"]
+                    isOneToOne: false
+                    referencedRelation: "ejercicios"
+                    referencedColumns: ["id"]
+                },
+                {
+                    foreignKeyName: "ejercicios_equipamiento_equipamiento_id_fkey"
+                    columns: ["equipamiento_id"]
+                    isOneToOne: false
+                    referencedRelation: "equipamiento"
+                    referencedColumns: ["id"]
+                }
+            ]
         }
     }
+    Views: {
+        clases_con_disponibilidad: {
+            Row: {
+                id: string
+                actividad_id: string | null
+                entrenador_id: string | null
+                dia_de_la_semana: number
+                hora_inicio: string
+                hora_fin: string
+                capacidad_maxima: number
+                capacidad_actual: number
+                esta_activa: boolean
+                nombre_actividad: string
+            }
+        }
+        user_bookings_detailed: {
+            Row: {
+                id: string
+                usuario_id: string
+                fecha: string
+                estado: string
+                horario_clase_id: string
+                hora_inicio: string
+                hora_fin: string
+                nombre_actividad: string
+                nombre_entrenador: string
+            }
+        }
+    }
+
+}
+Functions: {
+    [_ in never]: never
+}
+Enums: {
+    nivel_dificultad: "principiante" | "intermedio" | "avanzado" | "competitivo"
+    tipo_conversacion: "individual" | "grupal" | "soporte"
+    categoria_equipamiento: "cardio" | "fuerza" | "flexibilidad" | "accesorios" | "otros"
+    estado_condicion: "nuevo" | "bueno" | "regular" | "mantenimiento" | "fuera_de_servicio"
+    tipo_objetivo_principal: "perder_peso" | "ganar_musculo" | "mejorar_resistencia" | "flexibilidad" | "salud_general"
+    tiempo_entrenamiento_preferido: "mañana" | "mediodia" | "tarde" | "noche"
+    tipo_metodo_pago: "efectivo" | "tarjeta" | "transferencia" | "mercado_pago" | "otro"
+    estado_pago: "pendiente" | "completado" | "fallido" | "reembolsado" | "cancelado"
+    estado_clase: "confirmada" | "cancelada" | "asistida" | "no_asistio"
+    estado_rutina: "borrador" | "pendiente_aprobacion" | "activa" | "completada" | "archivada"
+    estado_sesion: "en_progreso" | "completada" | "cancelada" | "pausada"
+    user_role: "admin" | "coach" | "member"
+    membership_status_enum: "active" | "inactive" | "suspended" | "expired"
+}
+CompositeTypes: {
+    [_ in never]: never
+}
+}
 }
 
 type PublicSchema = Database[Extract<keyof Database, "public">]

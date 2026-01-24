@@ -4,26 +4,26 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
 interface ProgressData {
-    weight_history: WeightEntry[];
-    completed_workouts: number;
-    total_workouts: number;
-    current_streak: number;
-    best_streak: number;
-    measurements: Measurement[];
+    historial_peso: WeightEntry[];
+    entrenamientos_completados: number;
+    entrenamientos_totales: number;
+    racha_actual: number;
+    mejor_racha: number;
+    mediciones: Measurement[];
 }
 
 interface WeightEntry {
-    date: string;
-    weight: number;
+    fecha: string;
+    peso: number;
 }
 
 interface Measurement {
-    date: string;
-    chest: number;
-    waist: number;
-    hips: number;
-    arms: number;
-    legs: number;
+    fecha: string;
+    pecho: number;
+    cintura: number;
+    cadera: number;
+    brazos: number;
+    piernas: number;
 }
 
 export default function StudentProgressPage() {
@@ -77,14 +77,14 @@ export default function StudentProgressPage() {
     };
 
     const getCompletionPercentage = () => {
-        if (!progress || progress.total_workouts === 0) return 0;
-        return Math.round((progress.completed_workouts / progress.total_workouts) * 100);
+        if (!progress || progress.entrenamientos_totales === 0) return 0;
+        return Math.round((progress.entrenamientos_completados / progress.entrenamientos_totales) * 100);
     };
 
     const getWeightChange = () => {
-        if (!progress || progress.weight_history.length < 2) return '0';
-        const first = progress.weight_history[0].weight;
-        const last = progress.weight_history[progress.weight_history.length - 1].weight;
+        if (!progress || progress.historial_peso.length < 2) return '0';
+        const first = progress.historial_peso[0].peso;
+        const last = progress.historial_peso[progress.historial_peso.length - 1].peso;
         return (last - first).toFixed(1);
     };
 
@@ -109,14 +109,14 @@ export default function StudentProgressPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6">
                         <div className="text-orange-100 text-sm mb-1">Entrenamientos Completados</div>
-                        <div className="text-3xl font-bold text-white">{progress?.completed_workouts || 0}</div>
-                        <div className="text-orange-100 text-xs">de {progress?.total_workouts || 0} totales</div>
+                        <div className="text-3xl font-bold text-white">{progress?.entrenamientos_completados || 0}</div>
+                        <div className="text-orange-100 text-xs">de {progress?.entrenamientos_totales || 0} totales</div>
                     </div>
 
                     <div className="bg-gray-800 rounded-lg p-6 border border-green-500/30">
                         <div className="text-gray-400 text-sm mb-1">Racha Actual</div>
-                        <div className="text-3xl font-bold text-green-400">{progress?.current_streak || 0} días</div>
-                        <div className="text-gray-500 text-xs">Mejor: {progress?.best_streak || 0} días</div>
+                        <div className="text-3xl font-bold text-green-400">{progress?.racha_actual || 0} días</div>
+                        <div className="text-gray-500 text-xs">Mejor: {progress?.mejor_racha || 0} días</div>
                     </div>
 
                     <div className="bg-gray-800 rounded-lg p-6 border border-blue-500/30">
@@ -146,25 +146,25 @@ export default function StudentProgressPage() {
                         </button>
                     </div>
 
-                    {progress && progress.weight_history.length > 0 ? (
+                    {progress && progress.historial_peso.length > 0 ? (
                         <div className="space-y-4">
                             {/* Simple line representation */}
                             <div className="h-64 flex items-end gap-2">
-                                {progress.weight_history.map((entry, index) => {
-                                    const maxWeight = Math.max(...progress.weight_history.map(e => e.weight));
-                                    const minWeight = Math.min(...progress.weight_history.map(e => e.weight));
+                                {progress.historial_peso.map((entry, index) => {
+                                    const maxWeight = Math.max(...progress.historial_peso.map(e => e.peso));
+                                    const minWeight = Math.min(...progress.historial_peso.map(e => e.peso));
                                     const range = maxWeight - minWeight || 1;
-                                    const height = ((entry.weight - minWeight) / range) * 100;
+                                    const height = ((entry.peso - minWeight) / range) * 100;
 
                                     return (
                                         <div key={index} className="flex-1 flex flex-col items-center">
-                                            <div className="text-xs text-orange-400 font-bold mb-1">{entry.weight}kg</div>
+                                            <div className="text-xs text-orange-400 font-bold mb-1">{entry.peso}kg</div>
                                             <div
                                                 className="w-full bg-orange-500 rounded-t"
                                                 style={{ height: `${Math.max(height, 10)}%` }}
                                             ></div>
                                             <div className="text-xs text-gray-500 mt-2">
-                                                {new Date(entry.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
+                                                {new Date(entry.fecha).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
                                             </div>
                                         </div>
                                     );
@@ -189,7 +189,7 @@ export default function StudentProgressPage() {
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                     <h2 className="text-xl font-bold text-white mb-6">Medidas Corporales</h2>
 
-                    {progress && progress.measurements && progress.measurements.length > 0 ? (
+                    {progress && progress.mediciones && progress.mediciones.length > 0 ? (
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-gray-700">
@@ -203,16 +203,16 @@ export default function StudentProgressPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-700">
-                                    {progress.measurements.map((measurement, index) => (
+                                    {progress.mediciones.map((measurement, index) => (
                                         <tr key={index} className="hover:bg-gray-700/50">
                                             <td className="px-4 py-3 text-white">
-                                                {new Date(measurement.date).toLocaleDateString('es-AR')}
+                                                {new Date(measurement.fecha).toLocaleDateString('es-AR')}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-300">{measurement.chest} cm</td>
-                                            <td className="px-4 py-3 text-gray-300">{measurement.waist} cm</td>
-                                            <td className="px-4 py-3 text-gray-300">{measurement.hips} cm</td>
-                                            <td className="px-4 py-3 text-gray-300">{measurement.arms} cm</td>
-                                            <td className="px-4 py-3 text-gray-300">{measurement.legs} cm</td>
+                                            <td className="px-4 py-3 text-gray-300">{measurement.pecho} cm</td>
+                                            <td className="px-4 py-3 text-gray-300">{measurement.cintura} cm</td>
+                                            <td className="px-4 py-3 text-gray-300">{measurement.cadera} cm</td>
+                                            <td className="px-4 py-3 text-gray-300">{measurement.brazos} cm</td>
+                                            <td className="px-4 py-3 text-gray-300">{measurement.piernas} cm</td>
                                         </tr>
                                     ))}
                                 </tbody>

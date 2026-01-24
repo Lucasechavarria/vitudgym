@@ -6,6 +6,7 @@ import ClientProviders from "@/components/ClientProviders";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Viewport } from 'next';
 import Script from 'next/script';
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_ID;
 
@@ -24,14 +25,13 @@ const inter = Inter({
   display: 'swap'
 });
 
-// ▼ Mantén solo ESTA declaración de metadata ▼
 export const metadata: Metadata = {
   title: {
     default: "VIRTUD | Entrenamiento Inteligente",
     template: "%s | VIRTUD"
   },
   description: "Centro de transformación integral: Fitness, Artes Marciales y Medicina China. Elevá tu potencial al siguiente nivel.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virtud-gym.com'), // Updated placeholder domain
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virtud-gym.com'),
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -84,6 +84,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <ClientProviders />
           {children}
+          <InstallPrompt />
         </ErrorBoundary>
       </body>
     </html>

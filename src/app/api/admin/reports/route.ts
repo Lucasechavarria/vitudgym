@@ -10,7 +10,7 @@ export async function GET() {
         const { count: totalMembers } = await supabase
             .from('perfiles')
             .select('*', { count: 'exact', head: true })
-            .eq('role', 'user');
+            .eq('rol', 'member');
 
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
@@ -19,38 +19,38 @@ export async function GET() {
         const { count: newMembers } = await supabase
             .from('perfiles')
             .select('*', { count: 'exact', head: true })
-            .eq('role', 'user')
-            .gte('created_at', startOfMonth.toISOString());
+            .eq('rol', 'member')
+            .gte('creado_en', startOfMonth.toISOString());
 
         const { count: attendanceCount } = await supabase
             .from('reservas_de_clase')
             .select('*', { count: 'exact', head: true })
-            .eq('status', 'attended')
-            .gte('date', startOfMonth.toISOString());
+            .eq('estado', 'attended')
+            .gte('fecha', startOfMonth.toISOString());
 
         // Revenue & Expenses from Payments Table
         const { data: allPayments, error: paymentsError } = await supabase
-            .from('payments')
-            .select('amount, created_at, status')
-            .eq('status', 'approved');
+            .from('pagos')
+            .select('monto, creado_en, estado')
+            .eq('estado', 'completado');
 
         if (paymentsError) throw paymentsError;
 
         const totalRevenue = (allPayments || [])
-            .filter(p => p.amount > 0)
-            .reduce((sum, p) => sum + p.amount, 0);
+            .filter((p: any) => p.monto > 0)
+            .reduce((sum, p: any) => sum + p.monto, 0);
 
         const totalExpenses = (allPayments || [])
-            .filter(p => p.amount < 0)
-            .reduce((sum, p) => sum + Math.abs(p.amount), 0);
+            .filter((p: any) => p.monto < 0)
+            .reduce((sum, p: any) => sum + Math.abs(p.monto), 0);
 
         const netRevenue = totalRevenue - totalExpenses;
 
         const { data: userDates } = await supabase
             .from('perfiles')
-            .select('created_at')
-            .eq('role', 'user')
-            .order('created_at', { ascending: true });
+            .select('creado_en')
+            .eq('rol', 'member')
+            .order('creado_en', { ascending: true });
 
         const growthData = processGrowthData(userDates || []);
 
@@ -86,7 +86,7 @@ function processGrowthData(data: { created_at: string }[]) {
     }
 
     data.forEach(u => {
-        const d = new Date(u.created_at);
+        const d = new Date((u as any).creado_en);
         const key = d.toLocaleString('es-ES', { month: 'short' });
         if (months[key] !== undefined) months[key] += 1;
     });
@@ -108,10 +108,10 @@ function processRevenueGrowth(payments: any[]) {
     }
 
     payments.forEach(p => {
-        const d = new Date(p.created_at);
+        const d = new Date(p.creado_en);
         const key = d.toLocaleString('es-ES', { month: 'short' });
         if (months[key] !== undefined) {
-            months[key] += p.amount;
+            months[key] += p.monto;
         }
     });
 

@@ -68,10 +68,10 @@ export default function SchedulePage() {
             if (!confirm(`¿Confirmar reserva para ${className} el ${dateStr} a las ${time}?`)) return;
 
             await bookingsService.create({
-                user_id: user.id,
-                class_schedule_id: classId,
-                date: dateStr
-            });
+                usuario_id: user.id,
+                horario_clase_id: classId,
+                fecha: dateStr
+            } as any);
 
             toast.success('Reserva confirmada');
             fetchSchedule(); // Refresh
@@ -142,23 +142,23 @@ export default function SchedulePage() {
                         >
                             <div className="flex items-center gap-4">
                                 <div className="bg-orange-500/10 text-orange-500 p-3 rounded-lg font-bold text-xl min-w-[80px] text-center">
-                                    {cls.start_time.slice(0, 5)}
+                                    {cls.hora_inicio.slice(0, 5)}
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg">{cls.activity_name || 'Clase'}</h3>
+                                    <h3 className="font-bold text-lg">{cls.nombre_actividad || 'Clase'}</h3>
                                     <p className="text-gray-400 text-sm">
-                                        Coach: {cls.coach_name || 'Staff'} • {cls.duration_minutes || 60} min
+                                        Coach: {cls.nombre_entrenador || 'Staff'} • {cls.duracion_minutos || 60} min
                                     </p>
                                     <div className="flex items-center gap-2 mt-2">
-                                        <span className={`text-xs px-2 py-0.5 rounded-full ${cls.available_spots > 5 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                            {cls.available_spots} cupos libres
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${cls.cupos_disponibles > 5 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            {cls.cupos_disponibles} cupos libres
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
                             <button
-                                onClick={() => handleBooking(cls.id, cls.activity_name, cls.start_time)}
+                                onClick={() => handleBooking(cls.id, cls.nombre_actividad, cls.hora_inicio)}
                                 className="bg-white text-black font-bold px-6 py-2 rounded-lg hover:scale-105 transition-transform"
                             >
                                 Reservar

@@ -6,21 +6,21 @@ import { WorkoutSessionState, ExerciseLog } from '@/types/workout';
 
 interface Exercise {
     id: string;
-    name: string;
-    description: string;
-    instructions: string;
-    sets: number;
-    reps: string;
-    rest_seconds: number;
-    equipment: string[];
-    muscle_group?: string;
+    nombre: string;
+    descripcion: string;
+    instrucciones: string;
+    series: number;
+    repeticiones: string;
+    descanso_segundos: number;
+    equipamiento: string[];
+    grupo_muscular?: string;
     tempo?: string;
 }
 
 interface Routine {
     id: string;
-    name: string;
-    exercises: Exercise[];
+    nombre: string;
+    ejercicios: Exercise[];
 }
 
 interface WorkoutPlayerProps {
@@ -42,7 +42,7 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
 
     const restTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const currentExercise = routine.exercises[currentIndex];
+    const currentExercise = routine.ejercicios[currentIndex];
 
     // 1. Initialize Session
     useEffect(() => {
@@ -101,23 +101,23 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     sessionId,
-                    exercise_id: currentExercise.id,
-                    actual_sets: currentExercise.sets,
-                    actual_reps: currentReps || currentExercise.reps,
-                    actual_weight: parseFloat(currentWeight) || 0,
-                    is_completed: true
+                    ejercicio_id: currentExercise.id,
+                    series_reales: currentExercise.series,
+                    repeticiones_reales: currentReps || currentExercise.repeticiones,
+                    peso_real: parseFloat(currentWeight) || 0,
+                    fue_completado: true
                 })
             });
         }
 
-        if (currentIndex < routine.exercises.length - 1) {
+        if (currentIndex < routine.ejercicios.length - 1) {
             setCurrentIndex(prev => prev + 1);
             setCurrentWeight('');
             setCurrentReps('');
 
             // Start rest period if configured
-            if (currentExercise.rest_seconds > 0) {
-                setRestTimeLeft(currentExercise.rest_seconds);
+            if (currentExercise.descanso_segundos > 0) {
+                setRestTimeLeft(currentExercise.descanso_segundos);
                 setIsResting(true);
             }
         } else {
@@ -181,7 +181,7 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
                 <button onClick={onClose} className="text-gray-500 hover:text-white">✕</button>
                 <div className="flex flex-col items-center">
                     <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Ejecución en vivo</span>
-                    <h4 className="text-white font-bold text-sm">{routine.name}</h4>
+                    <h4 className="text-white font-bold text-sm">{routine.nombre}</h4>
                 </div>
                 <div className="w-8" />
             </div>
@@ -190,7 +190,7 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
             <div className="h-1 w-full bg-white/5">
                 <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${((currentIndex + 1) / routine.exercises.length) * 100}%` }}
+                    animate={{ width: `${((currentIndex + 1) / routine.ejercicios.length) * 100}%` }}
                     className="h-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                 />
             </div>
@@ -207,13 +207,13 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
                         {/* Exercise Name & Info */}
                         <div className="mb-8">
                             <span className="text-[10px] text-orange-500 font-black uppercase tracking-widest">
-                                {currentExercise.muscle_group || 'CORE'} • {currentIndex + 1}/{routine.exercises.length}
+                                {currentExercise.grupo_muscular || 'CORE'} • {currentIndex + 1}/{routine.ejercicios.length}
                             </span>
                             <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mt-2">
-                                {currentExercise.name}
+                                {currentExercise.nombre}
                             </h2>
                             <p className="text-gray-500 text-sm mt-4 leading-relaxed line-clamp-3">
-                                {currentExercise.instructions}
+                                {currentExercise.instrucciones}
                             </p>
                         </div>
 
@@ -221,11 +221,11 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
                         <div className="grid grid-cols-2 gap-4 mb-8">
                             <div className="bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col items-center justify-center">
                                 <span className="text-[10px] text-gray-500 font-bold uppercase mb-1">Series</span>
-                                <span className="text-4xl font-black text-white">{currentExercise.sets}</span>
+                                <span className="text-4xl font-black text-white">{currentExercise.series}</span>
                             </div>
                             <div className="bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col items-center justify-center">
                                 <span className="text-[10px] text-gray-500 font-bold uppercase mb-1">Repeticiones</span>
-                                <span className="text-4xl font-black text-white">{currentExercise.reps}</span>
+                                <span className="text-4xl font-black text-white">{currentExercise.repeticiones}</span>
                             </div>
                         </div>
 
@@ -249,7 +249,7 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
                                         type="text"
                                         value={currentReps}
                                         onChange={(e) => setCurrentReps(e.target.value)}
-                                        placeholder={currentExercise.reps}
+                                        placeholder={currentExercise.repeticiones}
                                         className="w-full bg-black/50 border border-white/10 p-4 rounded-xl text-white font-black text-center focus:border-orange-500 outline-none"
                                     />
                                 </div>
@@ -270,7 +270,7 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
                     >
                         <h4 className="text-white font-black text-sm uppercase tracking-widest mb-2">Descanso Activo</h4>
                         <span className="text-8xl font-black text-white tabular-nums">{restTimeLeft}s</span>
-                        <p className="text-blue-200 text-xs mt-4">Prepárate para: {routine.exercises[currentIndex]?.name}</p>
+                        <p className="text-blue-200 text-xs mt-4">Prepárate para: {routine.ejercicios[currentIndex]?.nombre}</p>
                         <button
                             onClick={() => setIsResting(false)}
                             className="mt-8 text-white/50 text-xs font-bold uppercase tracking-widest hover:text-white"
@@ -287,7 +287,7 @@ export default function WorkoutPlayer({ routine, onClose, onComplete }: WorkoutP
                     onClick={handleNextExercise}
                     className="w-full py-5 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl shadow-xl shadow-orange-500/20 transition-all flex items-center justify-center gap-3"
                 >
-                    {currentIndex < routine.exercises.length - 1 ? 'SIGUIENTE EJERCICIO ➜' : 'FINALIZAR ENTRENAMIENTO 🎉'}
+                    {currentIndex < routine.ejercicios.length - 1 ? 'SIGUIENTE EJERCICIO ➜' : 'FINALIZAR ENTRENAMIENTO 🎉'}
                 </button>
             </div>
         </div>

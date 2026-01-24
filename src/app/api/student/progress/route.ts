@@ -19,8 +19,8 @@ export async function GET(request: Request) {
         const { data: measurements } = await supabase
             .from('mediciones')
             .select('*')
-            .eq('user_id', user.id)
-            .order('recorded_at', { ascending: true });
+            .eq('usuario_id', user.id)
+            .order('registrado_en', { ascending: true });
 
         // Mock data fallback or mix
         const progress = {

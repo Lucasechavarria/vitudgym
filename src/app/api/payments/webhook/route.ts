@@ -121,18 +121,18 @@ async function handleApprovedPayment(payment: MercadoPagoPayment, userId: string
 
         // Guardar pago en Supabase
         const { error: paymentError } = await supabase
-            .from('payments')
+            .from('pagos')
             .upsert({
                 id: payment.id.toString(),
-                user_id: userId,
-                amount: payment.transaction_amount,
-                currency: payment.currency_id || 'ARS',
-                status: 'approved',
-                payment_method: 'mercadopago',
-                payment_provider: 'mercadopago',
-                provider_payment_id: payment.id.toString(),
-                concept: payment.description || 'Pago de membresía',
-                metadata: {
+                usuario_id: userId,
+                monto: payment.transaction_amount,
+                moneda: payment.currency_id || 'ARS',
+                estado: 'approved',
+                metodo_pago: 'mercadopago',
+                proveedor_pago: 'mercadopago',
+                id_proveedor_pago: payment.id.toString(),
+                concepto: payment.description || 'Pago de membresía',
+                metadatos: {
                     payment_method_id: payment.payment_method_id,
                     payment_type_id: payment.payment_type_id,
                     status_detail: payment.status_detail,
@@ -158,8 +158,8 @@ async function handleApprovedPayment(payment: MercadoPagoPayment, userId: string
         const { error: profileError } = await supabase
             .from('perfiles')
             .update({
-                membership_status: 'active',
-                membership_end_date: membershipEndDate.toISOString()
+                estado_membresia: 'active',
+                fecha_fin_membresia: membershipEndDate.toISOString()
             })
             .eq('id', userId);
 
@@ -205,18 +205,18 @@ async function handlePendingPayment(payment: MercadoPagoPayment, userId: string)
 
         // Guardar pago pendiente
         const { error: paymentError } = await supabase
-            .from('payments')
+            .from('pagos')
             .upsert({
                 id: payment.id.toString(),
-                user_id: userId,
-                amount: payment.transaction_amount,
-                currency: payment.currency_id || 'ARS',
-                status: 'pending',
-                payment_method: 'mercadopago',
-                payment_provider: 'mercadopago',
-                provider_payment_id: payment.id.toString(),
-                concept: payment.description || 'Pago de membresía',
-                metadata: {
+                usuario_id: userId,
+                monto: payment.transaction_amount,
+                moneda: payment.currency_id || 'ARS',
+                estado: 'pending',
+                metodo_pago: 'mercadopago',
+                proveedor_pago: 'mercadopago',
+                id_proveedor_pago: payment.id.toString(),
+                concepto: payment.description || 'Pago de membresía',
+                metadatos: {
                     payment_method_id: payment.payment_method_id,
                     payment_type_id: payment.payment_type_id,
                     status_detail: payment.status_detail,
@@ -267,18 +267,18 @@ async function handleRejectedPayment(payment: MercadoPagoPayment, userId: string
 
         // Guardar pago rechazado para auditoría
         const { error: paymentError } = await supabase
-            .from('payments')
+            .from('pagos')
             .upsert({
                 id: payment.id.toString(),
-                user_id: userId,
-                amount: payment.transaction_amount,
-                currency: payment.currency_id || 'ARS',
-                status: 'rejected',
-                payment_method: 'mercadopago',
-                payment_provider: 'mercadopago',
-                provider_payment_id: payment.id.toString(),
-                concept: payment.description || 'Pago de membresía',
-                metadata: {
+                usuario_id: userId,
+                monto: payment.transaction_amount,
+                moneda: payment.currency_id || 'ARS',
+                estado: 'rejected',
+                metodo_pago: 'mercadopago',
+                proveedor_pago: 'mercadopago',
+                id_proveedor_pago: payment.id.toString(),
+                concepto: payment.description || 'Pago de membresía',
+                metadatos: {
                     payment_method_id: payment.payment_method_id,
                     payment_type_id: payment.payment_type_id,
                     status_detail: payment.status_detail,

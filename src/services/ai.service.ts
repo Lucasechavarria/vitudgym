@@ -97,7 +97,7 @@ export class AIService {
       : this.inferTemplate(userGoal?.primary_goal || '');
 
     const safeTemplate = template || AI_PROMPT_TEMPLATES.BEGINNER;
-    const medicalData = studentProfile.medical_info || {};
+    const medicalData = studentProfile.informacion_medica || {};
 
     return `
 Actúa como un entrenador personal profesional, planificador deportivo y arquitecto de experiencia de usuario para aplicaciones de entrenamiento.
@@ -105,10 +105,10 @@ Actúa como un entrenador personal profesional, planificador deportivo y arquite
 Tu tarea es generar una rutina de entrenamiento OPTIMIZADA, INTERACTIVA Y COMPARTIBLE entre profesor y alumno, basada EXCLUSIVAMENTE en los siguientes datos:
 
 1️⃣ INVENTARIO DEL GIMNASIO (equipamiento disponible):
-${gymEquipment.map(eq => `- ${eq.name} (${eq.category})`).join('\n')}
+${gymEquipment.map(eq => `- ${eq.name || eq.nombre} (${eq.category || eq.categoria})`).join('\n')}
 
 2️⃣ PLANILLA MÉDICA DEL ALUMNO:
-- Alumno: ${studentProfile.full_name}
+- Alumno: ${studentProfile.nombre_completo || studentProfile.full_name}
 - Sexo: ${studentProfile.gender || 'No especificado'}
 - Medidas: ${medicalData.weight || '?'}kg, ${medicalData.height || '?'}cm
 - Condiciones médicas: ${medicalData.chronic_diseases || 'Ninguna'}
@@ -118,9 +118,9 @@ ${gymEquipment.map(eq => `- ${eq.name} (${eq.category})`).join('\n')}
 ${coachNotes || 'Ninguna indicación previa.'}
 
 4️⃣ OBJETIVO DEL ALUMNO:
-- Objetivo principal: ${userGoal?.primary_goal || 'Fitness general'}
-- Frecuencia: ${userGoal?.training_frequency_per_week || 3} días/semana
-- Tiempo sesión: ${userGoal?.time_per_session_minutes || 60} min
+- Objetivo principal: ${userGoal?.objetivo_principal || userGoal?.primary_goal || 'Fitness general'}
+- Frecuencia: ${userGoal?.frecuencia_entrenamiento_por_semana || userGoal?.training_frequency_per_week || 3} días/semana
+- Tiempo sesión: ${userGoal?.tiempo_por_sesion_minutos || userGoal?.time_per_session_minutes || 60} min
 
 5️⃣ TEMPLATE DE RUTINA SELECCIONADO:
 ${safeTemplate.promptSuffix}
@@ -158,7 +158,7 @@ ${safeTemplate.promptSuffix}
   private inferTemplate(goal: string): any {
     const g = goal.toLowerCase();
     if (g.includes('rehab') || g.includes('salud') || g.includes('lesión') || g.includes('dolor')) return AI_PROMPT_TEMPLATES.REHAB;
-    if (g.includes('fuerza') || g.includes('músculo') || g.includes('hipertrofia') || g.includes('volumen')) return AI_PROMPT_TEMPLATES.HYPERTROPHY;
+    if (g.includes('fuerza') || g.includes('músculo') || g.includes('hipertrofia') || g.includes('volumen') || g.includes('ganancia_muscular')) return AI_PROMPT_TEMPLATES.HYPERTROPHY;
     return AI_PROMPT_TEMPLATES.BEGINNER;
   }
 

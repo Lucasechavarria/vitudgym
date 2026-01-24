@@ -13,7 +13,7 @@ export async function POST(
     try {
         const { supabase, error } = await authenticateAndRequireRole(
             request,
-            ['coach', 'admin', 'superadmin']
+            ['coach', 'admin']
         );
 
         if (error) return error;
@@ -23,27 +23,27 @@ export async function POST(
 
         // Obtener la rutina para saber de quién es
         const { data: routine, error: fetchError } = await supabase
-            .from('routines')
-            .select('user_id, name')
+            .from('rutinas')
+            .select('usuario_id, nombre')
             .eq('id', routineId)
             .single();
 
         if (fetchError || !routine) throw fetchError || new Error('Routine not found');
 
-        // Actualizar status a active
+        // Actualizar estado a activa
         const { error: updateError } = await supabase
-            .from('routines')
-            .update({ status: 'active', is_active: true })
+            .from('rutinas')
+            .update({ estado: 'activa', esta_activa: true })
             .eq('id', routineId);
 
         if (updateError) throw updateError;
 
         // Enviar mensaje de notificación al alumno
         const { data: { user: coachUser } } = await supabase.auth.getUser();
-        await supabase.from('messages').insert({
-            sender_id: coachUser?.id,
-            receiver_id: routine.user_id,
-            content: `¡Tu rutina "${routine.name}" ha sido aprobada y ya está activa en tu dashboard! 💪`
+        await supabase.from('mensajes').insert({
+            emisor_id: coachUser?.id,
+            receptor_id: routine.usuario_id,
+            contenido: `¡Tu rutina "${routine.nombre}" ha sido aprobada y ya está activa en tu dashboard! 💪`
         });
 
         return NextResponse.json({

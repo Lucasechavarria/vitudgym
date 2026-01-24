@@ -24,8 +24,8 @@ export default function SettingsPage() {
                 const { data } = await supabase.from('perfiles').select('*').eq('id', user.id).single() as { data: any; error: any };
                 if (data) {
                     setProfile(data);
-                    setFullName(data.full_name || '');
-                    setPhone(data.phone || '');
+                    setFullName(data.nombre_completo || '');
+                    setPhone(data.telefono || '');
                 }
             }
         };
@@ -38,9 +38,9 @@ export default function SettingsPage() {
         try {
             const updates = {
                 id: user.id,
-                full_name: fullName,
-                phone: phone,
-                updated_at: new Date().toISOString(),
+                nombre_completo: fullName,
+                telefono: phone,
+                actualizado_en: new Date().toISOString(),
             };
 
             const { error } = await (supabase.from('perfiles') as any).upsert(updates);
@@ -122,7 +122,7 @@ export default function SettingsPage() {
                         <div>
                             <label className="block text-gray-400 text-sm mb-2">Rol</label>
                             <div className="w-full p-3 text-orange-500 font-bold uppercase text-sm">
-                                {profile.role}
+                                {profile.rol}
                             </div>
                         </div>
                     </div>

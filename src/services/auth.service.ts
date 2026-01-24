@@ -19,9 +19,9 @@ export const authService = {
             password,
             options: {
                 data: {
-                    first_name: firstName,
-                    last_name: lastName,
-                    full_name: `${firstName} ${lastName}`.trim(), // Keep full_name for compatibility
+                    nombre: firstName,
+                    apellido: lastName,
+                    nombre_completo: `${firstName} ${lastName}`.trim(),
                 },
             },
         });

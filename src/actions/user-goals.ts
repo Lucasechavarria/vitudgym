@@ -9,7 +9,7 @@ type UserGoalInsert = Database['public']['Tables']['objetivos_del_usuario']['Ins
 /**
  * Create a new user goal (Server Action)
  */
-export async function createUserGoal(goalData: Omit<UserGoalInsert, 'user_id' | 'updated_at'>) {
+export async function createUserGoal(goalData: Omit<UserGoalInsert, 'usuario_id' | 'actualizado_en'>) {
     const supabase = await createClient();
 
     // Ensure the user is authenticated
@@ -21,17 +21,18 @@ export async function createUserGoal(goalData: Omit<UserGoalInsert, 'user_id' | 
     // Set user_id from the session to ensure security (trust the session, not the client input for user_id)
     const dataToInsert = {
         ...goalData,
-        user_id: user.id,
-        updated_at: new Date().toISOString() // Ensure updated_at is set
+        usuario_id: user.id,
+        actualizado_en: new Date().toISOString() // Ensure updated_at is set
     };
 
     // If active, deactivate others (logic from service)
-    if (dataToInsert.is_active) {
+    const dataAny = dataToInsert as any;
+    if (dataAny.esta_activo || dataAny.is_active) {
         await (supabase
             .from('objetivos_del_usuario') as any)
-            .update({ is_active: false })
-            .eq('user_id', user.id)
-            .eq('is_active', true);
+            .update({ esta_activo: false })
+            .eq('usuario_id', user.id)
+            .eq('esta_activo', true);
     }
 
     const { data, error } = await (supabase

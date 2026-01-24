@@ -7,10 +7,10 @@ export async function GET(request: Request) {
         if (error) return error;
 
         const { data: payments } = await supabase
-            .from('payments')
+            .from('pagos')
             .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+            .eq('usuario_id', user.id)
+            .order('creado_en', { ascending: false });
 
         return NextResponse.json({ success: true, payments: payments || [] });
     } catch (error) {

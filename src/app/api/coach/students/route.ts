@@ -17,8 +17,8 @@ export async function GET(request: Request) {
         // 1. Obtener perfiles (En producción hay: admin, superadmin, coach. Permitimos todos para pruebas)
         const { data: profiles, error: profilesError } = await supabase
             .from('perfiles')
-            .select('id, email, full_name, avatar_url, onboarding_completed, medical_info, emergency_contact, role')
-            .order('full_name', { ascending: true });
+            .select('id, email, nombre_completo, url_avatar, onboarding_completado, informacion_medica, contacto_emergencia, rol')
+            .order('nombre_completo', { ascending: true });
 
         if (profilesError) throw profilesError;
 
@@ -31,23 +31,23 @@ export async function GET(request: Request) {
         // 2. Obtener objetivos activos
         const { data: allGoals, error: goalsError } = await supabase
             .from('objetivos_del_usuario')
-            .select('id, user_id, primary_goal, target_date, is_active')
-            .in('user_id', studentIds);
+            .select('id, usuario_id, objetivo_principal, fecha_objetivo, esta_activo')
+            .in('usuario_id', studentIds);
 
         if (goalsError) console.error('Error fetching goals:', goalsError);
 
         // 3. Obtener rutinas activas
         const { data: allRoutines, error: routinesError } = await supabase
             .from('rutinas')
-            .select('id, user_id, name, status, is_active')
-            .in('user_id', studentIds);
+            .select('id, usuario_id, nombre, estado, esta_activa')
+            .in('usuario_id', studentIds);
 
         if (routinesError) console.error('Error fetching routines:', routinesError);
 
         // 4. Mapear resultados
         const studentsWithDetails = profiles.map(profile => {
-            const activeGoal = allGoals?.find(g => g.user_id === profile.id && g.is_active) || null;
-            const activeRoutine = allRoutines?.find(r => r.user_id === profile.id && r.is_active) || null;
+            const activeGoal = allGoals?.find(g => g.usuario_id === profile.id && g.esta_activo) || null;
+            const activeRoutine = allRoutines?.find(r => r.usuario_id === profile.id && r.esta_activa) || null;
 
             return {
                 ...profile,

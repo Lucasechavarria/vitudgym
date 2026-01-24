@@ -39,7 +39,13 @@ describe('SessionsService', () => {
     it('should log exercise performance correctly', async () => {
         mockSingle.mockResolvedValueOnce({ data: { id: 'log123' }, error: null });
 
-        const performance = { exercise_id: 'ex123', actual_weight: 50 };
+        const performance = {
+            ejercicio_id: 'ex123',
+            series_reales: 3,
+            repeticiones_reales: '10',
+            peso_real: 50,
+            fue_completado: true
+        };
         const { log, error } = await SessionsService.logExercisePerformance('session123', performance);
 
         expect(mockFrom).toHaveBeenCalledWith('registros_de_ejercicio');
@@ -48,15 +54,15 @@ describe('SessionsService', () => {
     });
 
     it('should complete a session and apply points', async () => {
-        mockSingle.mockResolvedValueOnce({ data: { id: 'session123', status: 'completed' }, error: null });
+        mockSingle.mockResolvedValueOnce({ data: { id: 'session123', estado: 'completed' }, error: null });
 
         const { session, error } = await SessionsService.completeSession('session123', 500, 5, 'Great workout');
 
         expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-            status: 'completed',
-            total_points: 500
+            estado: 'completed',
+            puntos_totales: 500
         }));
-        expect(session.status).toBe('completed');
+        expect(session.estado).toBe('completed');
         expect(error).toBeNull();
     });
 });

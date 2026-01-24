@@ -28,7 +28,7 @@ export function RoutinePreview({ routine, handleGoalModal, isRequesting, itemVar
                 <div className="flex justify-between items-start mb-6 relative z-10">
                     <div>
                         <h3 className="text-xl font-bold text-white">💪 Rutina Actual</h3>
-                        <p className="text-gray-400 text-sm mt-1">{routine?.goal || 'Sin objetivo definido'}</p>
+                        <p className="text-gray-400 text-sm mt-1">{routine?.objetivo || 'Sin objetivo definido'}</p>
                     </div>
                     <div className="bg-blue-500/10 p-2 rounded-lg">
                         <span className="text-2xl">⚡</span>
@@ -39,20 +39,20 @@ export function RoutinePreview({ routine, handleGoalModal, isRequesting, itemVar
                     <div className="relative z-10 space-y-4">
                         <div className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-colors group-hover:bg-white/10">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-white font-bold text-lg">{routine.name}</span>
+                                <span className="text-white font-bold text-lg">{routine.nombre}</span>
                                 <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full border border-green-500/20">Activa</span>
                             </div>
 
                             <div className="space-y-2 mt-4">
-                                {routine.exercises?.slice(0, 3).map((exercise: RoutineExercise, i: number) => (
+                                {routine.ejercicios?.slice(0, 3).map((exercise: RoutineExercise, i: number) => (
                                     <div key={i} className="flex items-center gap-3 text-sm text-gray-400">
                                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                        <span className="flex-1 truncate">{exercise.name}</span>
-                                        <span className="text-gray-500">{exercise.sets}x{exercise.reps}</span>
+                                        <span className="flex-1 truncate">{exercise.nombre}</span>
+                                        <span className="text-gray-500">{exercise.series}x{exercise.repeticiones}</span>
                                     </div>
                                 ))}
-                                {routine.exercises?.length > 3 && (
-                                    <p className="text-xs text-gray-500 pl-4">+ {routine.exercises.length - 3} ejercicios más</p>
+                                {routine.ejercicios?.length > 3 && (
+                                    <p className="text-xs text-gray-500 pl-4">+ {routine.ejercicios.length - 3} ejercicios más</p>
                                 )}
                             </div>
                         </div>
@@ -70,7 +70,7 @@ export function RoutinePreview({ routine, handleGoalModal, isRequesting, itemVar
                             >
                                 Detalles
                             </Link>
-                            {routine.nutrition_plan_id && (
+                            {routine.plan_nutricional_id && (
                                 <Link
                                     href="/dashboard/nutrition"
                                     className="px-4 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl text-center transition-all shadow-lg shadow-green-600/20 hover:scale-[1.02]"

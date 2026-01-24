@@ -12,7 +12,7 @@ import { routineAccessLogsService } from '@/services/routine-access-logs.service
  */
 export async function POST(request: Request) {
     try {
-        const { user, error } = await authenticateAndRequireRole(request, ['member', 'coach', 'admin', 'superadmin']);
+        const { user, error } = await authenticateAndRequireRole(request, ['member', 'coach', 'admin']);
 
         if (error) return error;
 
@@ -31,12 +31,12 @@ export async function POST(request: Request) {
 
         // Registrar el acceso
         await routineAccessLogsService.logAccess({
-            routine_id: routineId,
-            user_id: user.id,
+            rutina_id: routineId,
+            usuario_id: user.id,
             action,
             ip_address: ip,
             user_agent: userAgent,
-            device_info: {
+            info_dispositivo: {
                 timestamp,
                 platform: typeof navigator !== 'undefined' ? navigator.platform : 'unknown',
             },

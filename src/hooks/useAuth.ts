@@ -77,7 +77,7 @@ export function useAuth() {
         loading,
         signOut,
         isAuthenticated: !!user,
-        isAdmin: profile?.role === 'admin',
-        isCoach: profile?.role === 'coach' || profile?.role === 'admin',
+        isAdmin: profile?.rol === 'admin',
+        isCoach: profile?.rol === 'coach' || profile?.rol === 'admin',
     };
 }

@@ -10,41 +10,42 @@ export async function GET(request: Request) {
     try {
         const { supabase, error } = await authenticateAndRequireRole(
             request,
-            ['coach', 'admin', 'superadmin']
+            ['coach', 'admin']
         );
 
         if (error) return error;
 
-        // Obtener rutinas con status pending_approval
+        // Obtener rutinas con estado detailed_plan_generated
         const { data: routines, error: routinesError } = await supabase
             .from('rutinas')
             .select(`
                 id,
-                name,
-                user_id,
-                created_at,
-                duration_weeks,
-                difficulty,
-                nutrition_plan_id,
-                perfiles!routines_user_id_fkey (
-                    full_name,
+                nombre,
+                usuario_id,
+                creado_en,
+                duracion_semanas,
+                nivel_dificultad,
+                plan_nutricional_id,
+                estado,
+                perfiles!rutinas_usuario_id_fkey (
+                    nombre_completo,
                     email
                 )
             `)
-            .eq('status', 'detailed_plan_generated') // Or whatever status means "AI done, waiting approval"
-            .order('created_at', { ascending: false });
+            .eq('estado', 'detailed_plan_generated') // Or whatever status means "AI done, waiting approval"
+            .order('creado_en', { ascending: false });
 
         if (routinesError) throw routinesError;
 
         // Transform data
         const routinesWithCounts = (routines || []).map((routine: any) => ({
             id: routine.id,
-            name: routine.name,
-            goal: routine.goal,
-            student_name: routine.perfiles?.full_name || 'Sin nombre',
+            name: routine.nombre,
+            goal: (routine as any).objetivo,
+            student_name: routine.perfiles?.nombre_completo || 'Sin nombre',
             student_email: routine.perfiles?.email || '',
-            created_at: routine.created_at,
-            status: routine.status
+            created_at: routine.creado_en,
+            status: routine.estado
         }));
 
         return NextResponse.json({

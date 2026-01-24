@@ -10,13 +10,13 @@ export async function GET() {
         const supabase = await createClient();
 
         const { data, error } = await supabase
-            .from('challenges')
+            .from('desafios')
             .select(`
                 *,
-                participants:challenge_participants(*)
+                participantes:participantes_desafio(*)
             `)
-            .eq('status', 'active')
-            .order('end_date', { ascending: true });
+            .eq('estado', 'active')
+            .order('fecha_fin', { ascending: true });
 
         if (error) throw error;
 
@@ -49,15 +49,15 @@ export async function POST(req: Request) {
         endDate.setDate(endDate.getDate() + (original_duration_days || 7));
 
         const { data, error } = await supabase
-            .from('challenges')
+            .from('desafios')
             .insert({
-                title,
-                description,
-                type: type || 'open',
-                points_reward: points_prize || 100,
-                created_by: user.id,
-                status: 'pending', // Requiere aprobación de coach/admin
-                end_date: endDate.toISOString()
+                titulo: title,
+                descripcion: description,
+                tipo: type || 'open',
+                recompensa_puntos: points_prize || 100,
+                creado_por: user.id,
+                estado: 'pending', // Requiere aprobación de coach/admin
+                fecha_fin: endDate.toISOString()
             })
             .select()
             .single();
@@ -66,11 +66,11 @@ export async function POST(req: Request) {
 
         // Auto-unir al creador al desafío
         await supabase
-            .from('challenge_participants')
+            .from('participantes_desafio')
             .insert({
-                challenge_id: data.id,
-                user_id: user.id,
-                status: 'enrolled'
+                desafio_id: data.id,
+                usuario_id: user.id,
+                estado: 'enrolled'
             });
 
         return NextResponse.json({ success: true, challenge: data });

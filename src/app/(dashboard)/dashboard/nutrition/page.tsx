@@ -5,33 +5,33 @@ import toast from 'react-hot-toast';
 
 interface NutritionPlan {
     id: string;
-    user_id: string;
-    daily_calories: number;
-    protein_grams: number;
-    carbs_grams: number;
-    fats_grams: number;
-    meals: Meal[];
-    notes: string;
-    created_at: string;
+    usuario_id: string;
+    calorias_diarias: number;
+    gramos_proteina: number;
+    gramos_carbohidratos: number;
+    gramos_grasas: number;
+    comidas: Meal[];
+    notas: string;
+    creado_en: string;
 }
 
 interface Meal {
-    name: string;
-    time: string;
-    foods: Food[];
-    calories: number;
-    protein: number;
-    carbs: number;
-    fats: number;
+    nombre: string;
+    horario: string;
+    alimentos: Food[];
+    calorias: number;
+    proteina: number;
+    carbohidratos: number;
+    grasas: number;
 }
 
 interface Food {
-    name: string;
-    quantity: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fats: number;
+    nombre: string;
+    cantidad: string;
+    calorias: number;
+    proteina: number;
+    carbohidratos: number;
+    grasas: number;
 }
 
 export default function StudentNutritionPage() {
@@ -93,9 +93,9 @@ export default function StudentNutritionPage() {
         );
     }
 
-    const proteinPercentage = getMacroPercentage(nutritionPlan.protein_grams, nutritionPlan.daily_calories, 4);
-    const carbsPercentage = getMacroPercentage(nutritionPlan.carbs_grams, nutritionPlan.daily_calories, 4);
-    const fatsPercentage = getMacroPercentage(nutritionPlan.fats_grams, nutritionPlan.daily_calories, 9);
+    const proteinPercentage = getMacroPercentage(nutritionPlan.gramos_proteina, nutritionPlan.calorias_diarias, 4);
+    const carbsPercentage = getMacroPercentage(nutritionPlan.gramos_carbohidratos, nutritionPlan.calorias_diarias, 4);
+    const fatsPercentage = getMacroPercentage(nutritionPlan.gramos_grasas, nutritionPlan.calorias_diarias, 9);
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] p-4 md:p-6 text-white">
@@ -110,25 +110,25 @@ export default function StudentNutritionPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-6">
                         <div className="text-orange-100 text-sm mb-1">Calorías Diarias</div>
-                        <div className="text-3xl font-bold text-white">{nutritionPlan.daily_calories}</div>
+                        <div className="text-3xl font-bold text-white">{nutritionPlan.calorias_diarias}</div>
                         <div className="text-orange-100 text-xs">kcal/día</div>
                     </div>
 
                     <div className="bg-gray-800 rounded-lg p-6 border border-blue-500/30">
                         <div className="text-gray-400 text-sm mb-1">Proteínas</div>
-                        <div className="text-3xl font-bold text-blue-400">{nutritionPlan.protein_grams}g</div>
+                        <div className="text-3xl font-bold text-blue-400">{nutritionPlan.gramos_proteina}g</div>
                         <div className="text-gray-500 text-xs">{proteinPercentage}% del total</div>
                     </div>
 
                     <div className="bg-gray-800 rounded-lg p-6 border border-green-500/30">
                         <div className="text-gray-400 text-sm mb-1">Carbohidratos</div>
-                        <div className="text-3xl font-bold text-green-400">{nutritionPlan.carbs_grams}g</div>
+                        <div className="text-3xl font-bold text-green-400">{nutritionPlan.gramos_carbohidratos}g</div>
                         <div className="text-gray-500 text-xs">{carbsPercentage}% del total</div>
                     </div>
 
                     <div className="bg-gray-800 rounded-lg p-6 border border-yellow-500/30">
                         <div className="text-gray-400 text-sm mb-1">Grasas</div>
-                        <div className="text-3xl font-bold text-yellow-400">{nutritionPlan.fats_grams}g</div>
+                        <div className="text-3xl font-bold text-yellow-400">{nutritionPlan.gramos_grasas}g</div>
                         <div className="text-gray-500 text-xs">{fatsPercentage}% del total</div>
                     </div>
                 </div>
@@ -176,7 +176,7 @@ export default function StudentNutritionPage() {
                 <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
                     {/* Meal Tabs */}
                     <div className="flex overflow-x-auto bg-gray-700 p-2 gap-2">
-                        {nutritionPlan.meals.map((meal, index) => (
+                        {nutritionPlan.comidas.map((meal, index) => (
                             <button
                                 key={index}
                                 onClick={() => setSelectedMeal(index)}
@@ -185,23 +185,23 @@ export default function StudentNutritionPage() {
                                     : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                                     }`}
                             >
-                                {meal.name}
-                                <span className="ml-2 text-xs opacity-75">{meal.time}</span>
+                                {meal.nombre}
+                                <span className="ml-2 text-xs opacity-75">{meal.horario}</span>
                             </button>
                         ))}
                     </div>
 
                     {/* Meal Details */}
                     <div className="p-6">
-                        {nutritionPlan.meals[selectedMeal] && (
+                        {nutritionPlan.comidas[selectedMeal] && (
                             <>
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
-                                        <h3 className="text-2xl font-bold text-white">{nutritionPlan.meals[selectedMeal].name}</h3>
-                                        <p className="text-gray-400">🕐 {nutritionPlan.meals[selectedMeal].time}</p>
+                                        <h3 className="text-2xl font-bold text-white">{nutritionPlan.comidas[selectedMeal].nombre}</h3>
+                                        <p className="text-gray-400">🕐 {nutritionPlan.comidas[selectedMeal].horario}</p>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-3xl font-bold text-orange-500">{nutritionPlan.meals[selectedMeal].calories}</div>
+                                        <div className="text-3xl font-bold text-orange-500">{nutritionPlan.comidas[selectedMeal].calorias}</div>
                                         <div className="text-gray-400 text-sm">kcal</div>
                                     </div>
                                 </div>
@@ -209,15 +209,15 @@ export default function StudentNutritionPage() {
                                 {/* Meal Macros */}
                                 <div className="grid grid-cols-3 gap-4 mb-6">
                                     <div className="bg-gray-700 rounded-lg p-4 text-center">
-                                        <div className="text-blue-400 font-bold text-xl">{nutritionPlan.meals[selectedMeal].protein}g</div>
+                                        <div className="text-blue-400 font-bold text-xl">{nutritionPlan.comidas[selectedMeal].proteina}g</div>
                                         <div className="text-gray-400 text-sm">Proteínas</div>
                                     </div>
                                     <div className="bg-gray-700 rounded-lg p-4 text-center">
-                                        <div className="text-green-400 font-bold text-xl">{nutritionPlan.meals[selectedMeal].carbs}g</div>
+                                        <div className="text-green-400 font-bold text-xl">{nutritionPlan.comidas[selectedMeal].carbohidratos}g</div>
                                         <div className="text-gray-400 text-sm">Carbohidratos</div>
                                     </div>
                                     <div className="bg-gray-700 rounded-lg p-4 text-center">
-                                        <div className="text-yellow-400 font-bold text-xl">{nutritionPlan.meals[selectedMeal].fats}g</div>
+                                        <div className="text-yellow-400 font-bold text-xl">{nutritionPlan.comidas[selectedMeal].grasas}g</div>
                                         <div className="text-gray-400 text-sm">Grasas</div>
                                     </div>
                                 </div>
@@ -226,17 +226,17 @@ export default function StudentNutritionPage() {
                                 <div>
                                     <h4 className="text-lg font-semibold text-white mb-4">Alimentos</h4>
                                     <div className="space-y-3">
-                                        {nutritionPlan.meals[selectedMeal].foods.map((food, foodIndex) => (
+                                        {nutritionPlan.comidas[selectedMeal].alimentos.map((food, foodIndex) => (
                                             <div key={foodIndex} className="bg-gray-700 rounded-lg p-4">
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <div className="font-semibold text-white">{food.name}</div>
-                                                    <div className="text-orange-400 font-bold">{food.calories} kcal</div>
+                                                    <div className="font-semibold text-white">{food.nombre}</div>
+                                                    <div className="text-orange-400 font-bold">{food.calorias} kcal</div>
                                                 </div>
                                                 <div className="flex items-center gap-4 text-sm text-gray-400">
-                                                    <span>📦 {food.quantity}</span>
-                                                    <span className="text-blue-400">P: {food.protein}g</span>
-                                                    <span className="text-green-400">C: {food.carbs}g</span>
-                                                    <span className="text-yellow-400">G: {food.fats}g</span>
+                                                    <span>📦 {food.cantidad}</span>
+                                                    <span className="text-blue-400">P: {food.proteina}g</span>
+                                                    <span className="text-green-400">C: {food.carbohidratos}g</span>
+                                                    <span className="text-yellow-400">G: {food.grasas}g</span>
                                                 </div>
                                             </div>
                                         ))}

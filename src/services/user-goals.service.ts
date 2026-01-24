@@ -17,9 +17,9 @@ export const userGoalsService = {
         const { data, error } = await supabase
             .from('objetivos_del_usuario' as any)
             .select('*')
-            .eq('user_id', userId)
-            .eq('is_active', true)
-            .order('created_at', { ascending: false })
+            .eq('usuario_id', userId)
+            .eq('esta_activo', true)
+            .order('creado_en', { ascending: false })
             .limit(1)
             .single();
 
@@ -35,8 +35,8 @@ export const userGoalsService = {
         const { data, error } = await supabase
             .from('objetivos_del_usuario' as any)
             .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
+            .eq('usuario_id', userId)
+            .order('creado_en', { ascending: false });
 
         if (error) throw error;
         return data as UserGoal[];
@@ -64,8 +64,8 @@ export const userGoalsService = {
         const supabase: any = await createClient();
 
         // If this is set as active, deactivate other goals
-        if (goal.is_active) {
-            await this.deactivateUserGoals(goal.user_id!);
+        if (goal.esta_activo) {
+            await this.deactivateUserGoals(goal.usuario_id!);
         }
 
         const { data, error } = await supabase
@@ -85,9 +85,10 @@ export const userGoalsService = {
         const supabase: any = await createClient();
 
         // If setting as active, deactivate other goals first
-        if (updates.is_active) {
+        const updatesAny = updates as any;
+        if (updatesAny.esta_activo) {
             const goal = await this.getById(id);
-            await this.deactivateUserGoals(goal.user_id);
+            await this.deactivateUserGoals(goal.usuario_id!);
         }
 
         const { data, error } = await supabase
@@ -108,9 +109,9 @@ export const userGoalsService = {
         const supabase: any = await createClient();
         const { error } = await supabase
             .from('objetivos_del_usuario' as any)
-            .update({ is_active: false } as any)
-            .eq('user_id', userId)
-            .eq('is_active', true);
+            .update({ esta_activo: false } as any)
+            .eq('usuario_id', userId)
+            .eq('esta_activo', true);
 
         if (error) throw error;
     },
@@ -132,7 +133,7 @@ export const userGoalsService = {
      * Add coach notes to goal
      */
     async addCoachNotes(id: string, notes: string) {
-        return this.update(id, { coach_notes: notes });
+        return this.update(id, { notas_entrenador: notes } as any);
     },
 
     /**
@@ -143,8 +144,8 @@ export const userGoalsService = {
         const { data, error } = await supabase
             .from('objetivos_del_usuario' as any)
             .select('*')
-            .eq('primary_goal', primaryGoal)
-            .eq('is_active', true);
+            .eq('objetivo_principal', primaryGoal)
+            .eq('esta_activo', true);
 
         if (error) throw error;
         return data as UserGoal[];
@@ -159,13 +160,13 @@ export const userGoalsService = {
         // Optimización: Pedir solo campos mínimos
         const { data, error } = await supabase
             .from('objetivos_del_usuario' as any)
-            .select('primary_goal, training_frequency_per_week, is_active') as any;
+            .select('objetivo_principal, frecuencia_entrenamiento_por_semana, esta_activo') as any;
 
         if (error) throw error;
 
         const stats = {
             total: data.length,
-            active: data.filter(g => g.is_active).length,
+            active: data.filter((g: any) => g.esta_activo).length,
             byPrimaryGoal: {} as Record<string, number>,
             avgFrequency: 0,
         };
@@ -173,11 +174,12 @@ export const userGoalsService = {
         let totalFrequency = 0;
         let countWithFrequency = 0;
 
-        data.forEach(goal => {
-            stats.byPrimaryGoal[goal.primary_goal] = (stats.byPrimaryGoal[goal.primary_goal] || 0) + 1;
+        data.forEach((goal: any) => {
+            const goalAny = goal;
+            stats.byPrimaryGoal[goalAny.objetivo_principal] = (stats.byPrimaryGoal[goalAny.objetivo_principal] || 0) + 1;
 
-            if (goal.training_frequency_per_week) {
-                totalFrequency += goal.training_frequency_per_week;
+            if (goalAny.frecuencia_entrenamiento_por_semana) {
+                totalFrequency += goalAny.frecuencia_entrenamiento_por_semana;
                 countWithFrequency++;
             }
         });

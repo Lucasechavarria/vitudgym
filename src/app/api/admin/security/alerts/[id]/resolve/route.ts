@@ -13,7 +13,7 @@ export async function POST(
     try {
         const { supabase, error } = await authenticateAndRequireRole(
             request,
-            ['admin', 'superadmin']
+            ['admin']
         );
 
         if (error) return error;
@@ -22,12 +22,12 @@ export async function POST(
         const alertId = id;
 
         // Actualizar el log para marcarlo como resuelto
-        // (Agregar campo resolved a la tabla si no existe)
+        // (Agregar campo fue_resuelto a la tabla si no existe)
         const { error: updateError } = await supabase
-            .from('routine_access_logs')
+            .from('registros_acceso_rutina')
             .update({
-                resolved: true,
-                resolved_at: new Date().toISOString()
+                fue_resuelto: true,
+                resuelto_en: new Date().toISOString()
             })
             .eq('id', alertId);
 

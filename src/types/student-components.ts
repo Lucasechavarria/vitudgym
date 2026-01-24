@@ -1,17 +1,17 @@
 import { Variants } from 'framer-motion';
 
 export interface RoutineExercise {
-    name: string;
-    sets: number | string;
-    reps: string;
+    nombre: string;
+    series: number | string;
+    repeticiones: string;
 }
 
 export interface StudentRoutine {
     id?: string;
-    name: string;
-    goal?: string;
-    exercises: RoutineExercise[];
-    nutrition_plan_id?: string | null;
+    nombre: string;
+    objetivo?: string;
+    ejercicios: RoutineExercise[];
+    plan_nutricional_id?: string | null;
 }
 
 export interface EvolutionChartData {

@@ -11,10 +11,10 @@ export async function GET(request: Request) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        let query = supabase.from('reservas_de_clase').select('*').eq('user_id', user.id);
+        let query = supabase.from('reservas_de_clase').select('*').eq('usuario_id', user.id);
 
         if (scheduleId) {
-            query = query.eq('class_schedule_id', scheduleId);
+            query = query.eq('horario_clase_id', scheduleId);
         }
 
         const { data, error } = await query;
@@ -38,9 +38,9 @@ export async function POST(request: Request) {
         const { data: existing } = await supabase
             .from('reservas_de_clase')
             .select('*')
-            .eq('user_id', user.id)
-            .eq('class_schedule_id', schedule_id)
-            .eq('date', date)
+            .eq('usuario_id', user.id)
+            .eq('horario_clase_id', schedule_id)
+            .eq('fecha', date)
             .single();
 
         if (existing) {
@@ -50,10 +50,10 @@ export async function POST(request: Request) {
         const { data, error } = await supabase
             .from('reservas_de_clase')
             .insert({
-                user_id: user.id,
-                class_schedule_id: schedule_id,
-                date: date,
-                status: 'confirmed'
+                usuario_id: user.id,
+                horario_clase_id: schedule_id,
+                fecha: date,
+                estado: 'confirmed'
             })
             .select()
             .single();
@@ -62,24 +62,24 @@ export async function POST(request: Request) {
 
         // Award points for booking (Gamification)
         const { error: gamificationError } = await supabase.rpc('increment_points', {
-            user_id_param: user.id,
-            points_param: 10
+            usuario_id_param: user.id,
+            puntos_param: 10
         });
 
         // Fallback if RPC doesn't exist (safety, though we should prefer RPC or direct update)
         if (gamificationError) {
             // Try direct update if RPC missing
             const { data: currentStats } = await supabase
-                .from('user_gamification')
-                .select('points')
-                .eq('user_id', user.id)
+                .from('gamificacion_del_usuario')
+                .select('puntos')
+                .eq('usuario_id', user.id)
                 .single();
 
             if (currentStats) {
                 await supabase
-                    .from('user_gamification')
-                    .update({ points: (currentStats.points || 0) + 10 })
-                    .eq('user_id', user.id);
+                    .from('gamificacion_del_usuario')
+                    .update({ puntos: (currentStats.puntos || 0) + 10 })
+                    .eq('usuario_id', user.id);
             }
         }
 
@@ -105,7 +105,7 @@ export async function DELETE(request: Request) {
             .from('reservas_de_clase')
             .delete()
             .eq('id', id)
-            .eq('user_id', user.id); // Ensure user owns booking
+            .eq('usuario_id', user.id); // Ensure user owns booking
 
         if (error) throw error;
 

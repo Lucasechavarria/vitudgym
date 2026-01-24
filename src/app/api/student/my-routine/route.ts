@@ -20,11 +20,11 @@ export async function GET(request: Request) {
             .from('rutinas')
             .select(`
                 *,
-                coach:perfiles(full_name, email)
+                coach:perfiles(nombre_completo, email)
             `)
-            .eq('user_id', user.id)
-            .eq('is_active', true)
-            .eq('status', 'approved')
+            .eq('usuario_id', user.id)
+            .eq('esta_activa', true)
+            .eq('estado', 'approved')
             .single();
 
         if (routineError || !routine) {
@@ -38,9 +38,9 @@ export async function GET(request: Request) {
         const { data: exercises, error: exercisesError } = await supabase
             .from('ejercicios')
             .select('*')
-            .eq('routine_id', routine.id)
-            .order('day_number', { ascending: true })
-            .order('order_in_day', { ascending: true });
+            .eq('rutina_id', routine.id)
+            .order('dia_numero', { ascending: true })
+            .order('orden_en_dia', { ascending: true });
 
         if (exercisesError) throw exercisesError;
 
@@ -48,8 +48,8 @@ export async function GET(request: Request) {
         await supabase
             .from('rutinas')
             .update({
-                view_count: (routine.view_count || 0) + 1,
-                last_viewed_at: new Date().toISOString()
+                contador_vistas: (routine.contador_vistas || 0) + 1,
+                ultima_vista_en: new Date().toISOString()
             } as any)
             .eq('id', routine.id);
 

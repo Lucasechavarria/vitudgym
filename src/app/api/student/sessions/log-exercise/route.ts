@@ -11,7 +11,7 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { sessionId, ...performance } = body;
 
-        if (!sessionId || !performance.exercise_id) {
+        if (!sessionId || !performance.ejercicio_id) {
             return NextResponse.json({ error: 'Session ID and Exercise ID are required' }, { status: 400 });
         }
 

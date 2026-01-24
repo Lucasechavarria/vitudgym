@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
         // Fetch user profile to check role
         const { data: profile, error: profileError } = await supabase
             .from('perfiles')
-            .select('role')
+            .select('rol')
             .eq('id', user.id)
             .single();
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Perfil de usuario no encontrado' }, { status: 403 });
         }
 
-        if (profile.role !== 'coach' && profile.role !== 'admin') {
+        if (profile.rol !== 'coach' && profile.rol !== 'admin') {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
         }
 
@@ -38,45 +38,45 @@ export async function POST(request: NextRequest) {
                 const { data: users } = await supabase
                     .from('perfiles')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('creado_en', { ascending: false });
                 data = users || [];
                 break;
             }
 
             case 'payments': {
                 const { data: payments } = await supabase
-                    .from('pagos' as any) // Assuming payments table might also be renamed or just issues
+                    .from('pagos')
                     .select(`
                         *,
-                        perfiles:user_id (
-                            full_name
+                        perfiles!usuario_id (
+                            nombre_completo
                         )
                     `)
-                    .order('created_at', { ascending: false });
+                    .order('creado_en', { ascending: false });
 
                 data = (payments as any[])?.map(p => ({
                     ...p,
-                    user_name: (p.perfiles as any)?.full_name
+                    user_name: (p.perfiles as any)?.nombre_completo
                 })) || [];
                 break;
             }
 
             case 'access-logs': {
                 const { data: logs } = await supabase
-                    .from('registros_acceso_rutina' as any)
+                    .from('registros_acceso_rutina')
                     .select(`
                         *,
-                        profiles:user_id (
-                            full_name
+                        perfiles!usuario_id (
+                            nombre_completo
                         )
                     `)
-                    .order('created_at', { ascending: false })
+                    .order('creado_en', { ascending: false })
                     .limit(1000);
 
                 data = (logs as any[])?.map(l => ({
                     ...l,
-                    user_name: (l.perfiles as any)?.full_name,
-                    timestamp: l.created_at
+                    user_name: (l.perfiles as any)?.nombre_completo,
+                    timestamp: l.creado_en
                 })) || [];
                 break;
             }
@@ -86,19 +86,19 @@ export async function POST(request: NextRequest) {
                     .from('rutinas')
                     .select(`
                         *,
-                        student:user_id (
-                            full_name
+                        student:perfiles!usuario_id (
+                            nombre_completo
                         ),
-                        coach:created_by (
-                            full_name
+                        coach:perfiles!entrenador_id (
+                            nombre_completo
                         )
                     `)
-                    .order('created_at', { ascending: false });
+                    .order('creado_en', { ascending: false });
 
                 data = (routines as any[])?.map(r => ({
                     ...r,
-                    student_name: (r.perfiles_user_id as any)?.full_name,
-                    coach_name: (r.perfiles_created_by as any)?.full_name
+                    student_name: (r.student as any)?.nombre_completo,
+                    coach_name: (r.coach as any)?.nombre_completo
                 })) || [];
                 break;
             }

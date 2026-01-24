@@ -49,6 +49,6 @@ export const getUserProfile = async (userId: string): Promise<Database['public']
 export const checkUserRole = async (userId: string, allowedRoles: string[]) => {
     const profile = await getUserProfile(userId);
     if (!profile) return false;
-    return allowedRoles.includes(profile.role);
+    return allowedRoles.includes(profile.rol);
 };
 

@@ -16,8 +16,8 @@ export const activitiesService = {
         const { data, error } = await supabase
             .from('actividades')
             .select('*')
-            .eq('is_active', true)
-            .order('name');
+            .eq('esta_activa', true)
+            .order('nombre');
 
         if (error) throw error;
         return data as Activity[];
@@ -30,9 +30,9 @@ export const activitiesService = {
         const { data, error } = await supabase
             .from('actividades')
             .select('*')
-            .eq('type', type)
-            .eq('is_active', true)
-            .order('name');
+            .eq('tipo', type)
+            .eq('esta_activa', true)
+            .order('nombre');
 
         if (error) throw error;
         return data as Activity[];

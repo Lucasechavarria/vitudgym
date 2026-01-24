@@ -29,12 +29,12 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                 // For simplicity, we fetch all relevant profiles.
                 // In production, optimize this query.
 
-                let query = supabase.from('perfiles').select('id, full_name, avatar_url, role');
+                let query = supabase.from('perfiles').select('id, nombre_completo, url_avatar, rol');
 
-                if (currentUser.role === 'member') {
-                    query = query.in('role', ['coach', 'admin']);
-                } else if (currentUser.role === 'coach') {
-                    query = query.in('role', ['member' as any]);
+                if (currentUser.rol === 'member') {
+                    query = query.in('rol', ['coach', 'admin']);
+                } else if (currentUser.rol === 'coach') {
+                    query = query.in('rol', ['member' as any]);
                 }
 
                 const { data, error } = await query;
@@ -58,8 +58,8 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
             const { data, error } = await supabase
                 .from('mensajes')
                 .select('*')
-                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedRecipient}),and(sender_id.eq.${selectedRecipient},receiver_id.eq.${currentUser.id})`)
-                .order('created_at', { ascending: true });
+                .or(`and(remitente_id.eq.${currentUser.id},receptor_id.eq.${selectedRecipient}),and(remitente_id.eq.${selectedRecipient},receptor_id.eq.${currentUser.id})`)
+                .order('creado_en', { ascending: true });
 
             if (!error && data) {
                 setMessages(data);
@@ -77,11 +77,11 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                     event: 'INSERT',
                     schema: 'public',
                     table: 'mensajes',
-                    filter: `receiver_id=eq.${currentUser.id}`, // Listen for incoming
+                    filter: `receptor_id=eq.${currentUser.id}`, // Listen for incoming
                 },
                 (payload) => {
                     const newMessage = payload.new as ChatMessage;
-                    if (newMessage.sender_id === selectedRecipient) {
+                    if (newMessage.remitente_id === selectedRecipient) {
                         setMessages((current) => [...current, newMessage]);
                     } else {
                         // Optional: Show notification dot for other conversations
@@ -111,10 +111,10 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
         const tempId = Math.random().toString();
         const optimisticMsg = {
             id: tempId,
-            sender_id: currentUser.id,
-            receiver_id: selectedRecipient,
-            content: msgContent,
-            created_at: new Date().toISOString(),
+            remitente_id: currentUser.id,
+            receptor_id: selectedRecipient,
+            contenido: msgContent,
+            creado_en: new Date().toISOString(),
             is_pending: true
         };
         setMessages((prev) => [...prev, optimisticMsg]);
@@ -122,9 +122,9 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
         const { data, error } = await supabase
             .from('mensajes')
             .insert({
-                sender_id: currentUser.id,
-                receiver_id: selectedRecipient,
-                content: msgContent
+                remitente_id: currentUser.id,
+                receptor_id: selectedRecipient,
+                contenido: msgContent
             } as any)
             .select()
             .single();
@@ -155,21 +155,21 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                                 }`}
                         >
                             <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold relative overflow-hidden shrink-0">
-                                {contact.avatar_url ? (
+                                {contact.url_avatar ? (
                                     <Image
-                                        src={contact.avatar_url}
+                                        src={contact.url_avatar}
                                         alt=""
                                         fill
                                         className="object-cover"
                                         sizes="40px"
                                     />
                                 ) : (
-                                    contact.full_name?.charAt(0)
+                                    contact.nombre_completo?.charAt(0)
                                 )}
                             </div>
                             <div className="text-left">
-                                <p className="font-bold text-white text-sm">{contact.full_name}</p>
-                                <p className="text-xs text-gray-400 capitalize">{contact.role}</p>
+                                <p className="font-bold text-white text-sm">{contact.nombre_completo}</p>
+                                <p className="text-xs text-gray-400 capitalize">{contact.rol}</p>
                             </div>
                         </button>
                     ))}
@@ -184,24 +184,24 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                         <div className="p-4 border-b border-white/10 flex items-center gap-3 bg-black/20">
                             <button onClick={() => setSelectedRecipient(null)} className="md:hidden text-gray-400 mr-2">←</button>
                             <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold text-sm">
-                                {conversations.find(c => c.id === selectedRecipient)?.full_name?.charAt(0)}
+                                {conversations.find(c => c.id === selectedRecipient)?.nombre_completo?.charAt(0)}
                             </div>
                             <h3 className="font-bold text-white">
-                                {conversations.find(c => c.id === selectedRecipient)?.full_name}
+                                {conversations.find(c => c.id === selectedRecipient)?.nombre_completo}
                             </h3>
                         </div>
 
                         {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-black/10">
                             {messages.map((msg) => {
-                                const isMe = msg.sender_id === currentUser.id;
+                                const isMe = msg.remitente_id === currentUser.id;
                                 return (
                                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-[70%] p-3 rounded-2xl text-sm ${isMe
                                             ? 'bg-orange-500 text-white rounded-tr-none'
                                             : 'bg-white/10 text-gray-200 rounded-tl-none'
                                             } ${msg.is_pending ? 'opacity-70' : ''}`}>
-                                            {msg.content}
+                                            {msg.contenido}
                                         </div>
                                     </div>
                                 );

@@ -16,8 +16,8 @@ export const bookingsService = {
         const { data, error } = await supabase
             .from('user_bookings_detailed' as any)
             .select('*')
-            .eq('user_id', userId)
-            .order('date', { ascending: false });
+            .eq('usuario_id', userId)
+            .order('fecha', { ascending: false });
 
         if (error) throw error;
         return data;
@@ -32,11 +32,11 @@ export const bookingsService = {
         const { data, error } = await supabase
             .from('user_bookings_detailed' as any)
             .select('*')
-            .eq('user_id', userId)
-            .gte('date', today)
-            .in('status', ['confirmed', 'waitlist'])
-            .order('date')
-            .order('start_time');
+            .eq('usuario_id', userId)
+            .gte('fecha', today)
+            .in('estado', ['reservada', 'en_lista_espera'])
+            .order('fecha')
+            .order('hora_inicio');
 
         if (error) throw error;
         return data;
@@ -58,11 +58,11 @@ export const bookingsService = {
             .from('reservas_de_clase')
             .select(`
         *,
-        user:perfiles(id, full_name, email, avatar_url)
+        user:perfiles!usuario_id(id, nombre_completo, email, url_avatar)
       `)
-            .eq('class_schedule_id', classId)
-            .eq('date', date)
-            .order('created_at');
+            .eq('horario_clase_id', classId)
+            .eq('fecha', date)
+            .order('creado_en');
 
         if (error) throw error;
         return data;
@@ -74,9 +74,9 @@ export const bookingsService = {
     async create(booking: BookingInsert) {
         // Check if class has available spots
         const { data: classData, error: classError } = await supabase
-            .from('horarios_de_clase')
-            .select('max_capacity, current_capacity, waitlist_enabled' as any)
-            .eq('id', booking.class_schedule_id)
+            .from('clases_con_disponibilidad') // Use view for accurate capacity
+            .select('capacidad_maxima, capacidad_actual, lista_espera_habilitada' as any) // lista_espera_habilitada might need check
+            .eq('id', booking.horario_clase_id)
             .single() as { data: any; error: any };
 
 
@@ -84,9 +84,9 @@ export const bookingsService = {
         if (!classData) throw new Error('Class not found');
 
         // Determine if booking should be waitlisted
-        const isWaitlist = classData.current_capacity >= classData.max_capacity;
+        const isWaitlist = classData.capacidad_actual >= classData.capacidad_maxima;
 
-        if (isWaitlist && !classData.waitlist_enabled) {
+        if (isWaitlist && !classData.lista_espera_habilitada) { // Assuming lista_espera_habilitada exists on view or joined
             throw new Error('Class is full and waitlist is not enabled');
         }
 
@@ -96,9 +96,9 @@ export const bookingsService = {
             const { count } = await supabase
                 .from('reservas_de_clase')
                 .select('*', { count: 'exact', head: true } as any)
-                .eq('class_schedule_id', booking.class_schedule_id)
-                .eq('date', booking.date)
-                .eq('is_waitlist' as any, true);
+                .eq('horario_clase_id', booking.horario_clase_id)
+                .eq('fecha', booking.fecha)
+                .eq('en_lista_espera' as any, true);
 
             waitlistPosition = (count || 0) + 1;
         }
@@ -107,7 +107,7 @@ export const bookingsService = {
             .from('reservas_de_clase')
             .insert({
                 ...booking,
-                status: isWaitlist ? 'waitlist' : 'confirmed',
+                estado: isWaitlist ? 'en_lista_espera' : 'reservada',
             } as any)
             .select()
             .single();
@@ -122,7 +122,7 @@ export const bookingsService = {
     async cancel(bookingId: string) {
         const { data, error } = await supabase
             .from('reservas_de_clase')
-            .update({ status: 'cancelled' } as any)
+            .update({ estado: 'cancelada' } as any)
             .eq('id', bookingId)
             .select()
             .single();
@@ -131,8 +131,8 @@ export const bookingsService = {
         if (!data) throw new Error('Booking not found');
 
         // Promote waitlist if applicable
-        if (data.status === 'confirmed') {
-            await this.promoteFromWaitlist(data.class_schedule_id, data.date);
+        if (data.estado === 'reservada') {
+            await this.promoteFromWaitlist(data.horario_clase_id, data.fecha);
         }
 
         return data as Booking;
@@ -145,9 +145,9 @@ export const bookingsService = {
         const { data, error } = await supabase
             .from('reservas_de_clase')
             .update({
-                status: 'attended',
-                checked_in_at: new Date().toISOString(),
-                checked_in_by: checkedInBy,
+                estado: 'asistida',
+                asistido_en: new Date().toISOString(),
+                marcado_por: checkedInBy, // Assuming marcado_por is correct or temporary
             } as any)
             .eq('id', bookingId)
             .select()
@@ -164,10 +164,10 @@ export const bookingsService = {
         const { data: waitlistBookings, error } = await supabase
             .from('reservas_de_clase')
             .select('*')
-            .eq('class_schedule_id', classId)
-            .eq('date', date)
-            .eq('is_waitlist' as any, true)
-            .order('waitlist_position' as any)
+            .eq('horario_clase_id', classId)
+            .eq('fecha', date)
+            .eq('en_lista_espera' as any, true)
+            .order('posicion_lista_espera' as any)
             .limit(1);
 
 
@@ -179,9 +179,9 @@ export const bookingsService = {
         await supabase
             .from('reservas_de_clase')
             .update({
-                status: 'confirmed',
-                is_waitlist: false,
-                waitlist_position: null,
+                estado: 'reservada',
+                en_lista_espera: false,
+                posicion_lista_espera: null,
             } as any)
             .eq('id', firstWaitlist.id);
 
@@ -189,16 +189,16 @@ export const bookingsService = {
         const { data: remaining } = await supabase
             .from('reservas_de_clase')
             .select('*')
-            .eq('class_schedule_id', classId)
-            .eq('date', date)
-            .eq('is_waitlist' as any, true)
-            .order('waitlist_position' as any);
+            .eq('horario_clase_id', classId)
+            .eq('fecha', date)
+            .eq('en_lista_espera' as any, true)
+            .order('posicion_lista_espera' as any);
 
         if (remaining) {
             for (let i = 0; i < remaining.length; i++) {
                 await supabase
                     .from('reservas_de_clase')
-                    .update({ waitlist_position: i + 1 } as any)
+                    .update({ posicion_lista_espera: i + 1 } as any)
                     .eq('id', remaining[i].id);
             }
         }
@@ -211,10 +211,10 @@ export const bookingsService = {
         const { data, error } = await supabase
             .from('reservas_de_clase')
             .select('id')
-            .eq('user_id', userId)
-            .eq('class_schedule_id', classId)
-            .eq('date', date)
-            .in('status', ['confirmed', 'waitlist'])
+            .eq('usuario_id', userId)
+            .eq('horario_clase_id', classId)
+            .eq('fecha', date)
+            .in('estado', ['reservada', 'en_lista_espera'])
             .maybeSingle();
 
         if (error) throw error;

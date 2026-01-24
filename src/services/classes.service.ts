@@ -17,8 +17,8 @@ export const classesService = {
         const { data, error } = await supabase
             .from('clases_con_disponibilidad')
             .select('*')
-            .order('day_of_week')
-            .order('start_time');
+            .order('dia_de_la_semana')
+            .order('hora_inicio');
 
         if (error) throw error;
         return data as ClassWithAvailability[];
@@ -31,8 +31,8 @@ export const classesService = {
         const { data, error } = await supabase
             .from('clases_con_disponibilidad')
             .select('*')
-            .eq('day_of_week', dayOfWeek)
-            .order('start_time');
+            .eq('dia_de_la_semana', dayOfWeek)
+            .order('hora_inicio');
 
         if (error) throw error;
         return data as ClassWithAvailability[];
@@ -45,9 +45,9 @@ export const classesService = {
         const { data, error } = await supabase
             .from('clases_con_disponibilidad')
             .select('*')
-            .eq('activity_id', activityId)
-            .order('day_of_week')
-            .order('start_time');
+            .eq('actividad_id', activityId)
+            .order('dia_de_la_semana')
+            .order('hora_inicio');
 
         if (error) throw error;
         return data as ClassWithAvailability[];
@@ -63,10 +63,10 @@ export const classesService = {
         *,
         activity:actividades(*)
       `)
-            .eq('coach_id', coachId)
-            .eq('is_active', true)
-            .order('day_of_week')
-            .order('start_time');
+            .eq('entrenador_id', coachId)
+            .eq('esta_activa', true)
+            .order('dia_de_la_semana')
+            .order('hora_inicio');
 
         if (error) throw error;
         return data;
@@ -81,7 +81,7 @@ export const classesService = {
             .select(`
         *,
         activity:actividades(*),
-        coach:perfiles(id, full_name, avatar_url)
+        coach:perfiles(id, nombre_completo, url_avatar)
       `)
             .eq('id', id)
             .single();
@@ -136,13 +136,13 @@ export const classesService = {
      */
     async hasAvailableSpots(classId: string) {
         const { data, error } = await supabase
-            .from('horarios_de_clase')
-            .select('max_capacity, current_capacity')
+            .from('clases_con_disponibilidad') // Usar la vista para tener capacidad calculada
+            .select('capacidad_maxima, capacidad_actual')
             .eq('id', classId)
             .single() as { data: any; error: any };
 
         if (error) throw error;
         if (!data) throw new Error('Class not found');
-        return data.current_capacity < data.max_capacity;
+        return data.capacidad_actual < data.capacidad_maxima;
     },
 };

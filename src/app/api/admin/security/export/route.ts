@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     try {
         const { supabase, error } = await authenticateAndRequireRole(
             request,
-            ['admin', 'superadmin']
+            ['admin']
         );
 
         if (error) return error;
@@ -20,14 +20,14 @@ export async function GET(request: Request) {
         const last30days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
         const { data: logs, error: logsError } = await supabase
-            .from('routine_access_logs')
+            .from('registros_acceso_rutina')
             .select(`
                 *,
-                perfiles:user_id(full_name),
-                routine:routine_id(name)
+                perfiles!usuario_id(nombre_completo),
+                routine:rutinas!rutina_id(nombre)
             `)
-            .gte('created_at', last30days)
-            .order('created_at', { ascending: false });
+            .gte('creado_en', last30days)
+            .order('creado_en', { ascending: false });
 
         if (logsError) throw logsError;
 
@@ -42,14 +42,14 @@ export async function GET(request: Request) {
                     l.action === 'devtools_detected'
                 ).length,
                 suspiciousEvents: logs.filter(l => l.action.includes('suspicious')).length,
-                uniqueUsers: new Set(logs.map(l => l.user_id)).size,
-                uniqueRoutines: new Set(logs.map(l => l.routine_id)).size,
+                uniqueUsers: new Set(logs.map(l => (l as any).usuario_id)).size,
+                uniqueRoutines: new Set(logs.map(l => (l as any).rutina_id)).size,
             },
             events: logs.map(log => ({
-                timestamp: log.created_at,
+                timestamp: (log as any).creado_en,
                 action: log.action,
-                user: log.user?.full_name || 'Desconocido',
-                routine: log.routine?.name || 'Desconocida',
+                user: (log as any).perfiles?.nombre_completo || 'Desconocido',
+                routine: (log as any).routine?.nombre || 'Desconocida',
                 ipAddress: log.ip_address,
                 userAgent: log.user_agent,
             })),

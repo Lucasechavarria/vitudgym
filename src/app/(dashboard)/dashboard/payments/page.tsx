@@ -5,11 +5,11 @@ import toast from 'react-hot-toast';
 
 interface Payment {
     id: string;
-    amount: number;
-    status: string;
-    payment_method: string;
-    created_at: string;
-    approved_at: string | null;
+    monto: number;
+    estado: string;
+    metodo_pago: string;
+    creado_en: string;
+    aprobado_en: string | null;
 }
 
 export default function StudentPaymentsPage() {
@@ -74,15 +74,15 @@ export default function StudentPaymentsPage() {
                             <div key={payment.id} className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
-                                        <div className="text-2xl font-bold text-white">${payment.amount.toLocaleString('es-AR')}</div>
-                                        <div className="text-sm text-gray-400 capitalize">{payment.payment_method}</div>
+                                        <div className="text-2xl font-bold text-white">${payment.monto.toLocaleString('es-AR')}</div>
+                                        <div className="text-sm text-gray-400 capitalize">{payment.metodo_pago}</div>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(payment.status)}`}>
-                                        {getStatusLabel(payment.status)}
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(payment.estado)}`}>
+                                        {getStatusLabel(payment.estado)}
                                     </span>
                                 </div>
                                 <div className="text-sm text-gray-400">
-                                    Fecha: {new Date(payment.created_at).toLocaleDateString('es-AR', {
+                                    Fecha: {new Date(payment.creado_en).toLocaleDateString('es-AR', {
                                         day: '2-digit',
                                         month: 'long',
                                         year: 'numeric'

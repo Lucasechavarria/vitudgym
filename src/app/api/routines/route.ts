@@ -1,6 +1,59 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+/**
+ * @swagger
+ * /api/routines:
+ *   post:
+ *     summary: Crea una nueva rutina de entrenamiento
+ *     description: Permite a un entrenador crear una rutina para un alumno, incluyendo ejercicios, series y repeticiones.
+ *     tags:
+ *       - Rutinas
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - studentId
+ *               - name
+ *               - exercises
+ *             properties:
+ *               studentId:
+ *                 type: string
+ *                 description: ID del alumno
+ *               name:
+ *                 type: string
+ *                 description: Nombre de la rutina
+ *               goal:
+ *                 type: string
+ *               duration:
+ *                 type: integer
+ *                 description: Duración en semanas
+ *               description:
+ *                 type: string
+ *               exercises:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     sets:
+ *                       type: string
+ *                     reps:
+ *                       type: string
+ *     responses:
+ *       200:
+ *         description: Rutina creada exitosamente
+ *       400:
+ *         description: Faltan campos requeridos
+ *       401:
+ *         description: No autorizado
+ *       500:
+ *         description: Error interno del servidor
+ */
 export async function POST(req: Request) {
     try {
         const supabase = await createClient();
@@ -31,15 +84,15 @@ export async function POST(req: Request) {
         const { data: routine, error: routineError } = await supabase
             .from('rutinas')
             .insert({
-                user_id: studentId, // Assigned to student
-                coach_id: user.id, // Created by current coach
-                name,
-                goal,
-                description,
-                duration_weeks: parseInt(duration) || 4,
-                is_active: true, // Set as active by default
-                generated_by_ai: body.generatedByAI || false,
-                nutrition_plan_id: nutritionPlanId || null
+                usuario_id: studentId, // Assigned to student
+                entrenador_id: user.id, // Created by current coach
+                nombre: name,
+                objetivo: goal,
+                descripcion: description,
+                duracion_semanas: parseInt(duration) || 4,
+                esta_activa: true, // Set as active by default
+                generada_por_ia: body.generatedByAI || false,
+                plan_nutricional_id: nutritionPlanId || null
             })
             .select()
             .single();
@@ -55,16 +108,16 @@ export async function POST(req: Request) {
         // Accessing the exercises array properly.
 
         const exercisesToInsert = exercises.map((ex: Record<string, any>, index: number) => ({
-            routine_id: routine.id,
-            name: ex.name || ex.exercise, // Handle different naming conventions
-            description: ex.notes,
-            sets: parseInt(ex.sets) || 3,
-            reps: ex.reps?.toString() || '10',
-            rest_seconds: parseInt(ex.rest) || 60,
-            muscle_group: ex.muscle_group || null,
-            equipment: ex.equipment ? [ex.equipment] : [],
-            day_number: ex.day_number || 1, // Default to day 1 if not specified
-            order_in_day: index + 1
+            rutina_id: routine.id,
+            nombre: ex.name || ex.exercise, // Handle different naming conventions
+            descripcion: ex.notes,
+            series: parseInt(ex.sets) || 3,
+            repeticiones: ex.reps?.toString() || '10',
+            descanso_segundos: parseInt(ex.rest) || 60,
+            grupo_muscular: ex.muscle_group || null,
+            equipamiento: ex.equipment ? [ex.equipment] : [],
+            dia_numero: ex.day_number || 1, // Default to day 1 if not specified
+            orden_en_dia: index + 1
         }));
 
         // 4. Insert Exercises

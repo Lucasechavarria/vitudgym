@@ -74,17 +74,17 @@ export async function POST(request: Request) {
 
             // Crear la reserva usando el servicio
             const booking = await bookingsService.create({
-                user_id: user!.id,
-                class_schedule_id: classId,
-                date: date
+                usuario_id: user!.id,
+                horario_clase_id: classId,
+                fecha: date
             });
 
             return NextResponse.json({
                 success: true,
-                message: booking.status === 'waitlist'
+                message: (booking as any).estado === 'waitlist'
                     ? 'Clase llena. Agregado a lista de espera.'
                     : 'Reserva confirmada',
-                status: booking.status,
+                status: (booking as any).estado,
                 booking
             });
 
@@ -93,10 +93,10 @@ export async function POST(request: Request) {
             const { data: bookings } = await supabase!
                 .from('reservas_de_clase')
                 .select('id')
-                .eq('user_id', user!.id)
-                .eq('class_schedule_id', classId)
-                .eq('date', date)
-                .in('status', ['confirmed', 'waitlist'])
+                .eq('usuario_id', user!.id)
+                .eq('horario_clase_id', classId)
+                .eq('fecha', date)
+                .in('estado', ['confirmed', 'waitlist'])
                 .limit(1);
 
             if (!bookings || bookings.length === 0) {

@@ -19,8 +19,8 @@ export async function GET(request: Request) {
         const { data: plan, error: planError } = await supabase
             .from('planes_nutricionales')
             .select('*')
-            .eq('user_id', user.id)
-            .eq('is_active', true)
+            .eq('usuario_id', user.id)
+            .eq('esta_activo', true)
             .single();
 
         if (planError && planError.code !== 'PGRST116') {

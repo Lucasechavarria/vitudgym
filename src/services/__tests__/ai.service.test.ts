@@ -22,21 +22,21 @@ describe('AIService', () => {
     let aiService: AIService;
 
     const mockStudentProfile = {
-        full_name: 'Juan Pérez',
-        birth_date: '1995-01-01',
-        medical_info: {
+        nombre_completo: 'Juan Pérez',
+        fecha_nacimiento: '1995-01-01',
+        informacion_medica: {
             chronic_diseases: 'Ninguna',
             injuries: 'Rodilla izquierda',
             weight: 75
         },
-        coach_observations: 'Intermedio'
+        observaciones_entrenador: 'Intermedio'
     };
 
     const mockUserGoal = {
-        primary_goal: 'Hipertrofia',
-        secondary_goals: ['Fuerza'],
-        training_frequency_per_week: 4,
-        time_per_session_minutes: 60
+        objetivo_principal: 'Hipertrofia',
+        objetivos_secundarios: ['Fuerza'],
+        frecuencia_entrenamiento_por_semana: 4,
+        tiempo_por_sesion_minutos: 60
     };
 
     const mockGymEquipment = [

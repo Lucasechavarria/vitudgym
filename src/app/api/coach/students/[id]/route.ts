@@ -13,7 +13,7 @@ export async function GET(
     try {
         const { supabase, error } = await authenticateAndRequireRole(
             request,
-            ['coach', 'admin', 'superadmin']
+            ['coach', 'admin']
         );
 
         if (error) return error;
@@ -33,9 +33,9 @@ export async function GET(
         // Obtener rutinas del alumno
         const { data: routines, error: routinesError } = await supabase
             .from('rutinas')
-            .select('id, name, status, created_at')
-            .eq('user_id', studentId)
-            .order('created_at', { ascending: false });
+            .select('id, nombre, estado, creado_en')
+            .eq('usuario_id', studentId)
+            .order('creado_en', { ascending: false });
 
         if (routinesError) throw routinesError;
 

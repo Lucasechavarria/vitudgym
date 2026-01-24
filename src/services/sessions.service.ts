@@ -2,13 +2,13 @@
 import { createClient } from '@/lib/supabase/server';
 
 export interface ExercisePerformance {
-    exercise_id: string;
-    actual_sets?: number;
-    actual_reps?: string;
-    actual_weight?: number;
-    rest_time_seconds?: number;
-    is_completed?: boolean;
-    difficulty_rating?: number;
+    ejercicio_id: string;
+    series_reales?: number;
+    repeticiones_reales?: string;
+    peso_real?: number;
+    segundos_descanso_real?: number;
+    fue_completado?: boolean;
+    puntuacion_dificultad?: number;
 }
 
 export class SessionsService {
@@ -21,11 +21,11 @@ export class SessionsService {
         const { data, error } = await supabase
             .from('sesiones_de_entrenamiento')
             .insert({
-                user_id: userId,
-                routine_id: routineId,
-                status: 'active',
-                start_time: new Date().toISOString()
-            })
+                usuario_id: userId,
+                rutina_id: routineId,
+                estado: 'active',
+                hora_inicio: new Date().toISOString()
+            } as any)
             .select()
             .single();
 
@@ -41,9 +41,13 @@ export class SessionsService {
         const { data, error } = await supabase
             .from('registros_de_ejercicio')
             .insert({
-                session_id: sessionId,
-                ...performance
-            })
+                sesion_id: sessionId,
+                ejercicio_id: performance.ejercicio_id,
+                series_reales: performance.series_reales,
+                repeticiones_reales: performance.repeticiones_reales,
+                peso_real: performance.peso_real,
+                fue_completado: performance.fue_completado
+            } as any)
             .select()
             .single();
 
@@ -59,12 +63,12 @@ export class SessionsService {
         const { data, error } = await supabase
             .from('sesiones_de_entrenamiento')
             .update({
-                status: 'completed',
-                end_time: new Date().toISOString(),
-                total_points: totalPoints,
-                mood_rating: moodRating,
-                notes: notes
-            })
+                estado: 'completed',
+                hora_fin: new Date().toISOString(),
+                puntos_totales: totalPoints,
+                puntuacion_animo: moodRating,
+                notas: notes
+            } as any)
             .eq('id', sessionId)
             .select()
             .single();
@@ -82,11 +86,11 @@ export class SessionsService {
             .from('sesiones_de_entrenamiento')
             .select(`
                 *,
-                routine:rutinas(name),
+                routine:rutinas(nombre),
                 logs:registros_de_ejercicio(*)
             `)
-            .eq('user_id', userId)
-            .order('start_time', { ascending: false })
+            .eq('usuario_id', userId)
+            .order('hora_inicio', { ascending: false })
             .limit(limit);
 
         return { sessions: data, error };

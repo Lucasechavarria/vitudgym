@@ -13,25 +13,28 @@ export async function GET(req: Request) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { data: profile } = await supabase.from('perfiles').select('role').eq('id', user.id).single() as { data: { role: string } | null };
-        if (!profile || (profile.role !== 'coach' && profile.role !== 'admin' && profile.role !== 'superadmin')) {
+        const { data: profile } = await supabase.from('perfiles').select('rol').eq('id', user.id).single() as any;
+        if (!profile || (profile.rol !== 'coach' && profile.rol !== 'admin')) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         // 2. Fetch Attendance Data
         let attendanceQuery = supabase
             .from('reservas_de_clase')
-            .select('date, status')
-            .in('status', ['attended', 'confirmed', 'no_show']);
+            .select('fecha, estado')
+            .in('estado', ['attended', 'confirmed', 'no_show']);
 
         if (studentId && viewMode === 'individual') {
-            attendanceQuery = attendanceQuery.eq('user_id', studentId);
+            attendanceQuery = attendanceQuery.eq('usuario_id', studentId);
         }
 
         const { data: bookings } = await attendanceQuery;
 
-        // Convertir a tipo compatible (solo tenemos date y status del query)
-        const bookingsData: Pick<ClassBooking, 'date' | 'status'>[] = bookings || [];
+        // Convertir a tipo compatible (solo tenemos fecha y estado del query)
+        const bookingsData: any[] = (bookings || []).map((b: any) => ({
+            date: b.fecha,
+            status: b.estado
+        }));
         const attendanceMetrics = processAttendance(bookingsData);
 
         // 3. Fetch Measurements / Physical Progress
@@ -40,8 +43,8 @@ export async function GET(req: Request) {
             const { data } = await supabase
                 .from('mediciones')
                 .select('*')
-                .eq('user_id', studentId)
-                .order('recorded_at', { ascending: true });
+                .eq('usuario_id', studentId)
+                .order('registrado_en', { ascending: true });
             measurementsData = data || [];
         } else {
             // Global averages or summary if needed
@@ -53,21 +56,21 @@ export async function GET(req: Request) {
             .from('horarios_de_clase')
             .select(`
                 *,
-                actividades (name, image_url),
+                actividades (nombre, url_imagen),
                 reservas_de_clase (count)
             `);
         let routinesQuery = supabase
             .from('rutinas')
             .select(`
                 id,
-                name,
-                user_id,
-                ejercicios (sets, reps)
+                nombre,
+                usuario_id,
+                ejercicios (series, repeticiones)
             `)
-            .eq('is_active', true);
+            .eq('esta_activa', true);
 
         if (studentId && viewMode === 'individual') {
-            routinesQuery = routinesQuery.eq('user_id', studentId);
+            routinesQuery = routinesQuery.eq('usuario_id', studentId);
         }
 
         const { data: routines } = await routinesQuery;
@@ -81,34 +84,34 @@ export async function GET(req: Request) {
             }
 
             const routineVolume = routine.ejercicios.reduce((sAcc: number, ex: any) => { // Use 'any' for exercise to avoid strict type issues on 'never'
-                // Validar sets
-                if (!ex.sets || ex.sets <= 0) {
-                    // console.warn('⚠️ Ejercicio sin sets válidos:', ex);
+                // Validar series
+                if (!ex.series || ex.series <= 0) {
+                    // console.warn('⚠️ Ejercicio sin series válidos:', ex);
                     return sAcc;
                 }
 
-                // Parsear reps de forma segura (puede ser "10", "8-12", "AMRAP")
+                // Parsear repeticiones de forma segura (puede ser "10", "8-12", "AMRAP")
                 let reps = 10; // Valor por defecto
-                if (ex.reps) {
+                if (ex.repeticiones) {
                     // Si es un rango como "8-12", tomar el promedio
-                    if (typeof ex.reps === 'string' && ex.reps.includes('-')) {
-                        const [min, max] = ex.reps.split('-').map((r: string) => parseInt(r.trim()));
+                    if (typeof ex.repeticiones === 'string' && ex.repeticiones.includes('-')) {
+                        const [min, max] = ex.repeticiones.split('-').map((r: string) => parseInt(r.trim()));
                         if (!isNaN(min) && !isNaN(max)) {
                             reps = Math.round((min + max) / 2);
                         }
-                    } else if (typeof ex.reps === 'string' && ex.reps.toLowerCase() !== 'amrap') {
+                    } else if (typeof ex.repeticiones === 'string' && ex.repeticiones.toLowerCase() !== 'amrap') {
                         // Si es un número simple
-                        const parsedReps = parseInt(ex.reps);
+                        const parsedReps = parseInt(ex.repeticiones);
                         if (!isNaN(parsedReps) && parsedReps > 0) {
                             reps = parsedReps;
                         }
-                    } else if (typeof ex.reps === 'number') {
-                        reps = ex.reps;
+                    } else if (typeof ex.repeticiones === 'number') {
+                        reps = ex.repeticiones;
                     }
                     // Si es AMRAP, usar valor por defecto de 10
                 }
 
-                return sAcc + (ex.sets * reps);
+                return sAcc + (ex.series * reps);
             }, 0);
 
             return acc + routineVolume;

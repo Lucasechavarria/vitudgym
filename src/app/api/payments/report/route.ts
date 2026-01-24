@@ -53,16 +53,16 @@ export async function POST(request: Request) {
 
         // Crear registro de pago en Supabase con estado 'pending'
         const { data: payment, error: paymentError } = await supabase!
-            .from('payments')
+            .from('pagos')
             .insert({
-                user_id: user!.id,
-                amount: numericAmount,
-                currency: 'ARS',
-                concept: 'Pago Mensual (Reportado por Usuario)',
-                notes: `Referencia: ${reference || 'N/A'}. Notas: ${notes || ''}. Fecha: ${date}. Comprobante: ${receipt_url || 'No adjunto'}`,
-                status: 'pending',
-                payment_method: method, // 'transfer', 'cash', etc.
-                payment_provider: 'manual',
+                usuario_id: user!.id,
+                monto: numericAmount,
+                moneda: 'ARS',
+                concepto: 'Pago Mensual (Reportado por Usuario)',
+                notas: `Referencia: ${reference || 'N/A'}. Notas: ${notes || ''}. Fecha: ${date}. Comprobante: ${receipt_url || 'No adjunto'}`,
+                estado: 'pending',
+                metodo_pago: method, // 'transfer', 'cash', etc.
+                proveedor_pago: 'manual',
             })
             .select()
             .single();

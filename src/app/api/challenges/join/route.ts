@@ -23,10 +23,10 @@ export async function POST(
 
         // Verificar si ya participa
         const { data: existing } = await supabase
-            .from('challenge_participants')
+            .from('participantes_desafio')
             .select('*')
-            .eq('challenge_id', challengeId)
-            .eq('user_id', user.id)
+            .eq('desafio_id', challengeId)
+            .eq('usuario_id', user.id)
             .single();
 
         if (existing) {
@@ -34,11 +34,11 @@ export async function POST(
         }
 
         const { data, error } = await supabase
-            .from('challenge_participants')
+            .from('participantes_desafio')
             .insert({
-                challenge_id: challengeId,
-                user_id: user.id,
-                status: 'enrolled'
+                desafio_id: challengeId,
+                usuario_id: user.id,
+                estado: 'enrolled'
             })
             .select()
             .single();

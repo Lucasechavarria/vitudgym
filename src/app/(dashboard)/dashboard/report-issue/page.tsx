@@ -15,16 +15,16 @@ const REPORT_TYPES = [
 export default function ReportIssuePage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
-        type: '',
-        title: '',
-        description: '',
+        tipo: '',
+        titulo: '',
+        descripcion: '',
     });
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.type || !formData.title || !formData.description) {
+        if (!formData.tipo || !formData.titulo || !formData.descripcion) {
             toast.error('Por favor completa todos los campos');
             return;
         }
@@ -85,8 +85,8 @@ export default function ReportIssuePage() {
                             <button
                                 key={type.id}
                                 type="button"
-                                onClick={() => setFormData({ ...formData, type: type.id })}
-                                className={`p-4 rounded-xl border-2 transition-all text-left ${formData.type === type.id
+                                onClick={() => setFormData({ ...formData, tipo: type.id })}
+                                className={`p-4 rounded-xl border-2 transition-all text-left ${formData.tipo === type.id
                                     ? 'bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/20'
                                     : 'bg-white/5 border-white/10 hover:border-blue-500/50'
                                     }`}
@@ -106,26 +106,26 @@ export default function ReportIssuePage() {
                     <label className="block text-white font-bold mb-3">Asunto</label>
                     <input
                         type="text"
-                        value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        value={formData.titulo}
+                        onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
                         placeholder="Ej: Dolor en la rodilla derecha"
                         maxLength={100}
                     />
-                    <p className="text-xs text-gray-500 mt-2">{formData.title.length}/100 caracteres</p>
+                    <p className="text-xs text-gray-500 mt-2">{formData.titulo.length}/100 caracteres</p>
                 </div>
 
                 {/* Description */}
                 <div className="bg-[#1c1c1e]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
                     <label className="block text-white font-bold mb-3">Descripción Detallada</label>
                     <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        value={formData.descripcion}
+                        onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white placeholder-gray-500 h-40 resize-none focus:border-blue-500 focus:outline-none transition-colors"
                         placeholder="Describe con detalle tu problema, consulta o preocupación..."
                         maxLength={500}
                     />
-                    <p className="text-xs text-gray-500 mt-2">{formData.description.length}/500 caracteres</p>
+                    <p className="text-xs text-gray-500 mt-2">{formData.descripcion.length}/500 caracteres</p>
                 </div>
 
                 {/* Info Alert */}
@@ -139,7 +139,7 @@ export default function ReportIssuePage() {
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    disabled={submitting || !formData.type || !formData.title || !formData.description}
+                    disabled={submitting || !formData.tipo || !formData.titulo || !formData.descripcion}
                     className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:shadow-none"
                 >
                     {submitting ? 'Enviando...' : 'Enviar Reporte'}

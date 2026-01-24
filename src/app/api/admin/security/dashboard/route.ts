@@ -14,11 +14,11 @@ export async function GET(request: NextRequest) {
         // Verificar rol de admin
         const { data: profile } = await supabase
             .from('perfiles')
-            .select('role')
+            .select('rol')
             .eq('id', user.id)
             .single();
 
-        if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        if (profile?.rol !== 'admin') {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
         }
 
@@ -28,16 +28,16 @@ export async function GET(request: NextRequest) {
 
         // Total de accesos
         const { count: totalAccess } = await supabase
-            .from('routine_access_logs')
+            .from('registros_acceso_rutina')
             .select('*', { count: 'exact', head: true })
-            .gte('created_at', last24h.toISOString());
+            .gte('creado_en', last24h.toISOString());
 
         // Accesos sospechosos (múltiples intentos fallidos desde misma IP)
         const { data: suspiciousIPs } = await supabase
-            .from('routine_access_logs')
+            .from('registros_acceso_rutina')
             .select('ip_address')
             .eq('action', 'failed_login')
-            .gte('created_at', last24h.toISOString());
+            .gte('creado_en', last24h.toISOString());
 
         const ipCounts = suspiciousIPs?.reduce((acc: any, log: any) => {
             acc[log.ip_address] = (acc[log.ip_address] || 0) + 1;
@@ -48,32 +48,32 @@ export async function GET(request: NextRequest) {
 
         // Intentos fallidos
         const { count: failedLogins } = await supabase
-            .from('routine_access_logs')
+            .from('registros_acceso_rutina')
             .select('*', { count: 'exact', head: true })
             .eq('action', 'failed_login')
-            .gte('created_at', last24h.toISOString());
+            .gte('creado_en', last24h.toISOString());
 
         // Usuarios activos (últimas 24h)
         const { data: activeUsersData } = await supabase
-            .from('routine_access_logs')
-            .select('user_id')
-            .gte('created_at', last24h.toISOString());
+            .from('registros_acceso_rutina')
+            .select('usuario_id')
+            .gte('creado_en', last24h.toISOString());
 
-        const uniqueUsers = new Set(activeUsersData?.map(log => log.user_id));
+        const uniqueUsers = new Set(activeUsersData?.map(log => (log as any).usuario_id));
         const activeUsers = uniqueUsers.size;
 
         // Obtener logs recientes con información de usuario
         const { data: logs, error } = await supabase
-            .from('routine_access_logs')
+            .from('registros_acceso_rutina')
             .select(`
                 *,
-                perfiles:user_id (
-                    full_name,
+                perfiles!usuario_id (
+                    nombre_completo,
                     email,
-                    role
+                    rol
                 )
             `)
-            .order('created_at', { ascending: false })
+            .order('creado_en', { ascending: false })
             .limit(50);
 
         if (error) throw error;
@@ -84,8 +84,8 @@ export async function GET(request: NextRequest) {
             action: log.action,
             details: log.details,
             ip_address: log.ip_address,
-            user_name: (log.perfiles as any)?.full_name || 'Usuario desconocido',
-            created_at: log.created_at,
+            user_name: (log.perfiles as any)?.nombre_completo || 'Usuario desconocido',
+            created_at: log.creado_en,
             status: log.action === 'failed_login' ? 'failed' :
                 (ipCounts?.[log.ip_address || ''] >= 3 ? 'suspicious' : 'success')
         }));

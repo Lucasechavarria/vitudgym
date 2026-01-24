@@ -2,6 +2,39 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import type { ClassBooking } from '@/types/analytics';
 
+/**
+ * @swagger
+ * /api/student/dashboard:
+ *   get:
+ *     summary: Obtiene el resumen del dashboard del estudiante
+ *     description: Retorna mediciones recientes, asistencia, rutina activa y estado del perfil.
+ *     tags:
+ *       - Estudiantes
+ *     responses:
+ *       200:
+ *         description: Datos del dashboard obtenidos exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 measurements:
+ *                   type: array
+ *                   description: Últimas 10 mediciones corporales
+ *                 bookings:
+ *                   type: array
+ *                   description: Asistencias recientes confirmadas
+ *                 activeRoutine:
+ *                   type: object
+ *                   description: Rutina activa actual con sus ejercicios
+ *                 profile:
+ *                   type: object
+ *                   description: Estado del perfil del usuario (membresía, exención, etc.)
+ *       401:
+ *         description: No autorizado (Usuario no logueado)
+ *       500:
+ *         description: Error interno del servidor
+ */
 export async function GET() {
     try {
         const supabase = await createClient();
@@ -17,17 +50,17 @@ export async function GET() {
         const { data: measurements } = await supabase
             .from('mediciones')
             .select('*')
-            .eq('user_id', user.id)
-            .order('recorded_at', { ascending: true })
+            .eq('usuario_id', user.id)
+            .order('registrado_en', { ascending: true })
             .limit(10);
 
         // 3. Fetch Recent Attendance (Bookings)
         const { data: bookings } = await (supabase
             .from('reservas_de_clase') as any) // Changed 'class_bookings' to 'class_bookings' (no change here based on instruction, but snippet showed 'class_schedules')
             .select('*')
-            .eq('user_id', user.id)
-            .eq('status', 'attended')
-            .gte('date', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString());
+            .eq('usuario_id', user.id)
+            .eq('estado', 'attended')
+            .gte('fecha', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString());
 
         // 4. Fetch Active Routine
         const { data: activeRoutine } = await supabase
@@ -36,14 +69,14 @@ export async function GET() {
                 *,
                 ejercicios (*)
             `)
-            .eq('user_id', user.id)
-            .eq('is_active', true)
+            .eq('usuario_id', user.id)
+            .eq('esta_activa', true)
             .single();
 
         // 5. Fetch Profile Status
         const { data: profile } = await supabase
             .from('perfiles')
-            .select('waiver_accepted, full_name, avatar_url, membership_end_date, gender')
+            .select('exencion_aceptada, nombre_completo, url_avatar, fecha_fin_membresia, gender')
             .eq('id', user.id)
             .single() as any;
 
@@ -52,16 +85,16 @@ export async function GET() {
             .from('sesiones_de_entrenamiento')
             .select(`
                 id,
-                start_time,
+                hora_inicio,
                 logs:registros_de_ejercicio(
-                    actual_reps,
-                    actual_weight,
-                    actual_sets
+                    repeticiones_reales,
+                    peso_real,
+                    series_reales
                 )
             `)
-            .eq('user_id', user.id)
-            .eq('status', 'completed')
-            .order('start_time', { ascending: true })
+            .eq('usuario_id', user.id)
+            .eq('estado', 'completed')
+            .order('hora_inicio', { ascending: true })
             .limit(20);
 
         // Process Attendance Data for Chart
@@ -78,7 +111,7 @@ export async function GET() {
             volume: volumeByWeek,
             profile: profile ? {
                 ...profile,
-                waiver_accepted: profile.waiver_accepted || false
+                exencion_aceptada: profile.exencion_aceptada || false
             } : null
         });
 
@@ -108,12 +141,12 @@ function processAttendance(bookings: Pick<ClassBooking, 'date'>[]): Array<{ mont
 
     const result = bookings.reduce((acc: Record<string, number>, booking) => {
         // Validar estructura del booking
-        if (!booking || !booking.date) {
+        if (!booking || !(booking as any).fecha) {
             console.warn('⚠️ Booking sin fecha:', booking);
             return acc;
         }
 
-        const date = new Date(booking.date);
+        const date = new Date((booking as any).fecha);
 
         // Validar fecha válida
         if (isNaN(date.getTime())) {
@@ -132,11 +165,11 @@ function processAttendance(bookings: Pick<ClassBooking, 'date'>[]): Array<{ mont
 
 interface WorkoutSessionLog {
     id: string;
-    start_time: string;
+    hora_inicio: string;
     logs: Array<{
-        actual_reps: string;
-        actual_weight: number | string;
-        actual_sets: number;
+        repeticiones_reales: string;
+        peso_real: number | string;
+        series_reales: number;
     }>;
 }
 
@@ -147,15 +180,15 @@ function processVolume(sessions: WorkoutSessionLog[]): Array<{ week: string; vol
     return sessions.map(session => {
         let totalVolume = 0;
         session.logs?.forEach((log) => {
-            // we assume actual_reps is numeric for volume calculation if possible
-            const reps = parseInt(log.actual_reps) || 0;
-            const weight = typeof log.actual_weight === 'string' ? parseFloat(log.actual_weight) : log.actual_weight || 0;
-            const sets = log.actual_sets || 1;
+            // we assume repeticiones_reales is numeric for volume calculation if possible
+            const reps = parseInt(log.repeticiones_reales) || 0;
+            const weight = typeof log.peso_real === 'string' ? parseFloat(log.peso_real) : log.peso_real || 0;
+            const sets = log.series_reales || 1;
             totalVolume += (reps * weight * sets);
         });
 
         return {
-            week: new Date(session.start_time).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
+            week: new Date(session.hora_inicio).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }),
             volume: Math.round(totalVolume)
         };
     });

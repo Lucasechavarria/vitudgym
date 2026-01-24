@@ -83,16 +83,16 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 .update({
                     dni: data.dni,
                     gender: data.gender,
-                    phone: data.phone,
-                    address: data.address,
-                    city: data.city,
-                    date_of_birth: data.birth_date,
-                    medical_info: medical_info,
-                    emergency_contact: emergency_contact,
-                    waiver_accepted: true,
-                    waiver_date: new Date().toISOString(),
-                    onboarding_completed: true,
-                    onboarding_completed_at: new Date().toISOString()
+                    telefono: data.phone, // phone -> telefono
+                    direccion: data.address, // address -> direccion
+                    ciudad: data.city, // city -> ciudad
+                    fecha_nacimiento: data.birth_date, // date_of_birth -> fecha_nacimiento
+                    informacion_medica: medical_info, // medical_info -> informacion_medica
+                    contacto_emergencia: emergency_contact, // emergency_contact -> contacto_emergencia
+                    exencion_aceptada: true, // waiver_accepted -> exencion_aceptada
+                    fecha_exencion: new Date().toISOString(), // waiver_date -> fecha_exencion
+                    onboarding_completado: true, // onboarding_completed -> onboarding_completado
+                    onboarding_completado_en: new Date().toISOString() // onboarding_completed_at -> onboarding_completado_en
                 })
                 .eq('id', userId);
 

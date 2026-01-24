@@ -46,20 +46,21 @@ export default function StudentProfilePage() {
             const user = await authService.getCurrentUser();
             const profile = await authService.getUserProfile();
 
-            const emergencyContact = (profile.emergency_contact as any) || {};
+            const emergencyContact = (profile.contacto_emergencia as any) || {};
 
             // Validar que gender sea uno de los valores permitidos
-            const validGenders: Array<'male' | 'female' | 'other' | 'prefer_not_to_say'> = ['male', 'female', 'other', 'prefer_not_to_say'];
-            const gender = validGenders.includes(profile.gender as any)
-                ? (profile.gender as 'male' | 'female' | 'other' | 'prefer_not_to_say')
-                : 'prefer_not_to_say';
+            // gender -> genero (assuming the column content is still 'male'/'female' etc or translated? 
+            // The migration didn't strictly map values for gender, only column name. 
+            // RegistrationForm uses 'male'/'female' in UI but maps to 'genero'. 
+            // Let's assume values are still English for now or verify later. 
+            // Actually, if we are in transition, let's look at RegistrationForm. It sends data.gender.
 
             setProfileData({
-                full_name: profile.full_name || '',
+                full_name: profile.nombre_completo || '',
                 email: user?.email || '',
-                phone: profile.phone || '',
-                birth_date: profile.birth_date || '',
-                gender,
+                phone: profile.telefono || '',
+                birth_date: profile.fecha_nacimiento || '',
+                gender: (profile.gender as any) || 'prefer_not_to_say',
                 emergency_contact_name: emergencyContact.full_name || '',
                 emergency_contact_phone: emergencyContact.phone || ''
             });
@@ -79,11 +80,11 @@ export default function StudentProfilePage() {
 
             // Preparar datos para actualizacion en formato DB
             const updates = {
-                full_name: profileData.full_name,
-                phone: profileData.phone,
-                birth_date: profileData.birth_date,
+                nombre_completo: profileData.full_name,
+                telefono: profileData.phone,
+                fecha_nacimiento: profileData.birth_date,
                 gender: profileData.gender,
-                emergency_contact: {
+                contacto_emergencia: {
                     full_name: profileData.emergency_contact_name,
                     phone: profileData.emergency_contact_phone
                 }
