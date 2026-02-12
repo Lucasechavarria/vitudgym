@@ -2,17 +2,35 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 
-// Configuración de VAPID
-webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || 'mailto:admin@virtud-gym.com',
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-);
+// Función para inicializar webpush de forma segura
+function setupWebPush() {
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+    if (!publicKey || !privateKey) {
+        return false;
+    }
+
+    try {
+        webpush.setVapidDetails(
+            process.env.VAPID_SUBJECT || 'mailto:admin@virtud-gym.com',
+            publicKey,
+            privateKey
+        );
+        return true;
+    } catch (error) {
+        console.error('Error setting VAPID details:', error);
+        return false;
+    }
+}
 
 export async function POST() {
     const supabase = await createClient();
 
     try {
+        if (!setupWebPush()) {
+            return NextResponse.json({ error: 'Push notifications not configured' }, { status: 500 });
+        }
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {

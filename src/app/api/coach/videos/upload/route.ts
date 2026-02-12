@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { videoAnalysisQueue } from '@/lib/queue';
+import { getVideoAnalysisQueue } from '@/lib/queue';
 
 export async function POST(req: Request) {
     try {
@@ -73,7 +73,8 @@ export async function POST(req: Request) {
         }
 
         // 3. Encolar trabajo de análisis
-        await videoAnalysisQueue.add('analyze_video', {
+        const queue = getVideoAnalysisQueue();
+        await queue.add('analyze_video', {
             videoId: videoRecord.id,
             url: publicUrl,
             ejercicioId: ejercicioId || null,

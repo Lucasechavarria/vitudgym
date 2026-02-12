@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq';
-import { connection } from './queue';
+import { getRedisConnection } from './queue';
 import { aiService } from '@/services/ai.service';
 import { createClient } from '@supabase/supabase-js';
 
@@ -8,7 +8,8 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export const videoWorker = new Worker(
+// Solo inicializar el worker si no estamos en fase de build
+export const videoWorker = (process.env.NEXT_PHASE !== 'phase-production-build') ? new Worker(
     'video_analysis_jobs',
     async (job) => {
         const { videoId, url, ejercicioId } = job.data;
@@ -84,15 +85,17 @@ export const videoWorker = new Worker(
         }
     },
     {
-        connection,
+        connection: getRedisConnection(),
         concurrency: 1 // Procesar uno a la vez por ahora
     }
-);
+) : null;
 
-videoWorker.on('completed', (job) => {
-    console.log(`Job ${job.id} completed!`);
-});
+if (videoWorker) {
+    videoWorker.on('completed', (job) => {
+        console.log(`Job ${job.id} completed!`);
+    });
 
-videoWorker.on('failed', (job, err) => {
-    console.error(`Job ${job?.id} failed with error: ${err.message}`);
-});
+    videoWorker.on('failed', (job, err) => {
+        console.error(`Job ${job?.id} failed with error: ${err.message}`);
+    });
+}

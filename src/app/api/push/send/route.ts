@@ -2,17 +2,39 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 
-// Configuración de VAPID
-webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || 'mailto:admin@virtud-gym.com',
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-);
+// Función para inicializar webpush de forma segura
+function setupWebPush() {
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+    if (!publicKey || !privateKey) {
+        // En build de Vercel (CI), esto puede faltar. No debe crashear el servidor.
+        if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
+            console.error('❌ Missing VAPID keys for push notifications');
+        }
+        return false;
+    }
+
+    try {
+        webpush.setVapidDetails(
+            process.env.VAPID_SUBJECT || 'mailto:admin@virtud-gym.com',
+            publicKey,
+            privateKey
+        );
+        return true;
+    } catch (error) {
+        console.error('Error setting VAPID details:', error);
+        return false;
+    }
+}
 
 export async function POST(req: Request) {
     const supabase = await createClient();
 
     try {
+        if (!setupWebPush()) {
+            return NextResponse.json({ error: 'Push notifications not configured' }, { status: 500 });
+        }
         const { recipientId, title, body, url } = await req.json();
 
         if (!recipientId || !title || !body) {
