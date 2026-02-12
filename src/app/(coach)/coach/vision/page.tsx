@@ -29,7 +29,7 @@ export default function VisionLabPage() {
 
     // Polling logic
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        let interval: ReturnType<typeof setInterval>;
 
         if (currentVideoId && (videoStatus?.estado === 'subido' || videoStatus?.estado === 'procesando')) {
             setPolling(true);

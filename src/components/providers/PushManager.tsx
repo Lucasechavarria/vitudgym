@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 
 interface PushContextType {
     isSubscribed: boolean;
-    permission: NotificationPermission;
+    permission: 'default' | 'denied' | 'granted';
     subscribe: () => Promise<void>;
     unsubscribe: () => Promise<void>;
 }
@@ -14,7 +14,7 @@ const PushContext = createContext<PushContextType | undefined>(undefined);
 
 export function PushProvider({ children }: { children: React.ReactNode }) {
     const [isSubscribed, setIsSubscribed] = useState(false);
-    const [permission, setPermission] = useState<NotificationPermission>('default');
+    const [permission, setPermission] = useState<'default' | 'denied' | 'granted'>('default');
 
     useEffect(() => {
         if ('Notification' in window) {
@@ -106,7 +106,7 @@ export const usePush = () => {
 function urlBase64ToUint8Array(base64String: string) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
-        .replace(/\-/g, '+')
+        .replace(/-/g, '+')
         .replace(/_/g, '/');
 
     const rawData = window.atob(base64);
