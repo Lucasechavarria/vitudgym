@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import * as Sentry from "@sentry/nextjs";
 import { aiService } from '@/services/ai.service';
+import { RoutineAIResponse } from '@/lib/config/gemini';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { userGoalsService } from '@/services/user-goals.service';
 import { gymEquipmentService } from '@/services/gym-equipment.service';
@@ -93,10 +94,10 @@ export async function POST(request: Request) {
             templateKey
         });
 
-        const aiResponse = await aiService.generateRoutineFromPrompt(prompt);
+        const aiResponse = await aiService.generateRoutineFromPrompt(prompt) as RoutineAIResponse;
 
         // Mapear metadatos de la nueva estructura
-        const metadata = aiResponse.rutina_metadata || {};
+        const metadata = aiResponse.rutina_metadata;
         const routineName = metadata.objetivo_principal || goalText || 'Rutina Personalizada';
 
         const { data: routine, error: routineError } = await supabase
@@ -110,14 +111,15 @@ export async function POST(request: Request) {
                     metadata: metadata,
                     logros: aiResponse.sistema_de_logros,
                     finalizacion: aiResponse.finalizacion_sesion,
-                    recomendaciones: aiResponse.recomendaciones_post_entrenamiento
+                    recomendaciones: aiResponse.recomendaciones_post_entrenamiento,
+                    aviso_legal: aiResponse.aviso_legal
                 }),
                 goal: goalText,
                 duration_weeks: 4, // Default para nueva estructura
                 generated_by_ai: true,
                 ai_prompt: prompt,
                 status: profile.role === 'member' ? 'pending_approval' : 'approved',
-                medical_considerations: metadata.observaciones_medicas || '',
+                medical_considerations: aiResponse.aviso_legal?.mensaje_profesor || '',
                 equipment_used: gymEquipment.map(eq => eq.id),
                 is_active: profile.role === 'member' ? false : true,
             } as any)
@@ -169,14 +171,14 @@ export async function POST(request: Request) {
                     user_id: studentId,
                     coach_id: user.id,
                     daily_calories: aiResponse.plan_nutricional.calorias_diarias,
-                    protein_grams: aiResponse.plan_nutricional.proteinas_gramos,
-                    carbs_grams: aiResponse.plan_nutricional.carbohydratos_gramos || aiResponse.plan_nutricional.carbohidratos_gramos,
-                    fats_grams: aiResponse.plan_nutricional.grasas_gramos,
+                    protein_grams: aiResponse.plan_nutricional.macros.proteinas_gramos,
+                    carbs_grams: aiResponse.plan_nutricional.macros.carbohidratos_gramos,
+                    fats_grams: aiResponse.plan_nutricional.macros.grasas_gramos,
                     meals: aiResponse.plan_nutricional.comidas,
-                    water_liters: aiResponse.plan_nutricional.litros_agua,
-                    supplements: aiResponse.plan_nutricional.suplementos,
-                    general_guidelines: aiResponse.plan_nutricional.pautas_generales,
-                    restrictions: aiResponse.plan_nutricional.restricciones,
+                    water_liters: aiResponse.plan_nutricional.hidratacion.litros_diarios,
+                    supplements: [], // No disponible en esquema actual
+                    general_guidelines: aiResponse.plan_nutricional.ajustes_por_salud,
+                    restrictions: '', // No disponible en esquema actual
                     is_active: false, // Coach debe aprobar primero
                 } as any)
                 .select()

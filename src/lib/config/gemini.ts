@@ -126,3 +126,4 @@ export const RoutineSchema = z.object({
     recomendaciones_post_entrenamiento: z.array(z.string()),
     alertas_y_advertencias: z.array(z.string()).optional()
 });
+export type RoutineAIResponse = z.infer<typeof RoutineSchema>;

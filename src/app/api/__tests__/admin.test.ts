@@ -18,7 +18,7 @@ jest.mock('@/lib/supabase/server', () => ({
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         single: jest.fn(() => Promise.resolve({
-                            data: { id: 'admin123', role: 'admin' },
+                            data: { id: 'admin123', rol: 'admin' },
                             error: null
                         })),
                         // Support chaining eq().eq() if needed? Probably not for current usage
@@ -83,7 +83,7 @@ describe('Admin API Routes', () => {
                     select: jest.fn(() => ({
                         eq: jest.fn(() => ({
                             single: jest.fn(() => Promise.resolve({
-                                data: { id: 'user123', role: 'member' },
+                                data: { id: 'user123', rol: 'member' },
                                 error: null
                             }))
                         }))

@@ -22,7 +22,7 @@ jest.mock('@/lib/supabase/server', () => ({
                 limit: jest.fn(function () { return this; }),
                 single: jest.fn(function () {
                     if (table === 'perfiles') {
-                        return Promise.resolve({ data: { id: 'coach123', role: 'coach' }, error: null });
+                        return Promise.resolve({ data: { id: 'coach123', rol: 'coach' }, error: null });
                     }
                     if (table === 'objetivos_del_usuario') {
                         return Promise.resolve({ data: { id: 'goal1', primary_goal: 'Hypertrophy' }, error: null });
@@ -99,7 +99,7 @@ describe('Coach API Routes', () => {
                     select: jest.fn(() => ({
                         eq: jest.fn(() => ({
                             single: jest.fn(() => Promise.resolve({
-                                data: { id: 'user123', role: 'member' },
+                                data: { id: 'user123', rol: 'member' },
                                 error: null
                             }))
                         }))

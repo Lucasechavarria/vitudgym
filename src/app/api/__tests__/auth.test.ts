@@ -14,7 +14,7 @@ jest.mock('@/lib/supabase/server', () => ({
             select: jest.fn(() => ({
                 eq: jest.fn(() => ({
                     single: jest.fn(() => Promise.resolve({
-                        data: { id: '123', role: 'admin' },
+                        data: { id: '123', rol: 'admin' },
                         error: null
                     }))
                 }))
@@ -23,7 +23,7 @@ jest.mock('@/lib/supabase/server', () => ({
                 eq: jest.fn(() => ({
                     select: jest.fn(() => ({
                         single: jest.fn(() => Promise.resolve({
-                            data: { id: '123', role: 'coach' },
+                            data: { id: '123', rol: 'coach' },
                             error: null
                         }))
                     }))
