@@ -69,8 +69,8 @@ export async function GET() {
             }
         });
 
-    } catch (error) {
-        console.error('Reports Error:', error);
+    } catch (_error) {
+        console.error('Reports Error:', _error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -86,7 +86,7 @@ function processGrowthData(data: { created_at: string }[]) {
     }
 
     data.forEach(u => {
-        const d = new Date((u as any).creado_en);
+        const d = new Date((u as unknown as { creado_en: string }).creado_en);
         const key = d.toLocaleString('es-ES', { month: 'short' });
         if (months[key] !== undefined) months[key] += 1;
     });
@@ -97,7 +97,7 @@ function processGrowthData(data: { created_at: string }[]) {
     }));
 }
 
-function processRevenueGrowth(payments: any[]) {
+function processRevenueGrowth(payments: { monto: number; creado_en: string }[]) {
     const months: Record<string, number> = {};
     const today = new Date();
 

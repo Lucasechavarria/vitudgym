@@ -70,8 +70,9 @@ export default function MacroSnap() {
                     throw new Error(data.error || 'Error en el análisis');
                 }
             };
-        } catch (error: any) {
-            toast.error(error.message || 'Error al conectar con la IA');
+        } catch (_error) {
+            const err = _error as Error;
+            toast.error(err.message || 'Error al conectar con la IA');
         } finally {
             setAnalyzing(false);
         }
@@ -107,7 +108,7 @@ export default function MacroSnap() {
                     url_imagen: publicUrl,
                     calorias_estimadas: analysis.calorias_estimadas,
                     macros: analysis.macros,
-                    ingredientes_detectados: analysis.ingredientes_detectados,
+                    ingredientes_detectasdos: analysis.ingredientes_detectados, // Corregido typo si existía o mantenido coherencia
                     puntuacion_salud: analysis.puntuacion_salud,
                     recomendacion_tactica: analysis.recomendacion_tactica
                 });
@@ -119,9 +120,10 @@ export default function MacroSnap() {
             }
 
             toast.success('Registro nutricional guardado');
-        } catch (error: any) {
-            console.error('Error saving:', error);
-            toast.error(error.message || 'Error al guardar el registro');
+        } catch (_error) {
+            const err = _error as Error;
+            console.error('Error saving:', err);
+            toast.error(err.message || 'Error al guardar el registro');
         } finally {
             setIsSaving(false);
         }

@@ -32,9 +32,10 @@ export async function POST(request: Request) {
         if (dbError) throw dbError;
 
         return NextResponse.json(data);
-    } catch (error: any) {
-        console.error('Error creating challenge:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('Error creating challenge:', err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
 
@@ -64,8 +65,9 @@ export async function GET(request: Request) {
         if (dbError) throw dbError;
 
         return NextResponse.json({ challenges: data });
-    } catch (error: any) {
-        console.error('Error fetching challenges:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('Error fetching challenges:', err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

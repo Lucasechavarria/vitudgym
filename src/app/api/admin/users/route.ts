@@ -28,11 +28,11 @@ export async function GET(request: Request) {
             users
         });
 
-    } catch (error) {
-        console.error('❌ Error creating user:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error creating user';
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('❌ Error getting users:', err);
         return NextResponse.json({
-            error: errorMessage
+            error: err.message || 'Error getting users'
         }, { status: 500 });
     }
 }

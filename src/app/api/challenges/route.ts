@@ -21,8 +21,9 @@ export async function GET() {
         if (error) throw error;
 
         return NextResponse.json({ challenges: data });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (_error) {
+        const err = _error as Error;
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
 
@@ -75,8 +76,9 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, challenge: data });
 
-    } catch (error: any) {
-        console.error('Create Challenge Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('Create Challenge Error:', err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

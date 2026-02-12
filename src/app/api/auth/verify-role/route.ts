@@ -35,8 +35,8 @@ export async function GET(request: Request) {
             email: decoded.email
         });
 
-    } catch (error: any) {
-        console.error('Token verification failed:', error);
+    } catch (_error) {
+        console.error('Token verification failed:', _error);
         return NextResponse.json({
             error: 'Invalid or expired token'
         }, { status: 401 });

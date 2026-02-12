@@ -254,7 +254,7 @@ export default function AdminEquipmentPage() {
                                         <div className="relative">
                                             <select
                                                 value={editingItem?.condition}
-                                                onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
+                                                onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as Equipment['condition'] })}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
                                             >
                                                 {CONDITIONS.map(c => <option key={c.value} value={c.value} className="bg-[#1c1c1e] text-white">{c.label}</option>)}

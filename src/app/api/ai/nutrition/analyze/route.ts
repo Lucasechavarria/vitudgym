@@ -22,11 +22,12 @@ export async function POST(req: Request) {
             analysis
         });
 
-    } catch (error: any) {
-        console.error('API Nutrition Error:', error);
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('API Nutrition Error:', err);
         return NextResponse.json({
             success: false,
-            error: error.message || 'Error interno en el servidor'
+            error: err.message || 'Error interno en el servidor'
         }, { status: 500 });
     }
 }

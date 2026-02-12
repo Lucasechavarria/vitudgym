@@ -30,7 +30,7 @@ export async function GET(request: Request) {
         if (error) throw error;
 
         // Transform data
-        const payments = (data || []).map((payment: any) => ({
+        const payments = (data || []).map((payment: { id: string; amount: number; status: string; created_at: string; perfiles?: { full_name?: string; email?: string } }) => ({
             id: payment.id,
             amount: payment.amount,
             status: payment.status,
@@ -44,10 +44,11 @@ export async function GET(request: Request) {
             payments: payments
         });
 
-    } catch (error: any) {
-        console.error('Error loading payments:', error);
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('Error loading payments:', err);
         return NextResponse.json({
-            error: error.message || 'Error loading payments'
+            error: err.message || 'Error loading payments'
         }, { status: 500 });
     }
 }
@@ -91,10 +92,11 @@ export async function POST(request: Request) {
             payment: data
         });
 
-    } catch (error: any) {
-        console.error('Error saving payment:', error);
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('Error saving payment:', err);
         return NextResponse.json({
-            error: error.message || 'Error saving payment'
+            error: err.message || 'Error saving payment'
         }, { status: 500 });
     }
 }

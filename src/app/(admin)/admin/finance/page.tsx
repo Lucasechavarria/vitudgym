@@ -7,8 +7,21 @@ import { Line, Bar } from 'recharts';
 import { LineChart, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 
+interface Payment {
+    id: string;
+    amount: number;
+    status: string;
+    concept: string;
+    created_at: string;
+    user_name?: string;
+    metadata?: {
+        category?: string;
+        expense_date?: string;
+    };
+}
+
 export default function FinancePage() {
-    const [payments, setPayments] = useState<any[]>([]);
+    const [payments, setPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true);
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [newExpense, setNewExpense] = useState({
@@ -50,7 +63,7 @@ export default function FinancePage() {
     // Procesar datos para gráfico de barras (Categorías)
     const categoryTotals = payments
         .filter(p => p.amount < 0)
-        .reduce((acc: any, p) => {
+        .reduce((acc: Record<string, number>, p: any) => {
             const cat = p.metadata?.category || 'Otros';
             acc[cat] = (acc[cat] || 0) + Math.abs(Number(p.amount));
             return acc;
@@ -62,7 +75,7 @@ export default function FinancePage() {
     }));
 
     // Procesar datos para gráfico de líneas (Mensual)
-    const monthlyData = payments.reduce((acc: any, p) => {
+    const monthlyData = (payments as any[]).reduce((acc: Record<string, any>, p: any) => {
         const date = new Date(p.created_at);
         const monthKey = date.toLocaleString('es-AR', { month: 'short' });
         if (!acc[monthKey]) acc[monthKey] = { month: monthKey, ingresos: 0, gastos: 0 };
@@ -107,9 +120,10 @@ export default function FinancePage() {
             setShowExpenseModal(false);
             setNewExpense({ concepto: '', monto: '', fecha: '', categoria: 'Variable' });
             fetchPayments();
-        } catch (error: any) {
-            console.error('Add expense error:', error);
-            toast.error(error.message || 'Error al registrar gasto', { id: toastId });
+        } catch (_error) {
+            const err = _error as Error;
+            console.error('Add expense error:', err);
+            toast.error(err.message || 'Error al registrar gasto', { id: toastId });
         }
     };
 

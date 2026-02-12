@@ -45,9 +45,9 @@ export async function GET(
             routines: routines || []
         });
 
-    } catch (error) {
-        console.error('❌ Error loading student:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error al cargar información del alumno';
+    } catch (_error) {
+        console.error('❌ Error loading student:', _error);
+        const errorMessage = _error instanceof Error ? _error.message : 'Error al cargar información del alumno';
         return NextResponse.json({
             error: errorMessage
         }, { status: 500 });

@@ -14,8 +14,8 @@ export async function GET() {
         if (error) throw error;
 
         return NextResponse.json(data);
-    } catch (error) {
-        return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
+    } catch (_error) {
+        return NextResponse.json({ error: _error instanceof Error ? _error.message : 'Unknown error' }, { status: 500 });
     }
 }
 
@@ -30,8 +30,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 });
         }
 
-        const { data, error } = await (supabase
-            .from('actividades') as any)
+        const { data, error } = await supabase
+            .from('actividades')
             .insert([
                 {
                     name: body.name,
@@ -64,8 +64,8 @@ export async function PUT(req: Request) {
             return NextResponse.json({ error: 'ID is required' }, { status: 400 });
         }
 
-        const { data, error } = await (supabase
-            .from('actividades') as any)
+        const { data, error } = await supabase
+            .from('actividades')
             .update({
                 name: body.name,
                 description: body.description,

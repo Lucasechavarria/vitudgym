@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         if (error) throw error;
 
         return NextResponse.json(data);
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ error: 'Error creating class' }, { status: 500 });
     }
 }
@@ -44,7 +44,7 @@ export async function PUT(request: Request) {
         if (error) throw error;
 
         return NextResponse.json(data);
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ error: 'Error updating class' }, { status: 500 });
     }
 }
@@ -65,7 +65,7 @@ export async function DELETE(request: Request) {
         if (error) throw error;
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ error: 'Error deleting class' }, { status: 500 });
     }
 }

@@ -55,8 +55,8 @@ export async function GET(req: NextRequest) {
                 'Content-Disposition': `attachment; filename="${filename}"`,
             },
         });
-    } catch (error) {
-        console.error('[API] Error en exportación:', error);
+    } catch (_error) {
+        console.error('[API] Error en exportación:', _error);
         return NextResponse.json(
             { error: 'Error interno del servidor' },
             { status: 500 }

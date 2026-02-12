@@ -38,10 +38,10 @@ export async function GET(request: Request) {
         if (routinesError) throw routinesError;
 
         // Transform data
-        const routinesWithCounts = (routines || []).map((routine: any) => ({
+        const routinesWithCounts = (routines || []).map((routine: { id: string; nombre: string; objetivo?: string; perfiles?: { nombre_completo: string; email: string }; creado_en: string; estado: string }) => ({
             id: routine.id,
             name: routine.nombre,
-            goal: (routine as any).objetivo,
+            goal: routine.objetivo,
             student_name: routine.perfiles?.nombre_completo || 'Sin nombre',
             student_email: routine.perfiles?.email || '',
             created_at: routine.creado_en,
@@ -53,9 +53,9 @@ export async function GET(request: Request) {
             routines: routinesWithCounts
         });
 
-    } catch (error) {
-        console.error('❌ Error loading pending routines:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error al cargar rutinas pendientes';
+    } catch (_error) {
+        console.error('❌ Error loading pending routines:', _error);
+        const errorMessage = _error instanceof Error ? _error.message : 'Error al cargar rutinas pendientes';
         return NextResponse.json({
             error: errorMessage
         }, { status: 500 });

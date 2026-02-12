@@ -8,12 +8,21 @@ const AVAILABLE_ROLES = [
     { id: 'member', label: 'Alumno', icon: '🏃', color: 'text-blue-400' },
     { id: 'coach', label: 'Profesor', icon: '🎓', color: 'text-orange-400' },
     { id: 'admin', label: 'Admin', icon: '⚙️', color: 'text-purple-400' },
-];
+] as const;
+
+type RoleId = typeof AVAILABLE_ROLES[number]['id'];
+
+interface User {
+    id: string;
+    full_name: string;
+    email: string;
+    role: RoleId | string;
+}
 
 export function RoleManagement() {
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedUser, setSelectedUser] = useState<any | null>(null);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
 
     useEffect(() => {
@@ -28,8 +37,8 @@ export function RoleManagement() {
             if (data.users) {
                 setUsers(data.users);
             }
-        } catch (error) {
-            console.error('Error fetching users:', error);
+        } catch (_error) {
+            console.error('Error fetching users:', _error);
             toast.error('Error al cargar usuarios');
             // Mock data fallback
             setUsers([
@@ -61,8 +70,8 @@ export function RoleManagement() {
             toast.success(`Rol cambiado a ${AVAILABLE_ROLES.find(r => r.id === newRole)?.label}`);
             setShowRoleModal(false);
             setSelectedUser(null);
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (_error) {
+            console.error('Error:', _error);
             toast.error('Error al cambiar rol');
         }
     };

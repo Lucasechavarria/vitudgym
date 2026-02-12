@@ -56,8 +56,8 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json(result);
-    } catch (error) {
-        console.error('[API] Error en acción masiva:', error);
+    } catch (_error) {
+        console.error('[API] Error en acción masiva:', _error);
         return NextResponse.json(
             { error: 'Error interno del servidor' },
             { status: 500 }

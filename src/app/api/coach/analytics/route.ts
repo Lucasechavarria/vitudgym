@@ -13,7 +13,8 @@ export async function GET(req: Request) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { data: profile } = await supabase.from('perfiles').select('rol').eq('id', user.id).single() as any;
+        const { data: profileData } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+        const profile = profileData as { rol: string } | null;
         if (!profile || (profile.rol !== 'coach' && profile.rol !== 'admin')) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
@@ -31,11 +32,11 @@ export async function GET(req: Request) {
         const { data: bookings } = await attendanceQuery;
 
         // Convertir a tipo compatible (solo tenemos fecha y estado del query)
-        const bookingsData: any[] = (bookings || []).map((b: any) => ({
+        const bookingsData = (bookings || []).map((b: { fecha: string; estado: string }) => ({
             date: b.fecha,
             status: b.estado
         }));
-        const attendanceMetrics = processAttendance(bookingsData);
+        const attendanceMetrics = processAttendance(bookingsData as Pick<ClassBooking, 'date' | 'status'>[]);
 
         // 3. Fetch Measurements / Physical Progress
         let measurementsData = [];
@@ -76,14 +77,14 @@ export async function GET(req: Request) {
         const { data: routines } = await routinesQuery;
 
         // Cálculo de volumen con validaciones robustas
-        const totalPrescribedVolume = (routines as any[])?.reduce((acc, routine) => {
+        const totalPrescribedVolume = (routines as { ejercicios: { series: number; repeticiones: string | number }[] }[])?.reduce((acc, routine) => {
             // Validar que routine tenga la estructura esperada
             if (!routine || !Array.isArray(routine.ejercicios)) {
                 // console.warn('⚠️ Rutina sin ejercicios válidos:', routine?.id);
                 return acc;
             }
 
-            const routineVolume = routine.ejercicios.reduce((sAcc: number, ex: any) => { // Use 'any' for exercise to avoid strict type issues on 'never'
+            const routineVolume = routine.ejercicios.reduce((sAcc: number, ex: { series: number; repeticiones: string | number }) => {
                 // Validar series
                 if (!ex.series || ex.series <= 0) {
                     // console.warn('⚠️ Ejercicio sin series válidos:', ex);
@@ -93,22 +94,20 @@ export async function GET(req: Request) {
                 // Parsear repeticiones de forma segura (puede ser "10", "8-12", "AMRAP")
                 let reps = 10; // Valor por defecto
                 if (ex.repeticiones) {
+                    const repsStr = String(ex.repeticiones);
                     // Si es un rango como "8-12", tomar el promedio
-                    if (typeof ex.repeticiones === 'string' && ex.repeticiones.includes('-')) {
-                        const [min, max] = ex.repeticiones.split('-').map((r: string) => parseInt(r.trim()));
+                    if (repsStr.includes('-')) {
+                        const [min, max] = repsStr.split('-').map((r: string) => parseInt(r.trim()));
                         if (!isNaN(min) && !isNaN(max)) {
                             reps = Math.round((min + max) / 2);
                         }
-                    } else if (typeof ex.repeticiones === 'string' && ex.repeticiones.toLowerCase() !== 'amrap') {
+                    } else if (repsStr.toLowerCase() !== 'amrap') {
                         // Si es un número simple
-                        const parsedReps = parseInt(ex.repeticiones);
+                        const parsedReps = parseInt(repsStr);
                         if (!isNaN(parsedReps) && parsedReps > 0) {
                             reps = parsedReps;
                         }
-                    } else if (typeof ex.repeticiones === 'number') {
-                        reps = ex.repeticiones;
                     }
-                    // Si es AMRAP, usar valor por defecto de 10
                 }
 
                 return sAcc + (ex.series * reps);
@@ -137,9 +136,10 @@ export async function GET(req: Request) {
             }
         });
 
-    } catch (error) {
-        console.error('❌ Analytics API Error:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error al calcular analytics';
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('❌ Analytics API Error:', err);
+        const errorMessage = err.message || 'Error al calcular analytics';
 
         // Logging mejorado para debugging
         const { searchParams } = new URL(req.url);
@@ -152,13 +152,13 @@ export async function GET(req: Request) {
         // Opcional: Integración con Sentry si está disponible
         try {
             const Sentry = require('@sentry/nextjs');
-            Sentry.captureException(error, {
+            Sentry.captureException(err, {
                 extra: {
                     studentId: searchParams.get('studentId'),
                     mode: searchParams.get('mode')
                 }
             });
-        } catch (sentryError) {
+        } catch (_sentryError) {
             // Sentry no disponible, continuar sin él
         }
 

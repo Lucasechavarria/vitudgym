@@ -3,29 +3,51 @@ import { aiClient, DEFAULT_MODEL, RoutineSchema, SAFETY_SETTINGS } from '@/lib/c
 import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { CorreccionesIASchema } from '@/lib/validations/videos';
-import { AdaptiveReportSchema, AdaptiveReport } from '@/lib/validations/adaptive-engine';
-
-// ... (imports)
+import { AdaptiveReportSchema, type AdaptiveReport } from '@/lib/validations/adaptive-engine';
 
 /**
  * Parámetros para generar una rutina mejorada
  */
+export interface StudentProfile {
+  full_name?: string;
+  nombre_completo?: string;
+  gender?: string;
+  informacion_medica?: {
+    weight?: number;
+    height?: number;
+    chronic_diseases?: string;
+    injuries?: string;
+    allergies?: string;
+    medications?: string;
+  };
+  metas_fitness?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface UserGoal {
+  primary_goal?: string;
+  objetivo_principal?: string;
+  frecuencia_entrenamiento_por_semana?: number;
+  training_frequency_per_week?: number;
+  tiempo_por_sesion_minutos?: number;
+  time_per_session_minutes?: number;
+  [key: string]: unknown;
+}
+
 export interface RoutineGenerationContext {
-  studentProfile: Record<string, any>;
-  userGoal: Record<string, any>;
-  gymEquipment: Record<string, any>[];
+  studentProfile: StudentProfile;
+  userGoal: UserGoal;
+  gymEquipment: { name?: string; nombre?: string; category?: string; categoria?: string;[key: string]: unknown }[];
   coachNotes?: string;
   templateKey?: AITemplateKey;
   includeNutrition?: boolean;
 }
 
-// ... (Rest of the class)
-
 export class AIService {
   /**
    * Genera una rutina utilizando la API estándar de Gemini
    */
-  async generateRoutineFromPrompt(prompt: string): Promise<any> {
+  async generateRoutineFromPrompt(prompt: string): Promise<unknown> {
     const maxRetries = 3;
     let attempt = 0;
 
@@ -55,8 +77,8 @@ export class AIService {
         let text = '';
         try {
           text = response.text();
-        } catch (e) {
-          console.error("Error retrieving text (likely blocked):", e);
+        } catch (_error) {
+          console.error("Error retrieving text (likely blocked):", _error);
           console.log("Candidates:", JSON.stringify(response.candidates, null, 2));
           console.log("PromptFeedback:", JSON.stringify(response.promptFeedback, null, 2));
         }
@@ -68,11 +90,12 @@ export class AIService {
 
         return JSON.parse(text);
 
-      } catch (error: any) {
-        console.error(`Gemini Attempt ${attempt + 1} Error:`, error.message);
+      } catch (_error) {
+        const err = _error as Error & { status?: number };
+        console.error(`Gemini Attempt ${attempt + 1} Error:`, err.message);
 
         // Retry on 429 or 503
-        if (error.status === 429 || error.status === 503 || error.message?.includes('429')) {
+        if (err.status === 429 || err.status === 503 || err.message?.includes('429')) {
           attempt++;
           const delay = Math.pow(2, attempt) * 1000;
           console.log(`Retrying in ${delay}ms...`);
@@ -80,7 +103,7 @@ export class AIService {
           continue;
         }
 
-        throw new Error(`Fallo en la generación de rutina: ${error.message}`);
+        throw new Error(`Fallo en la generación de rutina: ${err.message}`);
       }
     }
     throw new Error("Fallo en la generación de rutina tras varios intentos.");
@@ -91,12 +114,12 @@ export class AIService {
    * Actúa como Entrenador Profesional y Arquitecto de UX.
    */
   buildPrompt(context: RoutineGenerationContext): string {
-    const { studentProfile, userGoal, gymEquipment, coachNotes, templateKey, includeNutrition } = context;
+    const { studentProfile, userGoal, gymEquipment, coachNotes, templateKey } = context;
 
     const normalizedKey = templateKey?.toString().toUpperCase() as AITemplateKey;
     const template = (normalizedKey && AI_PROMPT_TEMPLATES[normalizedKey])
       ? AI_PROMPT_TEMPLATES[normalizedKey]
-      : this.inferTemplate(userGoal?.primary_goal || '');
+      : this.inferTemplate(userGoal?.primary_goal || userGoal?.objetivo_principal || '');
 
     const safeTemplate = template || AI_PROMPT_TEMPLATES.BEGINNER;
     const medicalData = studentProfile.informacion_medica || {};
@@ -137,7 +160,7 @@ ${safeTemplate.promptSuffix}
   el "plan_nutricional" DEBE adaptarse estrictamente a estas condiciones. 
   "pautas_generales" debe explicar justificaciones médicas.
   Calcula macros con Mifflin-St Jeor.
-
+ 
 7️⃣ PROTOCOLO DE SEGURIDAD LEGAL:
 - Si detectas patologías como: ${medicalData.chronic_diseases || 'Ninguna'}, debes redactar un "aviso_legal" NIVEL ALTO/MEDIO.
 - Si no hay patologías, usa NIVEL BAJO (standard).
@@ -192,16 +215,17 @@ ${safeTemplate.promptSuffix}
         text: response.text(),
         interactionId: undefined
       };
-    } catch (error: any) {
-      console.error("AI Chat Error:", error);
-      throw new Error(error.message || "Error al procesar mensaje de IA");
+    } catch (_error) {
+      const err = _error as Error;
+      console.error("AI Chat Error:", err);
+      throw new Error(err.message || "Error al procesar mensaje de IA");
     }
   }
 
   /**
    * Analiza un movimiento (visión) utilizando Gemini y devuelve un JSON estructurado.
    */
-  async analyzeMovement(filePart: string, mimeType: string, exerciseName: string = "Ejercicio desconocido"): Promise<any> {
+  async analyzeMovement(filePart: string, mimeType: string, exerciseName: string = "Ejercicio desconocido"): Promise<unknown> {
     try {
       // @ts-ignore - Schema conversion
       const jsonSchema = zodToJsonSchema(CorreccionesIASchema);
@@ -251,16 +275,17 @@ ${safeTemplate.promptSuffix}
       if (!text) throw new Error("La IA no devolvió un análisis válido.");
 
       return JSON.parse(text);
-    } catch (error: any) {
-      console.error("Vision Analyze Error:", error);
-      throw new Error(`Error analizando el movimiento: ${error.message}`);
+    } catch (_error) {
+      const err = _error as Error;
+      console.error("Vision Analyze Error:", err);
+      throw new Error(`Error analizando el movimiento: ${err.message}`);
     }
   }
 
   /**
    * Analiza una imagen de comida utilizando Gemini Vision
    */
-  async analyzeNutrition(filePart: string, mimeType: string): Promise<any> {
+  async analyzeNutrition(filePart: string, mimeType: string): Promise<unknown> {
     try {
       const { NutritionAnalysisSchema } = await import('@/lib/validations/nutrition');
 
@@ -281,7 +306,7 @@ ${safeTemplate.promptSuffix}
         4. Otorga una "Puntuación de Salud" (1-10) basada en la densidad nutricional y objetivos fitness.
         5. Proporciona una "Recomendación Táctica" breve (ej: "Añade más proteína en la siguiente comida" o "Excelente balance post-entreno").
         
-        ESTILO:
+        ESTYLE:
         - Sé profesional, directo y motivador.
         - Usa terminología nutricional precisa.
       `;
@@ -306,9 +331,10 @@ ${safeTemplate.promptSuffix}
       if (!text) throw new Error("La IA no pudo procesar la imagen nutricional.");
 
       return JSON.parse(text);
-    } catch (error: any) {
-      console.error("Nutrition Analysis Error:", error);
-      throw new Error(`Error en el análisis nutricional: ${error.message}`);
+    } catch (_error) {
+      const err = _error as Error;
+      console.error("Nutrition Analysis Error:", err);
+      throw new Error(`Error en el análisis nutricional: ${err.message}`);
     }
   }
 
@@ -346,10 +372,10 @@ ${safeTemplate.promptSuffix}
         
         HISTORIAL DE MEDICIONES (Peso/Medidas - Últimos 90 días):
         ${measurementLogs.map(l => `- Fecha: ${l.registrado_en}, Peso: ${l.peso}kg, Grasa: ${l.grasa_procentaje || 'N/A'}%`).join('\n')}
-
+ 
         HISTORIAL DE RECUPERACIÓN (Bio-Recovery - Últimos 14 días):
         ${recoveryLogs.map(l => `- Fecha: ${l.fecha}, Sueño: ${l.horas_sueno}h (Calidad: ${l.calidad_sueno}/10), Estrés: ${l.nivel_estres}/10, Fatiga: ${l.nivel_fatiga}/10`).join('\n')}
-
+ 
         TAREAS:
         1. Evalúa la adherencia al plan (consistencia).
         2. Detecta patrones de fatiga o degradación técnica (biomecánica). Cruzar con los logs de recuperación (sueño y fatiga reportada).
@@ -386,9 +412,10 @@ ${safeTemplate.promptSuffix}
       if (!text) throw new Error("La IA no pudo generar el reporte adaptativo.");
 
       return JSON.parse(text);
-    } catch (error: any) {
-      console.error("Adaptive Report Error:", error);
-      throw new Error(`Error generando reporte adaptativo: ${error.message}`);
+    } catch (_error) {
+      const err = _error as Error;
+      console.error("Adaptive Report Error:", err);
+      throw new Error(`Error generando reporte adaptativo: ${err.message}`);
     }
   }
 }

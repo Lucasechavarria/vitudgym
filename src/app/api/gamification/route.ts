@@ -38,7 +38,7 @@ export async function GET() {
                 nivel: myStats.level || 1
             } : { puntos: 0, racha_actual: 0, nivel: 1 },
             achievements: myAchievements || [],
-            leaderboard: leaderboard?.map((l: any) => {
+            leaderboard: leaderboard?.map((l: { points?: number; racha_actual?: number; perfiles?: any }) => {
                 const profile = Array.isArray(l.perfiles) ? l.perfiles[0] : l.perfiles;
                 return {
                     name: `${profile?.nombre || 'Usuario'} ${profile?.apellido || ''}`,
@@ -49,8 +49,8 @@ export async function GET() {
             }) || []
         });
 
-    } catch (error) {
-        console.error('Gamification API Error:', error);
+    } catch (_error) {
+        console.error('Gamification API Error:', _error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

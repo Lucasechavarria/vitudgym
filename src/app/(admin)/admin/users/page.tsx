@@ -13,7 +13,7 @@ interface User extends SupabaseUserProfile {
     name: string; // API sends this
     membershipStatus: string;
     membershipEnds: string | null;
-    items?: any[]; // For older types compatibility if needed
+    items?: unknown[]; // For older types compatibility if needed
 }
 
 interface Coach {
@@ -63,16 +63,17 @@ export default function UsersPage() {
             // to the 'User' interface, especially for 'name' and membership status.
             // This part might need adjustment based on your 'perfiles' table structure
             // and how 'membershipStatus' and 'membershipEnds' are derived.
-            const formattedUsers: User[] = data.map((profile: any) => ({
+            const formattedUsers: User[] = (data as SupabaseUserProfile[]).map(profile => ({
                 ...profile,
                 name: profile.full_name || profile.email, // Assuming 'full_name' or 'email' can be used for 'name'
                 membershipStatus: profile.is_active ? 'active' : 'inactive', // Example mapping
                 membershipEnds: profile.membership_ends_at || null, // Example mapping
             }));
             setUsers(formattedUsers);
-        } catch (_error: any) {
-            console.error(_error);
-            toast.error('Error cargando usuarios: ' + _error.message);
+        } catch (_error) {
+            const err = _error as Error;
+            console.error(err);
+            toast.error('Error cargando usuarios: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -92,9 +93,10 @@ export default function UsersPage() {
 
             toast.success(`Rol actualizado a ${newRole}`);
             // Cast newRole to specific UserRole via any to avoid complex TS validation here
-            setUsers(users.map(u => u.id === uid ? { ...u, role: newRole as any } : u));
-        } catch (error: any) {
-            toast.error('Error al actualizar rol: ' + error.message);
+            setUsers(users.map(u => u.id === uid ? { ...u, role: newRole as SupabaseUserProfile['role'] } : u));
+        } catch (_error) {
+            const err = _error as Error;
+            toast.error('Error al actualizar rol: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -114,8 +116,9 @@ export default function UsersPage() {
 
             toast.success('Coach asignado correctamente');
             setUsers(users.map(u => u.id === studentId ? { ...u, assigned_coach_id: coachId === "" ? undefined : coachId } : u));
-        } catch (error: any) {
-            toast.error('Error asignando coach: ' + error.message);
+        } catch (_error) {
+            const err = _error as Error;
+            toast.error('Error asignando coach: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -139,8 +142,9 @@ export default function UsersPage() {
                 membershipStatus: 'active',
                 membershipEnds: data.newEndDate
             } : u));
-        } catch (error: any) {
-            toast.error('Error activando membresía: ' + error.message);
+        } catch (_error) {
+            const err = _error as Error;
+            toast.error('Error activando membresía: ' + err.message);
         } finally {
             setLoading(false);
         }

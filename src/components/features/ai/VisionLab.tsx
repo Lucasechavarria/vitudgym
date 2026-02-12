@@ -15,6 +15,12 @@ interface VisionAnalysis {
     timestamp_correcciones?: { segundo: number; correccion: string }[];
 }
 
+interface Exercise {
+    id: string;
+    nombre: string;
+    grupo_muscular: string;
+}
+
 export default function VisionLab() {
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -22,7 +28,7 @@ export default function VisionLab() {
     const [analysis, setAnalysis] = useState<VisionAnalysis | null>(null);
     const [exerciseName, setExerciseName] = useState('');
     const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
-    const [exercises, setExercises] = useState<any[]>([]);
+    const [exercises, setExercises] = useState<Exercise[]>([]);
     const [showExercises, setShowExercises] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [currentTime, setCurrentTime] = useState(0);
@@ -40,9 +46,9 @@ export default function VisionLab() {
                 .order('nombre');
 
             if (error) throw error;
-            setExercises(data || []);
-        } catch (error) {
-            console.error('Error fetching exercises:', error);
+            setExercises(data as Exercise[] || []);
+        } catch (_error) {
+            console.error('Error fetching exercises:', _error);
         }
     };
 
@@ -91,8 +97,9 @@ export default function VisionLab() {
                     throw new Error(data.error || 'Error en el análisis');
                 }
             };
-        } catch (error: any) {
-            toast.error(error.message || 'Error al conectar con la IA');
+        } catch (_error) {
+            const err = _error as Error;
+            toast.error(err.message || 'Error al conectar con la IA');
         } finally {
             setAnalyzing(false);
         }
@@ -128,7 +135,7 @@ export default function VisionLab() {
                     ejercicio_id: selectedExerciseId,
                     url_video: publicUrl,
                     estado: 'analizado',
-                    correcciones_ia: analysis as any,
+                    correcciones_ia: analysis as unknown,
                     puntaje_confianza: analysis.puntaje_general
                 });
 
@@ -136,8 +143,9 @@ export default function VisionLab() {
 
             toast.success('Análisis guardado permanentemente');
             // Podríamos redirigir o limpiar
-        } catch (error: any) {
-            console.error('Error saving analysis:', error);
+        } catch (_error) {
+            const err = _error as Error;
+            console.error('Error saving analysis:', err);
             toast.error('Error al guardar el análisis');
         } finally {
             setIsSaving(false);

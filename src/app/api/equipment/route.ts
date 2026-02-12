@@ -6,7 +6,7 @@ import { ROLES } from '@/lib/constants/app';
 // GET /api/equipment - List all equipment
 export async function GET(req: Request) {
     try {
-        const supabase: any = await createClient();
+        const supabase = await createClient();
         const { searchParams } = new URL(req.url);
         const category = searchParams.get('category');
         const available = searchParams.get('available');
@@ -20,7 +20,8 @@ export async function GET(req: Request) {
         if (error) throw error;
 
         return NextResponse.json(data);
-    } catch (error) {
+    } catch (_error) {
+        console.error('Equipment Fetch Error:', _error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -42,7 +43,8 @@ export async function POST(req: Request) {
 
         if (error) throw error;
         return NextResponse.json(data);
-    } catch (error) {
+    } catch (_error) {
+        console.error('Equipment Create Error:', _error);
         return NextResponse.json({ error: 'Error creating equipment' }, { status: 500 });
     }
 }
@@ -90,7 +92,8 @@ export async function PATCH(req: Request) {
 
         if (error) throw error;
         return NextResponse.json(data);
-    } catch (error) {
+    } catch (_error) {
+        console.error('Equipment Update Error:', _error);
         return NextResponse.json({ error: 'Error updating equipment' }, { status: 500 });
     }
 }
@@ -110,7 +113,8 @@ export async function DELETE(req: Request) {
 
         if (error) throw error;
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (_error) {
+        console.error('Equipment Delete Error:', _error);
         return NextResponse.json({ error: 'Error deleting equipment' }, { status: 500 });
     }
 }

@@ -52,9 +52,10 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, message: `Role ${role} assigned to ${uid}` });
 
-    } catch (error: any) {
-        console.error('Error in set-role:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('Error in set-role:', err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
 

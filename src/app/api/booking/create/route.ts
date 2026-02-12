@@ -81,10 +81,10 @@ export async function POST(request: Request) {
 
             return NextResponse.json({
                 success: true,
-                message: (booking as any).estado === 'waitlist'
+                message: (booking as { estado: string }).estado === 'waitlist'
                     ? 'Clase llena. Agregado a lista de espera.'
                     : 'Reserva confirmada',
-                status: (booking as any).estado,
+                status: (booking as { estado: string }).estado,
                 booking
             });
 
@@ -120,11 +120,12 @@ export async function POST(request: Request) {
             message: 'Action must be "reserve" or "cancel"'
         }, { status: 400 });
 
-    } catch (error: any) {
-        console.error('Booking API Error:', error);
+    } catch (_error) {
+        const err = _error as Error;
+        console.error('Booking API Error:', err);
         return NextResponse.json({
             error: 'Booking failed',
-            message: error.message || 'Error al procesar la reserva'
+            message: err.message || 'Error al procesar la reserva'
         }, { status: 500 });
     }
 }
