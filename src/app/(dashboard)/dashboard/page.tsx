@@ -12,6 +12,7 @@ import { Gamification } from '@/components/features/student/Gamification';
 import { DashboardHeader } from '@/components/features/student/DashboardHeader';
 import { WaiverWarning } from '@/components/features/student/WaiverWarning';
 import { GoalRequestModal } from '@/components/features/student/GoalRequestModal';
+import { VisionAlert } from '@/components/features/student/VisionAlert';
 
 export default function StudentDashboard() {
   const {
@@ -47,10 +48,10 @@ export default function StudentDashboard() {
   })) : [];
 
   const stats = [
-    { label: 'Peso Actual', value: `${latestProgress?.peso || '--'} kg`, icon: '⚖️', trend: 'Objetivo: 75kg', color: 'from-emerald-500/20 to-emerald-600/5 border-emerald-500/30 text-emerald-400' },
-    { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: { rate: number }) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-blue-500/20 to-blue-600/5 border-blue-500/30 text-blue-400' },
-    { label: 'Grasa Corporal', value: `${latestProgress?.grasa_corporal || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-orange-500/20 to-orange-600/5 border-orange-500/30 text-orange-400' },
-    { label: 'Músculo', value: `${latestProgress?.masa_muscular || '--'} kg`, icon: '💪', trend: 'En Aumento', color: 'from-purple-500/20 to-purple-600/5 border-purple-500/30 text-purple-400' },
+    { label: 'Peso Actual', value: `${latestProgress?.peso || '--'} kg`, icon: '⚖️', trend: 'Objetivo: 75kg', color: 'from-blue-600 to-cyan-500' },
+    { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: { rate: number }) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-purple-600 to-indigo-500' },
+    { label: 'Grasa Corporal', value: `${latestProgress?.grasa_corporal || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-orange-600 to-red-500' },
+    { label: 'Músculo', value: `${latestProgress?.masa_muscular || '--'} kg`, icon: '💪', trend: 'En Aumento', color: 'from-emerald-600 to-teal-500' },
   ];
 
   const containerVariants = {
@@ -68,7 +69,7 @@ export default function StudentDashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-20"
+      className="space-y-12 pb-20"
     >
       <DashboardHeader gender={profile?.gender} itemVariants={itemVariants} />
 
@@ -77,13 +78,13 @@ export default function StudentDashboard() {
       {isExpiringSoon && (
         <motion.div
           variants={itemVariants}
-          className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-center justify-between"
+          className="bg-red-500/10 border border-red-500/30 rounded-[2rem] p-6 flex items-center justify-between backdrop-blur-3xl"
         >
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">⚠️</span>
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">⚠️</span>
             <div>
-              <p className="text-white font-bold">Tu membresía vence pronto</p>
-              <p className="text-red-400 text-sm">
+              <p className="text-white font-black uppercase tracking-widest text-xs">Aviso de Membresía</p>
+              <p className="text-red-400 text-sm font-medium mt-1">
                 {daysRemaining! <= 0
                   ? 'Tu membresía ha vencido. Por favor, realiza el pago para continuar.'
                   : `Quedan ${daysRemaining} días para el vencimiento.`}
@@ -92,17 +93,20 @@ export default function StudentDashboard() {
           </div>
           <Link
             href="/dashboard/payments"
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20"
           >
             Renovar Ahora
           </Link>
         </motion.div>
       )}
 
+      {/* New Vision Analysis Alert */}
+      <VisionAlert itemVariants={itemVariants} />
+
       <StatsOverview stats={stats} itemVariants={itemVariants} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2 space-y-12">
           <EvolutionCharts
             chartData={chartData}
             attendance={attendance}
@@ -110,17 +114,20 @@ export default function StudentDashboard() {
             itemVariants={itemVariants}
           />
 
-          <motion.div variants={itemVariants} className="bg-[#1c1c1e]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-1 shadow-xl overflow-hidden">
-            <div className="p-6 pb-0">
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                🏆 Logros y Ranking
+          <motion.div variants={itemVariants} className="bg-zinc-900 border border-white/5 rounded-[3rem] p-2 shadow-2xl overflow-hidden relative">
+            <div className="p-10 pb-2">
+              <div className="flex items-center gap-3 mb-1">
+                <span className="text-xs font-black text-zinc-500 uppercase tracking-[0.4em]">Hall of Fame</span>
+              </div>
+              <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-8">
+                🏆 Logros & <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Ranking Elite</span>
               </h3>
             </div>
             <Gamification />
           </motion.div>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-12">
           <RoutinePreview
             routine={routine}
             handleGoalModal={handleGoalModal}
@@ -139,12 +146,13 @@ export default function StudentDashboard() {
       />
 
       {/* Floating Report Button */}
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="fixed bottom-6 right-6 z-50">
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="fixed bottom-10 right-10 z-50">
         <Link
           href="/dashboard/report-issue"
-          className="flex items-center justify-center w-14 h-14 bg-gradient-to-r from-red-500 to-orange-500 rounded-full shadow-lg shadow-red-500/30 text-white hover:scale-110 transition-all duration-300 group"
+          className="flex items-center justify-center w-16 h-16 bg-zinc-900 border border-white/10 rounded-full shadow-2xl text-white hover:scale-110 transition-all duration-300 group backdrop-blur-3xl"
         >
-          <span className="text-2xl group-hover:animate-bounce">🔔</span>
+          <span className="text-3xl group-hover:animate-bounce">🔔</span>
+          <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
         </Link>
       </motion.div>
     </motion.div>

@@ -4,6 +4,7 @@ const withPWA = require('next-pwa')({
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
+  swSrc: 'src/worker/sw.ts', // Especificamos el worker personalizado
 });
 
 const nextConfig = {

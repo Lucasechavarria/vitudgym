@@ -41,30 +41,28 @@ export async function PUT(
         // Obtener perfil actual del usuario
         const { data: targetProfile } = await supabase
             .from('perfiles')
-            .select('role')
+            .select('rol')
             .eq('id', userId)
             .single();
-
-
 
         // Actualizar rol
         const { error: updateError } = await supabase
             .from('perfiles')
-            .update({ role })
+            .update({ rol: role })
             .eq('id', userId);
 
         if (updateError) throw updateError;
 
         // Registrar cambio en historial
         await supabase
-            .from('historial_cambios_perfil')
+            .from('historial_de_cambios_de_perfil')
             .insert({
-                profile_id: userId,
-                changed_by: user.id,
-                field_changed: 'role',
-                old_value: targetProfile?.role || 'unknown',
-                new_value: role,
-                reason: `Cambio de rol por admin: ${user.email}`
+                perfil_id: userId,
+                cambiado_por: user.id,
+                campo_cambiado: 'rol',
+                valor_anterior: targetProfile?.rol || 'unknown',
+                valor_nuevo: role,
+                razon: `Cambio de rol por admin: ${user.email}`
             });
 
         return NextResponse.json({

@@ -1,0 +1,55 @@
+import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+import webpush from 'web-push';
+
+// Configuración de VAPID
+webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:admin@virtud-gym.com',
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+);
+
+export async function POST() {
+    const supabase = await createClient();
+
+    try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
+        // Obtener la suscripción más reciente del usuario
+        const { data: subscriptions, error: subError } = await supabase
+            .from('push_subscriptions')
+            .select('subscription')
+            .eq('usuario_id', user.id)
+            .order('creado_en', { ascending: false })
+            .limit(1);
+
+        if (subError || !subscriptions || subscriptions.length === 0) {
+            return NextResponse.json({
+                error: 'No se encontró suscripción push. Asegúrate de haber otorgado permisos y estar suscrito.'
+            }, { status: 404 });
+        }
+
+        const pushSubscription = subscriptions[0].subscription;
+
+        const payload = JSON.stringify({
+            title: '🔱 Virtud Gym - Prueba',
+            body: '¡Sistema de Notificaciones Elite Activo! Esta es una señal de prueba táctica.',
+            url: '/coach'
+        });
+
+        await webpush.sendNotification(pushSubscription, payload);
+
+        return NextResponse.json({ success: true, message: 'Notificación de prueba enviada' });
+
+    } catch (error: any) {
+        console.error('Error enviando notificación push de prueba:', error);
+        return NextResponse.json({
+            error: 'Error interno al enviar notificación',
+            details: error.message
+        }, { status: 500 });
+    }
+}

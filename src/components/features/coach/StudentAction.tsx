@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
 interface StudentActionProps {
-    icon: string;
+    icon: ReactNode;
     label: string;
     onClick: () => void;
     variant?: 'primary' | 'secondary' | 'danger';

@@ -48,7 +48,20 @@ export async function GET() {
             .limit(3);
 
 
-        // 4. Fetch "Students with Doubts" (Reports)
+        // 4. Fetch "Active Units" (Students training now - Last 2h)
+        const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+        const { data: activeUnits } = await supabase
+            .from('sesiones_de_entrenamiento')
+            .select(`
+                id,
+                usuario_id,
+                creado_en,
+                perfiles!usuario_id (nombre_completo, url_avatar)
+            `)
+            .gte('creado_en', twoHoursAgo.toISOString())
+            .order('creado_en', { ascending: false });
+
+        // 5. Fetch "Students with Doubts" (Reports)
         const { data: recentReports } = await supabase
             .from('reportes_de_alumnos')
             .select(`
@@ -62,7 +75,7 @@ export async function GET() {
         return NextResponse.json({
             stats: {
                 activeStudents: activeStudentsCount || 0,
-                // Add other calc stats if needed
+                activeUnits: activeUnits || []
             },
             upcomingClasses: upcomingClasses || [],
             recentReports: recentReports || []

@@ -4,6 +4,20 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SecureRoutineViewer } from '@/components/SecureRoutineViewer';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Sword,
+    Target,
+    Zap,
+    ChevronRight,
+    Activity,
+    Calendar,
+    Dumbbell,
+    Trophy,
+    Info,
+    CheckCircle2,
+    Circle,
+    Play
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Exercise {
@@ -15,7 +29,7 @@ interface Exercise {
     descanso_segundos: number;
     grupo_muscular?: string;
     equipamiento?: string[];
-    instrucciones?: string; // Assuming 'instrucciones' exists or mapped
+    instrucciones?: string;
     numero_dia?: number;
     dia_numero: number;
     orden_en_dia: number;
@@ -87,18 +101,15 @@ export default function MyRoutinePage() {
                             : ex
                     )
                 );
-                // Optional: Play a sound or success haptic here
             }
         } catch (error) {
             console.error('Error:', error);
         }
     };
 
-    // Use dia_numero if available, fallback to numero_dia for compatibility if needed
     const dayExercises = exercises.filter(ex => (ex.dia_numero || ex.numero_dia) === selectedDay);
     const totalDays = Math.max(...exercises.map(ex => ex.dia_numero || ex.numero_dia || 0), 0);
 
-    // Stagger settings for animations
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -116,35 +127,38 @@ export default function MyRoutinePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center gap-6">
                 <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-12 h-12 border-t-2 border-b-2 border-orange-500 rounded-full"
+                    animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full"
                 />
+                <p className="text-zinc-500 font-black text-xs uppercase tracking-[0.4em] animate-pulse">Sincronizando Archivos Tácticos...</p>
             </div>
         );
     }
 
     if (!routine) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-96 h-96 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-center max-w-md relative z-10 p-8 rounded-3xl bg-white/5 backdrop-blur-3xl border border-white/10"
+                    className="text-center max-w-md relative z-10 p-12 rounded-[3rem] bg-zinc-900/50 backdrop-blur-3xl border border-white/5 shadow-2xl"
                 >
-                    <div className="text-6xl mb-6">🏋️</div>
-                    <h2 className="text-3xl font-bold text-white mb-3">Sin Rutina Activa</h2>
-                    <p className="text-gray-400 mb-8 leading-relaxed">
-                        Tu coach está diseñando un plan a tu medida. ¡Pronto podrás empezar a entrenar!
+                    <div className="w-20 h-20 bg-black/40 rounded-3xl flex items-center justify-center border border-white/5 mx-auto mb-8 shadow-inner">
+                        <Activity size={40} className="text-zinc-800" />
+                    </div>
+                    <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-4">Misión Pendiente</h2>
+                    <p className="text-zinc-500 font-medium mb-10 leading-relaxed italic">
+                        "El comando central está procesando tu plan de entrenamiento. Mantente a la espera de nuevas directivas."
                     </p>
                     <button
                         onClick={() => router.push('/dashboard')}
-                        className="w-full px-6 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/20 transition-all transform hover:scale-105"
+                        className="w-full px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all border border-white/10"
                     >
-                        Volver al Dashboard
+                        Abortar y Volver
                     </button>
                 </motion.div>
             </div>
@@ -155,183 +169,260 @@ export default function MyRoutinePage() {
 
     return (
         <SecureRoutineViewer routineId={routine.id} userId={userId}>
-            <div className="min-h-screen bg-black text-white relative overflow-x-hidden p-4 md:p-8 pb-24">
-                {/* Background Blobs */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-600/20 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="min-h-screen bg-[#09090b] text-white relative overflow-x-hidden p-6 md:p-12 pb-32">
+                {/* Tactical Backdrop */}
+                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-600/5 rounded-full blur-[150px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-600/5 rounded-full blur-[150px] pointer-events-none" />
 
-                <div className="max-w-5xl mx-auto relative z-10">
-                    {/* Header Card */}
+                <div className="max-w-6xl mx-auto relative z-10 space-y-12">
+                    {/* Header Card Elite */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-gradient-to-br from-orange-500/90 to-red-600/90 rounded-3xl p-8 mb-8 shadow-2xl shadow-orange-900/20 text-white relative overflow-hidden"
+                        className="relative overflow-hidden rounded-[4rem] p-12 bg-zinc-900 border border-white/10 shadow-2xl group"
                     >
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
-                            <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 5.57 2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 18.43 22 16.29l-1.43-1.43z" /></svg>
-                        </div>
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-3 mb-2 text-white/80 text-sm font-medium uppercase tracking-wider">
-                                <span className="bg-white/20 px-2 py-1 rounded-md">Rutina Activa</span>
-                                <span>{routine.duracion_semanas} Semanas</span>
-                            </div>
-                            <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
-                                {routine.nombre}
-                            </h1>
-                            <div className="flex flex-wrap gap-6 text-sm md:text-base font-medium text-white/90">
-                                <div className="flex items-center gap-2">
-                                    <span className="bg-white/20 p-1.5 rounded-lg">👨‍🏫</span>
-                                    <span>{routine.coach.nombre_completo}</span>
+                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+
+                        <div className="relative z-10 flex flex-col xl:flex-row gap-12 items-center xl:items-start justify-between">
+                            <div className="space-y-6 text-center xl:text-left">
+                                <div className="flex items-center justify-center xl:justify-start gap-3">
+                                    <div className="w-10 h-10 bg-orange-500/10 rounded-2xl flex items-center justify-center border border-orange-500/20 shadow-inner">
+                                        <Sword size={20} className="text-orange-500" />
+                                    </div>
+                                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Tactical Plan v1.0</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="bg-white/20 p-1.5 rounded-lg">🎯</span>
-                                    <span>{routine.objetivo}</span>
+
+                                <div>
+                                    <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter uppercase leading-none">
+                                        {routine.nombre}
+                                    </h1>
+                                    <div className="flex flex-wrap justify-center xl:justify-start gap-4 mt-8">
+                                        <div className="bg-black/40 px-5 py-2.5 rounded-full border border-white/5 flex items-center gap-3">
+                                            <Calendar size={14} className="text-zinc-500" />
+                                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{routine.duracion_semanas} Semanas</span>
+                                        </div>
+                                        <div className="bg-black/40 px-5 py-2.5 rounded-full border border-white/5 flex items-center gap-3">
+                                            <Target size={14} className="text-zinc-500" />
+                                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{routine.objetivo}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-center xl:items-end gap-4 min-w-[280px]">
+                                <div className="bg-black/40 p-8 rounded-[3rem] border border-white/5 backdrop-blur-3xl shadow-2xl w-full">
+                                    <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-4 text-center">Bio-Status Alumno</p>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <span className="text-xs font-bold text-zinc-400">Progreso Diario</span>
+                                        <span className={`text-xl font-black italic tracking-tighter ${progress === 100 ? 'text-emerald-400' : 'text-white'}`}>
+                                            {Math.round(progress)}%
+                                        </span>
+                                    </div>
+                                    <div className="h-2 bg-black/60 rounded-full overflow-hidden border border-white/5 relative">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${progress}%` }}
+                                            transition={{ type: "spring", bounce: 0, duration: 1.5 }}
+                                            className={`h-full bg-gradient-to-r ${progress === 100 ? 'from-emerald-500 to-teal-400' : 'from-orange-500 to-red-500'} shadow-[0_0_15px_rgba(255,255,255,0.1)]`}
+                                        />
+                                    </div>
+                                    <p className="mt-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">
+                                        {dayExercises.filter(ex => ex.esta_completado).length} / {dayExercises.length} Módulos OK
+                                    </p>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Scanline Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[2px] w-full animate-scanline pointer-events-none opacity-10" />
                     </motion.div>
 
-                    {/* Medical Alert */}
+                    {/* Medical Alert Elite */}
                     <AnimatePresence>
                         {routine.consideraciones_medicas && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="bg-yellow-500/10 backdrop-blur-xl border border-yellow-500/20 rounded-2xl p-6 mb-8 flex items-start gap-4"
+                                exit={{ opacity: 0, height: 0 }}
+                                className="bg-amber-500/5 backdrop-blur-3xl border border-amber-500/20 rounded-[2.5rem] p-8 flex items-start gap-6 relative overflow-hidden group"
                             >
-                                <div className="text-2xl mt-1">⚠️</div>
-                                <div>
-                                    <h3 className="text-yellow-400 font-bold mb-1">Consideraciones Médicas</h3>
-                                    <p className="text-yellow-200/80 leading-relaxed">{routine.consideraciones_medicas}</p>
+                                <div className="absolute top-0 right-0 p-8 opacity-5">
+                                    <Info className="w-24 h-24 text-amber-500" />
+                                </div>
+                                <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20 shadow-inner shrink-0">
+                                    <Activity size={24} className="text-amber-500" />
+                                </div>
+                                <div className="relative z-10 py-1">
+                                    <h3 className="text-amber-500 font-black uppercase text-xs tracking-[0.3em] mb-2">Restricciones Técnicas</h3>
+                                    <p className="text-amber-200/80 font-medium italic leading-relaxed text-sm md:text-base">
+                                        "{routine.consideraciones_medicas}"
+                                    </p>
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    {/* Controls & Progress */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        {/* Day Selector */}
-                        <div className="md:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                            <h3 className="text-gray-400 font-medium mb-4 text-sm uppercase tracking-wider">Día de Entrenamiento</h3>
-                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    {/* Day Selector Elite */}
+                    <div className="bg-zinc-900 border border-white/5 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                            <div className="space-y-1">
+                                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Fase de Operación</h3>
+                                <p className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">Seleccionar Día</p>
+                            </div>
+                            <div className="flex gap-4 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
                                 {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => (
                                     <button
                                         key={day}
                                         onClick={() => setSelectedDay(day)}
-                                        className={`px-5 py-3 rounded-xl font-bold transition-all transform ${selectedDay === day
-                                            ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25 scale-105'
-                                            : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                                        className={`px-8 py-5 rounded-[1.5rem] font-black uppercase italic text-xs tracking-[0.2em] transition-all transform flex items-center gap-3 ${selectedDay === day
+                                            ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/20 scale-105 border-transparent'
+                                            : 'bg-black/40 text-zinc-500 border border-white/5 hover:border-orange-500/30 hover:text-orange-400'
                                             }`}
                                     >
+                                        <Calendar size={14} className={selectedDay === day ? 'text-white' : 'text-zinc-700'} />
                                         Día {day}
                                     </button>
                                 ))}
                             </div>
                         </div>
-
-                        {/* Progress */}
-                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col justify-center">
-                            <div className="flex justify-between items-end mb-2">
-                                <span className="text-gray-400 font-medium text-sm uppercase">Progreso Hoy</span>
-                                <span className="text-2xl font-black text-white">{Math.round(progress)}%</span>
-                            </div>
-                            <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progress}%` }}
-                                    transition={{ duration: 0.8, ease: "easeOut" }}
-                                    className="bg-gradient-to-r from-orange-500 to-red-500 h-full rounded-full"
-                                />
-                            </div>
-                            <p className="text-right text-xs text-gray-500 mt-2">
-                                {dayExercises.filter(ex => ex.esta_completado).length} de {dayExercises.length} ejercicios
-                            </p>
-                        </div>
                     </div>
 
-                    {/* Exercises List */}
+                    {/* Exercises List Elite */}
                     <motion.div
                         variants={container}
                         initial="hidden"
                         animate="show"
-                        className="space-y-4"
+                        className="grid grid-cols-1 gap-6"
                     >
                         {dayExercises.length === 0 ? (
-                            <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/5 border-dashed">
-                                <p className="text-gray-500 text-lg">Descanso merecido 😴<br /><span className="text-sm">No hay ejercicios asignados para este día.</span></p>
+                            <div className="text-center py-32 bg-zinc-900/40 rounded-[4rem] border border-white/5 border-dashed flex flex-col items-center">
+                                <div className="w-20 h-20 bg-black/40 rounded-3xl flex items-center justify-center border border-white/5 mb-8 text-zinc-800">
+                                    <Activity size={32} />
+                                </div>
+                                <p className="text-zinc-500 font-black uppercase tracking-[0.3em] text-sm mb-2 italic">Descanso de Campo</p>
+                                <p className="text-zinc-600 text-xs font-bold uppercase">Sin objetivos tácticos para hoy.</p>
                             </div>
                         ) : (
                             dayExercises.map((exercise, index) => (
                                 <motion.div
                                     variants={item}
                                     key={exercise.id}
-                                    className={`group relative rounded-2xl p-6 border transition-all duration-300 ${exercise.esta_completado
-                                        ? 'bg-green-500/10 border-green-500/30'
-                                        : 'bg-white/5 border-white/10 hover:border-orange-500/50 hover:bg-white/10'
+                                    className={`relative group rounded-[3rem] p-10 border transition-all duration-500 ${exercise.esta_completado
+                                        ? 'bg-emerald-500/5 border-emerald-500/20 shadow-emerald-500/5'
+                                        : 'bg-zinc-900 border-white/5 hover:border-orange-500/30 hover:shadow-orange-500/5 shadow-2xl'
                                         }`}
                                 >
-                                    <div className="flex items-start gap-6">
-                                        {/* Status Button */}
+                                    <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10">
+                                        {/* Status Button Elite */}
                                         <button
                                             onClick={() => toggleExerciseComplete(exercise.id)}
-                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 transform group-hover:scale-110 ${exercise.esta_completado
-                                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                                                : 'bg-white/5 text-gray-500 hover:bg-orange-500 hover:text-white border-2 border-transparent hover:shadow-lg hover:shadow-orange-500/30'
+                                            className={`w-20 h-20 rounded-[1.5rem] flex items-center justify-center flex-shrink-0 transition-all duration-500 transform group-hover:scale-110 shadow-2xl border-2 ${exercise.esta_completado
+                                                ? 'bg-emerald-500 border-emerald-400/50 text-white shadow-emerald-500/30'
+                                                : 'bg-black/60 border-white/5 text-zinc-700 hover:border-orange-500/50 hover:text-white group-hover:shadow-orange-500/20'
                                                 }`}
                                         >
                                             {exercise.esta_completado ? (
-                                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                <CheckCircle2 size={32} strokeWidth={3} />
                                             ) : (
-                                                <span className="text-lg font-bold">{index + 1}</span>
+                                                <Circle size={32} strokeWidth={2} />
                                             )}
                                         </button>
 
-                                        {/* Content */}
-                                        <div className="flex-1">
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                                                <h4 className={`text-xl font-bold transition-colors ${exercise.esta_completado ? 'text-green-400 line-through decoration-2 decoration-green-500/50' : 'text-white group-hover:text-orange-400'}`}>
-                                                    {exercise.nombre}
-                                                </h4>
-                                                {exercise.grupo_muscular && (
-                                                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/5 text-gray-400 border border-white/5 uppercase tracking-wide">
-                                                        {exercise.grupo_muscular}
-                                                    </span>
-                                                )}
+                                        {/* Content Elite */}
+                                        <div className="flex-1 space-y-6">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                <div className="space-y-1">
+                                                    <h4 className={`text-3xl font-black italic tracking-tighter uppercase transition-colors ${exercise.esta_completado ? 'text-emerald-500 line-through decoration-emerald-500/30' : 'text-white group-hover:text-orange-500'}`}>
+                                                        {exercise.nombre}
+                                                    </h4>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">ID: MOD-{index + 1}</span>
+                                                        {exercise.grupo_muscular && (
+                                                            <>
+                                                                <div className="w-1 h-1 rounded-full bg-zinc-800" />
+                                                                <span className="text-[10px] font-black text-orange-500/80 uppercase tracking-widest">{exercise.grupo_muscular}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {exercise.url_video && (
+                                                        <button className="bg-white/5 hover:bg-orange-500 text-zinc-400 hover:text-white px-5 py-2.5 rounded-xl flex items-center gap-3 border border-white/5 transition-all text-[10px] font-black uppercase tracking-widest">
+                                                            <Play size={12} fill="currentColor" /> ANALIZAR TÉCNICA
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             {exercise.descripcion && (
-                                                <p className="text-gray-400 mb-4 leading-relaxed text-sm md:text-base">{exercise.descripcion}</p>
+                                                <p className="text-zinc-500 font-medium leading-relaxed text-sm md:text-base italic max-w-3xl">
+                                                    {exercise.descripcion}
+                                                </p>
                                             )}
 
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                                 {[
-                                                    { label: 'Series', value: exercise.series, icon: '📊' },
-                                                    { label: 'Reps', value: exercise.repeticiones, icon: '🔁' },
-                                                    { label: 'Descanso', value: exercise.descanso_segundos ? `${exercise.descanso_segundos}s` : null, icon: '⏱️' },
-                                                    { label: 'Peso', value: null, icon: '⚖️' } // Future feature: Weight tracking
+                                                    { label: 'Series', value: exercise.series, icon: Activity, color: 'text-blue-500' },
+                                                    { label: 'Rpm', value: exercise.repeticiones, icon: Zap, color: 'text-yellow-500' },
+                                                    { label: 'Descanso', value: exercise.descanso_segundos ? `${exercise.descanso_segundos}s` : null, icon: Calendar, color: 'text-cyan-500' },
+                                                    { label: 'Equip', value: exercise.equipamiento?.length ? 'REQ' : null, icon: Dumbbell, color: 'text-purple-500' }
                                                 ].filter(stat => stat.value).map((stat, i) => (
-                                                    <div key={i} className="bg-black/40 rounded-xl p-3 border border-white/5 flex items-center gap-3">
-                                                        <span className="text-lg">{stat.icon}</span>
+                                                    <div key={i} className="bg-black/40 rounded-2xl p-5 border border-white/5 flex items-center gap-4 group/stat hover:border-white/10 transition-colors">
+                                                        <stat.icon size={18} className={`${stat.color} group-hover:scale-110 transition-transform`} />
                                                         <div>
-                                                            <p className="text-[10px] text-gray-500 uppercase font-bold">{stat.label}</p>
-                                                            <p className="text-white font-bold">{stat.value}</p>
+                                                            <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-1">{stat.label}</p>
+                                                            <p className="text-white font-black italic tracking-tighter text-lg">{stat.value}</p>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
 
                                             {exercise.instrucciones && (
-                                                <div className="bg-black/20 rounded-xl p-4 border-l-4 border-orange-500/50">
-                                                    <p className="text-sm text-gray-300 italic">"{exercise.instrucciones}"</p>
+                                                <div className="bg-black/20 rounded-2xl p-6 border-l-4 border-orange-500/30">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <Info size={14} className="text-orange-500" />
+                                                        <span className="text-[10px] font-black text-orange-500/50 uppercase tracking-[0.2em]">Briefing de Ejecución</span>
+                                                    </div>
+                                                    <p className="text-sm text-zinc-400 font-medium italic">"{exercise.instrucciones}"</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Hover Ornament */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full -mr-16 -mt-16 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                 </motion.div>
                             ))
                         )}
                     </motion.div>
                 </div>
+
+                {/* Bottom Stats Floating Widget */}
+                <motion.div
+                    initial={{ y: 100 }}
+                    animate={{ y: 0 }}
+                    className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 px-8 py-5 bg-zinc-900/80 backdrop-blur-3xl border border-white/10 rounded-full shadow-2xl flex items-center gap-10 min-w-[320px] justify-center"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center border border-emerald-500/30 shadow-inner">
+                            <Trophy size={18} className="text-emerald-500" />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">XP Ganada</p>
+                            <p className="text-lg font-black text-white italic tracking-tighter leading-none">+{Math.round(progress * 1.5)} pts</p>
+                        </div>
+                    </div>
+                    <div className="w-[1px] h-8 bg-zinc-800" />
+                    <div className="flex items-center gap-4 text-left">
+                        <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center border border-orange-500/20 shadow-inner">
+                            <Zap size={18} className="text-orange-500" />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Intensidad</p>
+                            <p className="text-lg font-black text-white italic tracking-tighter leading-none">HIGH</p>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
         </SecureRoutineViewer>
     );

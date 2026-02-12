@@ -14,12 +14,12 @@ export async function POST(request: Request) {
         // 2. Verify Requester is Admin/SuperAdmin
         const { data: requesterProfile } = await supabase
             .from('perfiles')
-            .select('role')
+            .select('rol')
             .eq('id', user.id)
             .single();
 
         const isAuthorized = requesterProfile &&
-            ['admin'].includes(requesterProfile.role);
+            ['admin'].includes(requesterProfile.rol);
 
         if (!isAuthorized) {
             return NextResponse.json({ error: 'Forbidden: Requires Admin privileges' }, { status: 403 });
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         // For now, try standard client. If RLS fails, we might need a Service Role client.
         const { error: updateError } = await supabase
             .from('perfiles')
-            .update({ role: role })
+            .update({ rol: role })
             .eq('id', uid);
 
         if (updateError) {

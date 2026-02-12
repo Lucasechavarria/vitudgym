@@ -39,3 +39,21 @@ export const SuplementosSchema = z.array(
 );
 
 export type Suplementos = z.infer<typeof SuplementosSchema>;
+
+/**
+ * Schema para el análisis de nutrición por IA (MacroSnap)
+ */
+export const NutritionAnalysisSchema = z.object({
+    comida_nombre: z.string(),
+    ingredientes_detectados: z.array(z.string()),
+    calorias_estimadas: z.number(),
+    macros: z.object({
+        proteinas: z.number(),
+        carbohidratos: z.number(),
+        grasas: z.number()
+    }),
+    puntuacion_salud: z.number().min(1).max(10),
+    recomendacion_tactica: z.string()
+});
+
+export type NutritionAnalysis = z.infer<typeof NutritionAnalysisSchema>;

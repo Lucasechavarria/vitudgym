@@ -9,27 +9,27 @@ export async function GET() {
             .from('horarios_de_clase')
             .select(`
         id,
-        day_of_week,
-        start_time,
-        end_time,
-        is_active,
-        notes,
+        dia_de_la_semana,
+        hora_inicio,
+        hora_fin,
+        esta_activa,
+        notas_entrenador,
         actividades (
           id,
-          name,
+          nombre,
           color,
-          duration_minutes
+          duracion_minutos
         ),
         perfiles (
           id,
-          full_name,
+          nombre_completo,
           email,
-          role
+          rol
         )
       `)
-            .eq('is_active', true)
-            .order('day_of_week', { ascending: true })
-            .order('start_time', { ascending: true });
+            .eq('esta_activa', true)
+            .order('dia_de_la_semana', { ascending: true })
+            .order('hora_inicio', { ascending: true });
 
         if (error) {
             console.error('Error fetching schedule:', error);

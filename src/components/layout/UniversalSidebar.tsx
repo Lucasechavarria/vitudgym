@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
 interface NavItem {
     href: string;
@@ -44,6 +45,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/dashboard/progress', label: 'Mi Progreso', icon: '📈' },
         { href: '/dashboard/classes', label: 'Mis Clases', icon: '📅' },
         { href: '/dashboard/nutrition', label: 'Nutrición', icon: '🥗' },
+        { href: '/dashboard/vision', label: 'Visión Lab', icon: '🎥' },
         { href: '/dashboard/settings', label: 'Configuración', icon: '⚙️' },
     ],
 };
@@ -68,6 +70,42 @@ export function UniversalSidebar({
     isMobile: boolean;
 }) {
     const pathname = usePathname();
+    const [visionBadgeCount, setVisionBadgeCount] = React.useState(0);
+
+    // Fetch unread vision analyses
+    React.useEffect(() => {
+        if (role !== 'member') return;
+
+        const fetchBadgeCount = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { count } = await supabase
+                .from('videos_ejercicio')
+                .select('*', { count: 'exact', head: true })
+                .eq('usuario_id', user.id)
+                .eq('estado', 'analizado')
+                .eq('visto_por_alumno', false);
+
+            setVisionBadgeCount(count || 0);
+        };
+
+        fetchBadgeCount();
+
+        // Realtime updates for badge
+        const channel = supabase
+            .channel('sidebar_vision_badges')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'videos_ejercicio' },
+                () => fetchBadgeCount()
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [role]);
 
     // Determine nav items based on path first, then fallback to role
     let viewRole = role;
@@ -126,13 +164,18 @@ export function UniversalSidebar({
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium ${isActive
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium relative ${isActive
                                     ? `bg-${color}-500 text-white shadow-lg shadow-${color}-500/20`
                                     : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     }`}
                             >
-                                <span className="text-xl shrink-0">{item.icon}</span>
-                                <span className="truncate">{item.label}</span>
+                                <span className="text-xl shrink-0" role="img" aria-label={item.label}>{item.icon}</span>
+                                <span className="truncate flex-1">{item.label}</span>
+                                {item.label === 'Visión Lab' && visionBadgeCount > 0 && (
+                                    <span className="absolute right-2 top-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border border-[#1c1c1e]">
+                                        {visionBadgeCount}
+                                    </span>
+                                )}
                             </Link>
                         );
                     })}

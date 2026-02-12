@@ -43,6 +43,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { PushProvider } from "@/components/providers/PushManager";
+
 export default function RootLayout({
   children,
 }: {
@@ -82,9 +84,11 @@ export default function RootLayout({
 
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <ErrorBoundary>
-          <ClientProviders />
-          {children}
-          <InstallPrompt />
+          <PushProvider>
+            <ClientProviders />
+            {children}
+            <InstallPrompt />
+          </PushProvider>
         </ErrorBoundary>
       </body>
     </html>

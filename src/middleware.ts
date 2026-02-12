@@ -48,19 +48,19 @@ export async function middleware(request: NextRequest) {
                 // SIEMPRE consultar la BBDD 'perfiles' para tener el rol real
                 const { data: profile, error: profileError } = await supabase
                     .from('perfiles')
-                    .select('role')
+                    .select('rol')
                     .eq('id', user.id)
                     .single();
 
                 if (profile) {
-                    userRole = profile.role;
+                    userRole = profile.rol;
                 } else if (profileError) {
                     console.error('Middleware: Error fetching profile role:', profileError);
                 }
 
                 // Fallback a metadata si falla la DB
                 if (!userRole) {
-                    userRole = user.app_metadata?.role || user.user_metadata?.role;
+                    userRole = user.app_metadata?.rol || user.user_metadata?.rol || user.app_metadata?.role || user.user_metadata?.role;
                 }
 
                 console.log(`🔐 Middleware Check: User ${user.email} has role: ${userRole}`);

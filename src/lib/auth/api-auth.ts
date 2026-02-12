@@ -61,12 +61,12 @@ export async function requireRole(
     try {
         // Optimización: Intentar obtener el rol de la sesión/usuario primero para ahorrar DB hits
         const { data: { user } } = await supabase.auth.getUser();
-        let role = user?.app_metadata?.role || user?.user_metadata?.role;
+        let role = user?.app_metadata?.rol || user?.user_metadata?.rol || user?.app_metadata?.role || user?.user_metadata?.role;
 
         if (!role) {
             const { data: profile, error } = await supabase
                 .from('perfiles')
-                .select('role')
+                .select('rol')
                 .eq('id', userId)
                 .single();
 
@@ -79,7 +79,7 @@ export async function requireRole(
                     profile: null
                 };
             }
-            role = profile.role;
+            role = profile.rol;
         }
 
         if (!allowedRoles.includes(role)) {

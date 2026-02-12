@@ -109,38 +109,39 @@ export async function POST(request: Request) {
             }, { status: 500 });
         }
 
-        // Actualizar estado del usuario (activar membresía por 30 días)
-        const membershipEndDate = new Date();
-        membershipEndDate.setDate(membershipEndDate.getDate() + 30);
+        // Usar la función RPC para aprobar con reglas de negocio (mantiene ciclo de facturación)
+        const { data: approvalData, error: approvalError } = await supabase!
+            .rpc('aprobar_pago_con_reglas', {
+                p_pago_id: payment.id,
+                p_admin_id: user!.id
+            });
 
-        const { error: profileError } = await supabase!
-            .from('perfiles')
-            .update({
-                estado_membresia: 'active',
-                fecha_fin_membresia: membershipEndDate.toISOString()
-            })
-            .eq('id', userId);
-
-        if (profileError) {
-            console.error('⚠️ Error updating profile:', profileError);
-            // No fallar la operación si solo falla la actualización del perfil
-            // El pago ya fue registrado exitosamente
-        } else {
-            console.log('✅ Membresía activada para usuario:', userId);
+        if (approvalError) {
+            console.error('❌ Error aprobando pago con reglas:', approvalError);
+            // Fallback: Si falla la RPC, intentar actualizar manualmente como antes (seguridad)
+            // O devolver error 500. Decidimos devolver error para investigar.
+            return NextResponse.json({
+                error: 'Payment approval logic failed',
+                message: approvalError.message
+            }, { status: 500 });
         }
 
-        console.log('✅ Pago manual aprobado:', {
+        // El resultado de la RPC incluye la fecha
+        const membershipEndDate = approvalData.fecha_fin_membresia;
+
+        console.log('✅ Pago manual aprobado con reglas:', {
             paymentId: payment.id,
             userId,
             amount: numericAmount,
-            approvedBy: user!.id
+            approvedBy: user!.id,
+            newEndDate: membershipEndDate
         });
 
         return NextResponse.json({
             success: true,
             paymentId: payment.id,
             message: 'Pago aprobado exitosamente',
-            membershipEndDate: membershipEndDate.toISOString()
+            membershipEndDate: membershipEndDate
         });
 
     } catch (error) {

@@ -16,6 +16,7 @@ ALTER TABLE ejercicios_equipamiento ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para videos_ejercicio
+DROP POLICY IF EXISTS "Coach ve sus videos y de alumnos" ON videos_ejercicio;
 CREATE POLICY "Coach ve sus videos y de alumnos" ON videos_ejercicio
   FOR SELECT
   USING (
@@ -24,6 +25,7 @@ CREATE POLICY "Coach ve sus videos y de alumnos" ON videos_ejercicio
     OR EXISTS (SELECT 1 FROM perfiles WHERE id = auth.uid() AND rol IN ('admin', 'coach'))
   );
 
+DROP POLICY IF EXISTS "Coach sube videos" ON videos_ejercicio;
 CREATE POLICY "Coach sube videos" ON videos_ejercicio
   FOR INSERT
   WITH CHECK (
@@ -32,9 +34,11 @@ CREATE POLICY "Coach sube videos" ON videos_ejercicio
   );
 
 -- Políticas para ejercicios_equipamiento
+DROP POLICY IF EXISTS "Lectura pública autenticada" ON ejercicios_equipamiento;
 CREATE POLICY "Lectura pública autenticada" ON ejercicios_equipamiento
   FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Solo staff modifica equipamiento" ON ejercicios_equipamiento;
 CREATE POLICY "Solo staff modifica equipamiento" ON ejercicios_equipamiento
   FOR ALL
   USING (EXISTS (SELECT 1 FROM perfiles WHERE id = auth.uid() AND rol IN ('admin', 'coach')));
@@ -240,6 +244,7 @@ JOIN actividades a ON hc.actividad_id = a.id
 GROUP BY a.nombre, mes
 ORDER BY mes DESC, actividad;
 
+DROP INDEX IF EXISTS idx_stats_actividades_mes;
 CREATE INDEX idx_stats_actividades_mes 
   ON stats_actividades_mensuales(mes DESC);
 

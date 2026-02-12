@@ -144,7 +144,7 @@ export const authService = {
     async hasRole(role: string | string[]) {
         const profile = await this.getUserProfile();
         const roles = Array.isArray(role) ? role : [role];
-        return roles.includes(profile.role);
+        return roles.includes(profile.rol);
     },
 
     /**

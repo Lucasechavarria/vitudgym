@@ -2,6 +2,8 @@
 import { aiClient, DEFAULT_MODEL, RoutineSchema, SAFETY_SETTINGS } from '@/lib/config/gemini';
 import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { CorreccionesIASchema } from '@/lib/validations/videos';
+import { AdaptiveReportSchema, AdaptiveReport } from '@/lib/validations/adaptive-engine';
 
 // ... (imports)
 
@@ -197,41 +199,46 @@ ${safeTemplate.promptSuffix}
   }
 
   /**
-   * Analiza un movimiento (visión) utilizando Gemini 3
+   * Analiza un movimiento (visión) utilizando Gemini y devuelve un JSON estructurado.
    */
-  async analyzeMovement(filePart: string, mimeType: string, exerciseName: string = "Ejercicio desconocido"): Promise<string> {
+  async analyzeMovement(filePart: string, mimeType: string, exerciseName: string = "Ejercicio desconocido"): Promise<any> {
     try {
+      // @ts-ignore - Schema conversion
+      const jsonSchema = zodToJsonSchema(CorreccionesIASchema);
+      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
+        delete (jsonSchema as any).$schema;
+      }
+
       const prompt = `
-      Actúa como un Especialista en Biomecánica y Entrenador de Élite.
-      Analiza este video del ejercicio: ${exerciseName}.
+      Actúa como un Especialista en Biomecánica de Élite, Fisioterapeuta y Entrenador de Atletas de Alto Rendimiento.
+      Tu objetivo es realizar un análisis técnico exhaustivo del video del ejercicio: ${exerciseName}.
       
-      INSTRUCCIONES CRÍTICAS:
-      1. Observa la fase excéntrica y concéntrica.
-      2. Evalúa la alineación de la columna y el rango de movimiento (ROM).
-      3. Identifica si el tempo es adecuado para el objetivo del alumno.
+      ESTRUCTURA DEL ANÁLISIS:
+      1. TÉCNICA Y BIOMECÁNICA: Evalúa la trayectoria del movimiento, el rango de movimiento (ROM), la estabilidad del core y la alineación articular (rodillas, columna, hombros).
+      2. SEGURIDAD: Identifica cualquier patrón compensatorio que pueda derivar en lesiones a corto o largo plazo.
+      3. CRONOLOGÍA DE ERRORES: Indica el segundo exacto donde se pierde el control técnico (ej. "segundo 3.5: pérdida de neutralidad lumbar").
+      4. RECOMENDACIONES: Proporciona 3-4 sugerencias accionables y "cues" de entrenamiento para la próxima sesión.
       
-      ESTRUCTURA DE RESPUESTA (Markdown):
-      ## Análisis de Técnica: ${exerciseName}
+      PUNTAJE GENERAL:
+      Calcula un puntaje de ejecución del 0 al 100 basado en:
+      - 40% Control Postural.
+      - 30% Rango de Movimiento Efectivo.
+      - 30% Estabilidad y Ritmo.
       
-      ### ✅ Puntos Correctos
-      - (Menciona 2 o 3 cosas que el alumno hace bien)
-      
-      ### ❌ Correcciones Necesarias
-      - **Error detectado:** [Nombre del error]
-      - **Cómo corregirlo:** [Instrucción técnica clara]
-      - **Riesgo asociado:** [Qué lesión podría causar si no se corrige]
-      
-      ### 📊 Veredicto Biomecánico
-      **[PUNTUACIÓN: 0-10]**
-      **Nivel:** (Excelente | Seguro | Necesita Ajustes | Peligroso)
-      
-      ---
-      *Consejo del Coach:* "Un tip psicológico para mejorar la conexión mente-músculo en este ejercicio."
+      IMPORTANTE:
+      - Sé extremadamente técnico pero constructivo. 
+      - Usa terminología biomecánica (ej: valgo de rodilla, anteversión pélvica, etc.).
+      - Si el video no corresponde a un ejercicio físico, indícalo claramente en las recomendaciones y otorga un puntaje de 0.
     `;
 
       const model = aiClient.getGenerativeModel({
         model: DEFAULT_MODEL,
-        safetySettings: SAFETY_SETTINGS // Permitir análisis anatómico
+        safetySettings: SAFETY_SETTINGS,
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: jsonSchema as any,
+          temperature: 0.1
+        }
       });
 
       const result = await model.generateContent([
@@ -239,10 +246,149 @@ ${safeTemplate.promptSuffix}
         { inlineData: { data: filePart, mimeType: mimeType } }
       ]);
       const response = await result.response;
-      return response.text();
+      const text = response.text();
+
+      if (!text) throw new Error("La IA no devolvió un análisis válido.");
+
+      return JSON.parse(text);
     } catch (error: any) {
       console.error("Vision Analyze Error:", error);
-      return "Error analizando el movimiento con Gemini 3.";
+      throw new Error(`Error analizando el movimiento: ${error.message}`);
+    }
+  }
+
+  /**
+   * Analiza una imagen de comida utilizando Gemini Vision
+   */
+  async analyzeNutrition(filePart: string, mimeType: string): Promise<any> {
+    try {
+      const { NutritionAnalysisSchema } = await import('@/lib/validations/nutrition');
+
+      // @ts-ignore
+      const jsonSchema = zodToJsonSchema(NutritionAnalysisSchema);
+      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
+        delete (jsonSchema as any).$schema;
+      }
+
+      const prompt = `
+        Actúa como un Nutricionista Deportivo de Élite y Especialista en Composición Corporal.
+        Tu objetivo es analizar la imagen de este plato de comida con precisión quirúrgica.
+        
+        TAREAS:
+        1. Identifica el nombre del plato y todos los ingredientes visibles.
+        2. Estima las calorías totales con el margen de error más bajo posible.
+        3. Calcula los macros (Proteínas, Carbohidratos, Grasas) en gramos.
+        4. Otorga una "Puntuación de Salud" (1-10) basada en la densidad nutricional y objetivos fitness.
+        5. Proporciona una "Recomendación Táctica" breve (ej: "Añade más proteína en la siguiente comida" o "Excelente balance post-entreno").
+        
+        ESTILO:
+        - Sé profesional, directo y motivador.
+        - Usa terminología nutricional precisa.
+      `;
+
+      const model = aiClient.getGenerativeModel({
+        model: DEFAULT_MODEL,
+        safetySettings: SAFETY_SETTINGS,
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: jsonSchema as any,
+          temperature: 0.2
+        }
+      });
+
+      const result = await model.generateContent([
+        prompt,
+        { inlineData: { data: filePart, mimeType: mimeType } }
+      ]);
+      const response = await result.response;
+      const text = response.text();
+
+      if (!text) throw new Error("La IA no pudo procesar la imagen nutricional.");
+
+      return JSON.parse(text);
+    } catch (error: any) {
+      console.error("Nutrition Analysis Error:", error);
+      throw new Error(`Error en el análisis nutricional: ${error.message}`);
+    }
+  }
+
+  /**
+   * Genera un reporte adaptativo basado en el historial reciente del alumno
+   */
+  async generateAdaptiveReport(
+    studentProfile: any,
+    visionLogs: any[],
+    nutritionLogs: any[],
+    measurementLogs: any[] = [],
+    recoveryLogs: any[] = []
+  ): Promise<AdaptiveReport> {
+    try {
+      console.log('Generating Adaptive Report with Gemini...');
+
+      // @ts-ignore
+      const jsonSchema = zodToJsonSchema(AdaptiveReportSchema);
+      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
+        delete (jsonSchema as any).$schema;
+      }
+
+      const prompt = `
+        Actúa como un Sistema de Inteligencia de Alto Rendimiento y Analista de Datos Deportivos.
+        Tu misión es analizar el comportamiento y progreso del alumno en los últimos 7 días.
+        
+        DATOS DEL ALUMNO:
+        - Perfil: ${JSON.stringify(studentProfile)}
+        
+        HISTORIAL DE BIOMECÁNICA (Videos):
+        ${visionLogs.map(l => `- ${l.nombre_ejercicio}: Score ${l.puntaje_general}% en ${l.creado_en}`).join('\n')}
+        
+        HISTORIAL DE NUTRICIÓN (MacroSnap):
+        ${nutritionLogs.map(l => `- ${l.nombre_plato}: ${l.calorias}kcal, Score Salud ${l.puntaje_salud}/10 en ${l.creado_en}`).join('\n')}
+        
+        HISTORIAL DE MEDICIONES (Peso/Medidas - Últimos 90 días):
+        ${measurementLogs.map(l => `- Fecha: ${l.registrado_en}, Peso: ${l.peso}kg, Grasa: ${l.grasa_procentaje || 'N/A'}%`).join('\n')}
+
+        HISTORIAL DE RECUPERACIÓN (Bio-Recovery - Últimos 14 días):
+        ${recoveryLogs.map(l => `- Fecha: ${l.fecha}, Sueño: ${l.horas_sueno}h (Calidad: ${l.calidad_sueno}/10), Estrés: ${l.nivel_estres}/10, Fatiga: ${l.nivel_fatiga}/10`).join('\n')}
+
+        TAREAS:
+        1. Evalúa la adherencia al plan (consistencia).
+        2. Detecta patrones de fatiga o degradación técnica (biomecánica). Cruzar con los logs de recuperación (sueño y fatiga reportada).
+        3. Calcula un Nivel de Riesgo de Lesión (0-100) basado en la calidad técnica reciente, volumen de entrenamiento y estado de recuperación.
+        4. Performance Forecasting: Analiza la tendencia de peso de los últimos 90 días contra la meta del alumno (${JSON.stringify(studentProfile.metas_fitness)}).
+        5. Predicción: Calcula la fecha estimada de cumplimiento del objetivo, los días restantes y la probabilidad de éxito según el ritmo actual.
+        6. Análisis de Eficiencia: Evalúa si el timing nutricional es óptimo para los resultados buscados.
+        7. SOPORTE MENTAL: Evalúa el estado de ánimo y estrés reportado. Proporciona una recomendación de bienestar para evitar el agotamiento o burnout.
+        8. Identifica alertas críticas si el alumno está cerca del sobre-entrenamiento o falta crónica de sueño.
+        9. Genera sugerencias accionables para el coach (ajustes en macros, carga o descanso).
+        10. Estima los riesgos si no se aplican los ajustes.
+        
+        REGLAS:
+        - Sé crítico pero empático.
+        - Si la recuperación es baja (< 6h de sueño o fatiga > 7), sugiere priorizar el descanso o bajar la intensidad (deload).
+        - La fecha estimada debe ser realista basada en la tasa de cambio semanal real (rate of weight loss/gain).
+        - Si el progreso es nulo y la recuperación es mala, identifica el estrés/sueño como el cuello de botella.
+      `;
+
+      const model = aiClient.getGenerativeModel({
+        model: DEFAULT_MODEL,
+        safetySettings: SAFETY_SETTINGS,
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: jsonSchema as any,
+          temperature: 0.1
+        }
+      });
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      if (!text) throw new Error("La IA no pudo generar el reporte adaptativo.");
+
+      return JSON.parse(text);
+    } catch (error: any) {
+      console.error("Adaptive Report Error:", error);
+      throw new Error(`Error generando reporte adaptativo: ${error.message}`);
     }
   }
 }

@@ -2,210 +2,346 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase/client';
+import {
+    Zap,
+    CheckCircle2,
+    AlertCircle,
+    ClipboardList,
+    Play,
+    Clock,
+    Star,
+    MessageSquare,
+    ChevronRight,
+    Loader2,
+    FlaskConical,
+    History,
+    Search
+} from 'lucide-react';
+import { CorreccionesIA } from '@/lib/validations/videos';
+import toast from 'react-hot-toast';
+import VisionLab from '@/components/features/ai/VisionLab';
 
 export default function VisionPage() {
-    const [isScanning, setIsScanning] = useState(false);
-    const [analysisResult, setAnalysisResult] = useState<any>(null);
+    const [mode, setMode] = useState<'history' | 'lab'>('lab');
+    const [videos, setVideos] = useState<any[]>([]);
+    const [selectedVideo, setSelectedVideo] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [submittingFeedback, setSubmittingFeedback] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [comment, setComment] = useState('');
 
-    const startScan = () => {
-        setIsScanning(true);
-        setAnalysisResult(null);
+    useEffect(() => {
+        fetchVideos();
 
-        // Simulate analysis process
-        setTimeout(() => {
-            setIsScanning(false);
-            setAnalysisResult({
-                score: 87,
-                tips: [
-                    "Mantén la espalda recta",
-                    "Rodillas ligeramente flexionadas",
-                    "Mirada al frente"
-                ],
-                muscle_groups: ["Espalda Baja", "Cuádriceps"]
-            });
-        }, 3000);
+        const channel = supabase
+            .channel('vision_updates')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'videos_ejercicio'
+                },
+                (payload) => {
+                    fetchVideos();
+                    if (payload.eventType === 'UPDATE' && (payload.new as any).estado === 'analizado') {
+                        toast.success('¡Análisis biomecánico completado!');
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
+
+    const fetchVideos = async () => {
+        try {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data, error } = await supabase
+                .from('videos_ejercicio')
+                .select('*, ejercicios(nombre)')
+                .eq('usuario_id', user.id)
+                .order('creado_en', { ascending: false });
+
+            if (error) throw error;
+            setVideos(data || []);
+        } catch (error) {
+            console.error('Error fetching videos:', error);
+            toast.error('No se pudieron cargar tus análisis');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVideoSelect = (video: any) => {
+        setSelectedVideo(video);
+        setRating(video.calificacion_alumno || 0);
+        setComment(video.feedback_alumno || '');
+        setMode('history');
+    };
+
+    const handleSubmitFeedback = async () => {
+        if (!selectedVideo) return;
+        try {
+            setSubmittingFeedback(true);
+            const { error } = await supabase
+                .from('videos_ejercicio')
+                .update({
+                    calificacion_alumno: rating,
+                    feedback_alumno: comment
+                })
+                .eq('id', selectedVideo.id);
+
+            if (error) throw error;
+            toast.success('Dossier actualizado con éxito');
+            fetchVideos();
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+            toast.error('Error al guardar el feedback');
+        } finally {
+            setSubmittingFeedback(false);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-black text-white p-4 md:p-8 relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="min-h-screen space-y-12 relative z-10 p-4 md:p-8">
+            {/* Background Elite Accent */}
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-orange-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="max-w-4xl mx-auto relative z-10">
-                <header className="mb-8">
-                    <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                        AI Posture Vision
+            {/* Header Táctico */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-2 h-8 bg-orange-500 rounded-full" />
+                        <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em]">Operational Unit</p>
+                    </div>
+                    <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+                        Technique <span className="text-orange-500">Vision</span>
                     </h1>
-                    <p className="text-gray-400">Análisis biomecánico en tiempo real impulsado por IA.</p>
-                </header>
+                    <p className="text-gray-400 text-sm font-bold uppercase tracking-widest opacity-60">
+                        Inteligencia Biomecánica Predictiva
+                    </p>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Scanner Area */}
-                    <div className="relative aspect-[3/4] bg-gray-900 rounded-3xl border border-white/10 overflow-hidden flex flex-col items-center justify-center group">
-
-                        {/* Camera Placeholder / Feed */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/80 z-10" />
-
-                        {!isScanning && !analysisResult && (
-                            <div className="z-20 text-center p-6">
-                                <motion.div
-                                    animate={{ scale: [1, 1.1, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 mx-auto border border-white/10"
-                                >
-                                    <span className="text-4xl">📷</span>
-                                </motion.div>
-                                <h3 className="text-xl font-bold mb-2">Listo para analizar</h3>
-                                <p className="text-gray-400 text-sm mb-6">Asegúrate de tener buena iluminación y que todo tu cuerpo sea visible.</p>
-                                <button
-                                    onClick={startScan}
-                                    className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-full font-bold shadow-lg shadow-blue-500/25 transition-all transform hover:scale-105"
-                                >
-                                    Iniciar Escaneo
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Formatting "Scanner" Overlay */}
-                        <AnimatePresence>
-                            {isScanning && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-                                >
-                                    {/* Scanning Line */}
-                                    <motion.div
-                                        animate={{ top: ['0%', '100%', '0%'] }}
-                                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                        className="absolute left-0 w-full h-1 bg-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
-                                    />
-
-                                    <div className="text-center">
-                                        <div className="text-blue-400 font-mono text-sm mb-2">ANALIZANDO VECTORES...</div>
-                                        <div className="flex gap-1 justify-center">
-                                            {[1, 2, 3].map(i => (
-                                                <motion.div
-                                                    key={i}
-                                                    animate={{ height: [10, 30, 10] }}
-                                                    transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
-                                                    className="w-1 bg-blue-500 rounded-full"
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* HUD Corners */}
-                                    <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-blue-500/50 rounded-tl-lg" />
-                                    <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-blue-500/50 rounded-tr-lg" />
-                                    <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-blue-500/50 rounded-bl-lg" />
-                                    <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-blue-500/50 rounded-br-lg" />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Result Overlay (In Camera View) */}
-                        {analysisResult && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md p-6 text-center"
-                            >
-                                <div className="w-24 h-24 rounded-full border-4 border-green-500 flex items-center justify-center mb-4 bg-green-500/10">
-                                    <span className="text-3xl font-black text-green-400">{analysisResult.score}%</span>
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mb-2">¡Buena Forma!</h3>
-                                <button
-                                    onClick={() => setAnalysisResult(null)}
-                                    className="mt-6 text-sm text-gray-400 hover:text-white underline"
-                                >
-                                    Escanear Nuevo
-                                </button>
-                            </motion.div>
-                        )}
-                    </div>
-
-                    {/* Results Panel */}
-                    <div className="space-y-6">
-                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
-                            <h3 className="text-gray-400 uppercase text-xs font-bold mb-4">Métricas de Análisis</h3>
-
-                            {analysisResult ? (
-                                <motion.div
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="space-y-4"
-                                >
-                                    <div>
-                                        <div className="flex justify-between text-sm mb-1">
-                                            <span>Estabilidad de Core</span>
-                                            <span className="text-green-400 font-bold">Excelente</span>
-                                        </div>
-                                        <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                                            <div className="bg-green-500 h-full w-[90%]" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="flex justify-between text-sm mb-1">
-                                            <span>Alineación de Espalda</span>
-                                            <span className="text-yellow-400 font-bold">Mejorable</span>
-                                        </div>
-                                        <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                                            <div className="bg-yellow-500 h-full w-[75%]" />
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4 border-t border-white/5">
-                                        <h4 className="font-bold text-blue-400 mb-2">Tips de Corrección:</h4>
-                                        <ul className="space-y-2">
-                                            {analysisResult.tips.map((tip: string, i: number) => (
-                                                <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                    {tip}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </motion.div>
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-gray-500 py-12">
-                                    <span className="text-4xl mb-4 opacity-30">📊</span>
-                                    <p>Realiza un escaneo para ver métricas detalladas.</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* History / Recent Scans */}
-                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
-                            <h3 className="text-gray-400 uppercase text-xs font-bold mb-4">Historial Reciente</h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center text-lg">🏋️</div>
-                                        <div>
-                                            <p className="font-bold text-sm">Sentadilla</p>
-                                            <p className="text-xs text-gray-500">Ayer, 14:30</p>
-                                        </div>
-                                    </div>
-                                    <span className="font-bold text-green-400">92%</span>
-                                </div>
-                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">🏃</div>
-                                        <div>
-                                            <p className="font-bold text-sm">Deadlift</p>
-                                            <p className="text-xs text-gray-500">20 Oct, 09:15</p>
-                                        </div>
-                                    </div>
-                                    <span className="font-bold text-yellow-400">78%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                {/* Toggles de Modo */}
+                <div className="flex p-1 bg-zinc-900/50 backdrop-blur-xl rounded-2xl border border-white/5">
+                    <button
+                        onClick={() => setMode('lab')}
+                        className={`flex items-center gap-3 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'lab' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        <FlaskConical className="w-4 h-4" /> Lab Activo
+                    </button>
+                    <button
+                        onClick={() => setMode('history')}
+                        className={`flex items-center gap-3 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'history' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        <History className="w-4 h-4" /> Historial
+                    </button>
                 </div>
             </div>
+
+            <AnimatePresence mode="wait">
+                {mode === 'lab' ? (
+                    <motion.div
+                        key="lab"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                    >
+                        <VisionLab />
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="history"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+                    >
+                        {/* Sidebar de Historial */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="bg-zinc-950/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/5 p-6 space-y-4">
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar reporte..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-xs font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-orange-500/30 transition-all uppercase tracking-widest shadow-inner shadow-black/20"
+                                    />
+                                </div>
+
+                                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {videos
+                                        .filter(v => v.ejercicios?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()))
+                                        .map(video => (
+                                            <button
+                                                key={video.id}
+                                                onClick={() => setSelectedVideo(video)}
+                                                className={`w-full group p-4 rounded-2xl border transition-all text-left ${selectedVideo?.id === video.id ? 'bg-orange-500/10 border-orange-500/50 shadow-lg shadow-orange-500/5' : 'bg-white/5 border-white/5 hover:border-white/10'}`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${video.estado === 'analizado' ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+                                                        {video.estado === 'analizado' ? '🎯' : '⏳'}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-bold text-xs text-white truncate group-hover:text-orange-500 transition-colors uppercase tracking-widest">
+                                                            {video.ejercicios?.nombre || 'Ejercicio Tactico'}
+                                                        </p>
+                                                        <p className="text-[9px] font-black text-gray-500 mt-1 uppercase tracking-tighter">
+                                                            {new Date(video.creado_en).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                    {video.estado === 'analizado' && (
+                                                        <div className="text-right">
+                                                            <p className="text-white font-black text-sm italic">{(video.correcciones_ia as any)?.puntaje_general}%</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </button>
+                                        ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Detalle del Historial */}
+                        <div className="lg:col-span-8">
+                            {selectedVideo ? (
+                                <div className="bg-zinc-950/40 backdrop-blur-2xl rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl">
+                                    <div className="aspect-video bg-black relative group">
+                                        <video
+                                            src={selectedVideo.url_video}
+                                            controls
+                                            className="w-full h-full object-contain"
+                                        />
+                                        <div className="absolute top-6 left-6 scale-75 origin-top-left">
+                                            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                                Reproduciendo Operación
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-10 space-y-10">
+                                        {/* Score Central */}
+                                        <div className="flex items-center gap-8">
+                                            <div className="text-center bg-zinc-900/50 p-6 rounded-3xl border border-white/5 min-w-[120px]">
+                                                <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Score IA</p>
+                                                <p className="text-5xl font-black text-white italic tracking-tighter">
+                                                    {(selectedVideo.correcciones_ia as any)?.puntaje_general || 0}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">
+                                                    {selectedVideo.ejercicios?.nombre || 'Análisis Técnico'}
+                                                </h3>
+                                                <div className="flex items-center gap-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                                    <span className="flex items-center gap-2"><Clock className="w-3 h-3" /> {new Date(selectedVideo.creado_en).toLocaleDateString()}</span>
+                                                    <span className="w-1 h-1 bg-gray-800 rounded-full" />
+                                                    <span className="text-orange-500">Estado: Verificado</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Contenido del Análisis */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-4">
+                                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Puntos Fuertes
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {(selectedVideo.correcciones_ia as any)?.puntos_fuertes?.map((p: string, i: number) => (
+                                                        <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5 text-[10px] font-bold text-gray-400 uppercase italic">
+                                                            {p}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                                                    <AlertCircle className="w-4 h-4 text-orange-500" /> Ajustes Necesarios
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {(selectedVideo.correcciones_ia as any)?.tecnica?.map((t: string, i: number) => (
+                                                        <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5 text-[10px] font-bold text-gray-400 uppercase italic">
+                                                            {t}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Recomendaciones de Élite */}
+                                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-[2.5rem] p-8">
+                                            <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                                                <ClipboardList className="w-4 h-4" /> Recomendaciones Master
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {(selectedVideo.correcciones_ia as any)?.recomendaciones?.map((r: string, i: number) => (
+                                                    <div key={i} className="flex gap-4 p-4 bg-black/20 rounded-2xl">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-1.5 shrink-0" />
+                                                        <p className="text-[10px] font-bold text-gray-300 uppercase leading-relaxed italic">{r}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Feedback del Alumno */}
+                                        <div className="pt-10 border-t border-white/5 space-y-6">
+                                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                                                <Star className="w-4 h-4 text-orange-500" /> Nota de Operación
+                                            </h4>
+                                            <div className="flex gap-3">
+                                                {[1, 2, 3, 4, 5].map(i => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => setRating(i)}
+                                                        className={`p-3 rounded-xl transition-all ${rating >= i ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/5 text-gray-600 hover:text-white'}`}
+                                                    >
+                                                        <Star size={18} fill={rating >= i ? 'currentColor' : 'none'} />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <textarea
+                                                placeholder="Añadir comentarios sobre este análisis..."
+                                                value={comment}
+                                                onChange={(e) => setComment(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-[2rem] p-6 text-xs font-bold text-white placeholder:text-gray-600 focus:outline-none focus:border-orange-500/30 transition-all min-h-[120px] uppercase tracking-widest shadow-inner shadow-black/20"
+                                            />
+                                            <button
+                                                onClick={handleSubmitFeedback}
+                                                disabled={submittingFeedback || !rating}
+                                                className="w-full bg-orange-500 text-white py-5 rounded-[2rem] font-black text-xs uppercase italic tracking-[0.2em] hover:bg-orange-400 transition-all shadow-2xl shadow-orange-500/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                            >
+                                                {submittingFeedback ? <Loader2 className="animate-spin w-5 h-5" /> : <MessageSquare size={18} />}
+                                                Guardar Dossier de Sesión
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="h-[600px] flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[3rem] text-center p-10 bg-zinc-950/20">
+                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                                        <History className="w-8 h-8 text-gray-800" />
+                                    </div>
+                                    <h4 className="text-sm font-black text-gray-500 uppercase tracking-[0.3em] mb-2">Seleccionar Reporte Operativo</h4>
+                                    <p className="text-[10px] text-gray-700 uppercase max-w-[250px] leading-relaxed tracking-widest">
+                                        Explora tu historial de combate para refinar cada milímetro de tu trayectoria biomecánica.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

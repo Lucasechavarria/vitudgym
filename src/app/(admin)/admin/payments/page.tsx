@@ -9,7 +9,7 @@ interface Payment {
     user_name: string;
     user_email: string;
     amount: number;
-    status: 'pending' | 'approved' | 'rejected';
+    status: 'pending' | 'approved' | 'rejected' | 'prorrogado' | 'vencido' | 'proximo_a_vencer';
     payment_method: string;
     created_at: string;
     approved_at: string | null;
@@ -24,6 +24,9 @@ export default function AdminPaymentsPage() {
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [processing, setProcessing] = useState(false);
+
+    const [showExtensionModal, setShowExtensionModal] = useState(false);
+    const [extensionProcessing, setExtensionProcessing] = useState(false);
 
     useEffect(() => {
         loadPayments();
@@ -71,6 +74,32 @@ export default function AdminPaymentsPage() {
         }
     };
 
+    const handleExtend = async (paymentId: string) => {
+        setExtensionProcessing(true);
+        try {
+            const response = await fetch(`/api/admin/payments/extend`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success('Prórroga aplicada exitoamente (+7 días)');
+                setShowExtensionModal(false);
+                loadPayments();
+            } else {
+                toast.error(data.message || 'Error al aplicar prórroga');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Error al aplicar prórroga');
+        } finally {
+            setExtensionProcessing(false);
+        }
+    };
+
     const filteredPayments = payments.filter(payment => {
         const matchesStatus = !filterStatus || payment.status === filterStatus;
         const matchesSearch =
@@ -83,6 +112,9 @@ export default function AdminPaymentsPage() {
         switch (status) {
             case 'approved': return 'bg-green-500/20 text-green-400 border-green-500/30';
             case 'rejected': return 'bg-red-500/20 text-red-400 border-red-500/30';
+            case 'prorrogado': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+            case 'vencido': return 'bg-red-500/20 text-red-400 border-red-500/30';
+            case 'proximo_a_vencer': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
             default: return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
         }
     };
@@ -91,6 +123,9 @@ export default function AdminPaymentsPage() {
         switch (status) {
             case 'approved': return '✓ Aprobado';
             case 'rejected': return '✕ Rechazado';
+            case 'prorrogado': return '📅 Prorrogado';
+            case 'vencido': return '⚠️ Vencido';
+            case 'proximo_a_vencer': return '⏳ Por Vencer';
             default: return '⏳ Pendiente';
         }
     };
@@ -164,6 +199,8 @@ export default function AdminPaymentsPage() {
                             <option value="pending">Pendientes</option>
                             <option value="approved">Aprobados</option>
                             <option value="rejected">Rechazados</option>
+                            <option value="prorrogado">Prorrogados</option>
+                            <option value="vencido">Vencidos</option>
                         </select>
                     </div>
                 </div>
@@ -209,19 +246,33 @@ export default function AdminPaymentsPage() {
                                         })}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {payment.status === 'pending' ? (
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedPayment(payment);
-                                                    setShowModal(true);
-                                                }}
-                                                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-semibold"
-                                            >
-                                                Aprobar
-                                            </button>
-                                        ) : (
-                                            <span className="text-gray-500 text-sm">-</span>
-                                        )}
+                                        <div className="flex gap-2">
+                                            {payment.status === 'pending' || payment.status === 'prorrogado' ? (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedPayment(payment);
+                                                        setShowModal(true);
+                                                    }}
+                                                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-xs font-semibold"
+                                                    aria-label={`Aprobar pago de ${payment.user_name}`}
+                                                >
+                                                    Aprobar
+                                                </button>
+                                            ) : null}
+
+                                            {['pending', 'vencido', 'proximo_a_vencer'].includes(payment.status) && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedPayment(payment);
+                                                        setShowExtensionModal(true);
+                                                    }}
+                                                    className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors text-xs font-semibold"
+                                                    aria-label={`Prorrogar pago de ${payment.user_name}`}
+                                                >
+                                                    Prorrogar
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -274,6 +325,48 @@ export default function AdminPaymentsPage() {
                                     className="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold disabled:opacity-50"
                                 >
                                     {processing ? 'Aprobando...' : 'Confirmar Aprobación'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Extension Modal */}
+                {showExtensionModal && selectedPayment && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+                        <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700">
+                            <h2 className="text-2xl font-bold text-white mb-4">📅 Prorrogar 7 Días</h2>
+
+                            <div className="mb-6">
+                                <div className="text-gray-400 text-sm mb-2">Usuario:</div>
+                                <div className="text-white font-semibold mb-4">{selectedPayment.user_name}</div>
+
+                                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 mb-4">
+                                    <h3 className="text-purple-300 font-bold mb-2">Reglas de Prórroga:</h3>
+                                    <ul className="text-purple-200/80 text-sm list-disc list-inside space-y-1">
+                                        <li>Se otorgan <strong>7 días adicionales</strong> para pagar.</li>
+                                        <li>Máximo <strong>2 prórrogas</strong> por mensualidad.</li>
+                                        <li>Mantiene la <strong>fecha de vencimiento original</strong> para el próximo mes (no desplaza el ciclo).</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => {
+                                        setShowExtensionModal(false);
+                                        setSelectedPayment(null);
+                                    }}
+                                    className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => handleExtend(selectedPayment.id)}
+                                    disabled={extensionProcessing}
+                                    className="flex-1 px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-semibold disabled:opacity-50"
+                                >
+                                    {extensionProcessing ? 'Aplicando...' : 'Confirmar Prórroga'}
                                 </button>
                             </div>
                         </div>

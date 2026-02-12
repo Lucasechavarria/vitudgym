@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import StudentBioLogs from '@/components/coach/StudentBioLogs';
+import { Zap } from 'lucide-react';
 
 interface StudentDetail {
     id: string;
@@ -60,7 +62,7 @@ export default function StudentDetailPage() {
     const [loading, setLoading] = useState(true);
     const [student, setStudent] = useState<StudentDetail | null>(null);
     const [routines, setRoutines] = useState<Routine[]>([]);
-    const [activeTab, setActiveTab] = useState<'info' | 'medical' | 'goals' | 'routines'>('info');
+    const [activeTab, setActiveTab] = useState<'info' | 'medical' | 'goals' | 'routines' | 'biologs'>('info');
     const [showGenerateModal, setShowGenerateModal] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [notes, setNotes] = useState('');
@@ -233,6 +235,13 @@ export default function StudentDetailPage() {
                         📋 Información
                     </button>
                     <button
+                        onClick={() => setActiveTab('biologs')}
+                        className={`px-4 py-3 rounded-lg font-semibold whitespace-nowrap transition-all ${activeTab === 'biologs' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        🧬 Bio-Logs IA
+                    </button>
+                    <button
                         onClick={() => setActiveTab('medical')}
                         className={`px-4 py-3 rounded-lg font-semibold whitespace-nowrap transition-all ${activeTab === 'medical' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'
                             }`}
@@ -296,6 +305,22 @@ export default function StudentDetailPage() {
                                 {savingNotes ? 'Guardando...' : 'Guardar Notas'}
                             </button>
                         </div>
+                    </div>
+                )}
+
+                {/* Bio-Logs Tab */}
+                {activeTab === 'biologs' && (
+                    <div className="bg-gray-800/40 backdrop-blur-3xl rounded-[2.5rem] p-8 border border-zinc-800 shadow-2xl">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                                <Zap className="text-indigo-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black text-white tracking-tight uppercase">Inteligencia de Rendimiento</h2>
+                                <p className="text-zinc-500 text-xs font-black uppercase tracking-widest">Supervisión de Biomecánica y Nutrición</p>
+                            </div>
+                        </div>
+                        <StudentBioLogs userId={studentId} />
                     </div>
                 )}
 
