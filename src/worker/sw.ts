@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 export default null;
-declare var self: ServiceWorkerGlobalScope;
+declare var self: any;
 
 self.addEventListener('push', (event) => {
     if (!event.data) return;
