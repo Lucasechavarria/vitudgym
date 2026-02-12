@@ -57,10 +57,14 @@ export function useAuth() {
                 .eq('id', userId)
                 .single();
 
-            if (error) throw error;
-            setProfile(data);
+            if (error) {
+                console.error('useAuth: Error cargando perfil desde DB:', error);
+                // No lanzamos el error para permitir que la app use el fallback de metadatos
+            } else {
+                setProfile(data);
+            }
         } catch (error) {
-            console.error('Error loading profile:', error);
+            console.error('useAuth: Error inesperado en loadProfile:', error);
         } finally {
             setLoading(false);
         }
@@ -70,6 +74,14 @@ export function useAuth() {
         await supabase.auth.signOut();
     };
 
+    // Lógica de roles con fallback a metadatos del JWT
+    // app_metadata es seteado por el sistema/trigger y es más confiable
+    const userRole = profile?.rol ||
+        user?.app_metadata?.rol ||
+        user?.app_metadata?.role ||
+        user?.user_metadata?.rol ||
+        user?.user_metadata?.role;
+
     return {
         user,
         profile,
@@ -77,7 +89,8 @@ export function useAuth() {
         loading,
         signOut,
         isAuthenticated: !!user,
-        isAdmin: profile?.rol === 'admin',
-        isCoach: profile?.rol === 'coach' || profile?.rol === 'admin',
+        isAdmin: userRole === 'admin',
+        isCoach: userRole === 'coach' || userRole === 'admin',
+        userRole,
     };
 }

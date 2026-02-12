@@ -13,6 +13,8 @@ import { DashboardHeader } from '@/components/features/student/DashboardHeader';
 import { WaiverWarning } from '@/components/features/student/WaiverWarning';
 import { GoalRequestModal } from '@/components/features/student/GoalRequestModal';
 import { VisionAlert } from '@/components/features/student/VisionAlert';
+import { RecoveryForm } from '@/components/features/recovery/RecoveryForm';
+
 
 export default function StudentDashboard() {
   const {
@@ -107,6 +109,11 @@ export default function StudentDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-12">
+          {/* Recovery Form Section */}
+          <motion.div variants={itemVariants}>
+            <RecoveryForm />
+          </motion.div>
+
           <EvolutionCharts
             chartData={chartData}
             attendance={attendance}

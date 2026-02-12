@@ -59,35 +59,64 @@ export async function requireRole(
     allowedRoles: string[]
 ) {
     try {
-        // Optimización: Intentar obtener el rol de la sesión/usuario primero para ahorrar DB hits
+        // 1. Priorizar metadata del JWT (app_metadata es seteado por el sistema/trigger)
         const { data: { user } } = await supabase.auth.getUser();
-        let role = user?.app_metadata?.rol || user?.user_metadata?.rol || user?.app_metadata?.role || user?.user_metadata?.role;
 
+        // El rol puede estar en 'rol' o 'role' (por compatibilidad)
+        // app_metadata es más confiable que user_metadata (que puede ser editado por el usuario)
+        let role = user?.app_metadata?.rol ||
+            user?.app_metadata?.role ||
+            user?.user_metadata?.rol ||
+            user?.user_metadata?.role;
+
+        // 2. Fallback a base de datos solo si no hay metadata (ej. usuarios viejos no sincronizados)
         if (!role) {
+            console.log(`requireRole: Rol no encontrado en metadata para ${userId}. Consultando DB...`);
+
             const { data: profile, error } = await supabase
                 .from('perfiles')
                 .select('rol')
                 .eq('id', userId)
                 .single();
 
-            if (error || !profile) {
+            if (error) {
+                console.error('requireRole: Error consultando perfil en DB:', error);
+                // Si hay un error 406 o similar, es probable que el RLS esté bloqueando.
+                // No podemos determinar el rol, así que denegamos acceso por seguridad.
                 return {
                     error: NextResponse.json(
-                        { error: 'Profile not found', message: 'User profile could not be retrieved' },
+                        {
+                            error: 'Authorization Error',
+                            message: 'No se pudo verificar el nivel de acceso.',
+                            code: error.code
+                        },
+                        { status: error.status || 403 }
+                    ),
+                    profile: null
+                };
+            }
+
+            if (!profile) {
+                return {
+                    error: NextResponse.json(
+                        { error: 'Profile not found', message: 'El perfil de usuario no existe.' },
                         { status: 404 }
                     ),
                     profile: null
                 };
             }
+
             role = profile.rol;
         }
 
+        // 3. Verificación de permisos
         if (!allowedRoles.includes(role)) {
+            console.warn(`requireRole: Acceso denegado para ${userId}. Rol: ${role}, Requeridos: ${allowedRoles}`);
             return {
                 error: NextResponse.json(
                     {
                         error: 'Forbidden',
-                        message: `Access denied. Required roles: ${allowedRoles.join(', ')}`,
+                        message: 'No tienes permisos para acceder a este recurso.',
                         userRole: role || 'unknown'
                     },
                     { status: 403 }
@@ -98,9 +127,10 @@ export async function requireRole(
 
         return { profile: { role }, error: null };
     } catch (err) {
+        console.error('requireRole: Error inesperado:', err);
         return {
             error: NextResponse.json(
-                { error: 'Role verification failed', message: 'Failed to verify user role' },
+                { error: 'Internal Authority Error', message: 'Error interno al verificar permisos' },
                 { status: 500 }
             ),
             profile: null
