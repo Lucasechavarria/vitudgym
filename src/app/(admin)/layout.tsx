@@ -34,11 +34,11 @@ export default async function AdminLayout({
 
     const { data: profile } = await supabase
         .from('perfiles')
-        .select('role, full_name')
+        .select('rol, nombre_completo')
         .eq('id', user.id)
         .single();
 
-    if (!profile || ![ROLES.ADMIN].includes(profile.role as any)) {
+    if (!profile || ![ROLES.ADMIN].includes(profile.rol as any)) {
         return (
             <div className="min-h-screen bg-black text-white p-10 flex flex-col items-center justify-center">
                 <h1 className="text-3xl font-bold text-red-500 mb-4">Acceso Denegado</h1>
@@ -54,7 +54,7 @@ export default async function AdminLayout({
         <div className="min-h-screen bg-[#0a0a0a] text-white flex relative overflow-hidden">
             <div className="aurora-bg" />
 
-            <UniversalLayoutWrapper profileName={profile.full_name} profileRole={profile.role}>
+            <UniversalLayoutWrapper profileName={profile.nombre_completo} profileRole={profile.rol}>
                 {children}
             </UniversalLayoutWrapper>
 

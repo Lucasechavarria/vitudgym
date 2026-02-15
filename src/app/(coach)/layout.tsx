@@ -39,14 +39,14 @@ export default async function CoachLayout({
         .single();
 
     const allowedRoles = [ROLES.COACH, ROLES.ADMIN];
-    if (!profile || !allowedRoles.includes(profile.role)) {
+    if (!profile || !allowedRoles.includes(profile.rol)) {
         return (
             <div className="min-h-screen bg-black text-white p-10 flex flex-col items-center justify-center">
                 <h1 className="text-3xl font-bold text-red-500 mb-4">Acceso Denegado</h1>
                 <p className="mb-4 text-gray-300">No tienes permisos para ver el Panel de Profesor.</p>
                 <div className="bg-red-900/20 p-4 rounded text-xs font-mono mb-4 text-red-200">
                     DEBUG INFO:<br />
-                    Role: {profile?.role || 'null'}<br />
+                    Role: {profile?.rol || 'null'}<br />
                     ID: {user.id}
                 </div>
                 <Link href="/dashboard" className="px-6 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform">
@@ -60,7 +60,7 @@ export default async function CoachLayout({
         <div className="min-h-screen bg-[#0a0a0a] text-white flex relative overflow-hidden">
             <div className="aurora-bg" />
 
-            <UniversalLayoutWrapper profileName={profile.full_name} profileRole={profile.role}>
+            <UniversalLayoutWrapper profileName={profile.nombre_completo} profileRole={profile.rol}>
                 {children}
             </UniversalLayoutWrapper>
 
