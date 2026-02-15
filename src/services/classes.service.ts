@@ -108,7 +108,7 @@ export const classesService = {
     async create(classData: ClassInsert) {
         const { data, error } = await supabase
             .from('horarios_de_clase')
-            .insert(classData as any)
+            .insert(classData)
             .select()
             .single();
 
@@ -122,7 +122,7 @@ export const classesService = {
     async update(id: string, updates: ClassUpdate) {
         const { data, error } = await supabase
             .from('horarios_de_clase')
-            .update(updates as any)
+            .update(updates)
             .eq('id', id)
             .select()
             .single();
@@ -148,13 +148,13 @@ export const classesService = {
      */
     async hasAvailableSpots(classId: string) {
         const { data, error } = await supabase
-            .from('clases_con_disponibilidad') // Usar la vista para tener capacidad calculada
+            .from('clases_con_disponibilidad')
             .select('capacidad_maxima, capacidad_actual')
             .eq('id', classId)
-            .single() as { data: any; error: any };
+            .single();
 
         if (error) throw error;
         if (!data) throw new Error('Class not found');
-        return data.capacidad_actual < data.capacidad_maxima;
+        return (data.capacidad_actual || 0) < (data.capacidad_maxima || 0);
     },
 };

@@ -58,7 +58,7 @@ export const activitiesService = {
     async create(activity: ActivityInsert) {
         const { data, error } = await supabase
             .from('actividades')
-            .insert(activity as any)
+            .insert(activity)
             .select()
             .single();
 
@@ -72,7 +72,7 @@ export const activitiesService = {
     async update(id: string, updates: ActivityUpdate) {
         const { data, error } = await supabase
             .from('actividades')
-            .update(updates as any)
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

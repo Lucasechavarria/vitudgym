@@ -1,18 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
 import webpush from 'web-push';
+import { Database } from '@/types/supabase';
 
 interface NotificationPayload {
     tipo: 'pago' | 'clase' | 'logro' | 'mensaje' | 'rutina' | 'sistema';
     titulo: string;
     cuerpo: string;
-    datos?: any;
+    datos?: Record<string, any>;
 }
 
 interface SendResult {
     sent?: boolean;
     skipped?: boolean;
     reason?: string;
-    results?: PromiseSettledResult<any>[];
+    results?: PromiseSettledResult<webpush.SendResult>[];
 }
 
 export class NotificationService {
@@ -165,10 +166,10 @@ export class NotificationService {
     /**
      * Determina si se debe enviar una notificación según las preferencias del usuario
      */
-    private shouldSend(tipo: string, prefs: any): boolean {
+    private shouldSend(tipo: string, prefs: Database['public']['Tables']['notificaciones_preferencias']['Row'] | null): boolean {
         if (!prefs) return true; // Default: enviar todo si no hay preferencias configuradas
 
-        const prefMap: Record<string, string> = {
+        const prefMap: Record<string, keyof Database['public']['Tables']['notificaciones_preferencias']['Row']> = {
             pago: 'pagos_confirmacion',
             clase: 'clases_recordatorio',
             logro: 'logros_nuevos',

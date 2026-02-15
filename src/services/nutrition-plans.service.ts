@@ -73,7 +73,7 @@ export const nutritionPlansService = {
         const { data, error } = await supabase
             .from('planes_nutricionales')
             .select('*')
-            .eq('routine_id' as any, routineId)
+            .eq('rutina_id', routineId)
             .single();
 
         if (error && error.code !== 'PGRST116') throw error;
@@ -93,7 +93,7 @@ export const nutritionPlansService = {
 
         const { data, error } = await supabase
             .from('planes_nutricionales')
-            .insert(plan as any)
+            .insert(plan)
             .select()
             .single();
 
@@ -115,7 +115,7 @@ export const nutritionPlansService = {
 
         const { data, error } = await supabase
             .from('planes_nutricionales')
-            .update(updates as any)
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

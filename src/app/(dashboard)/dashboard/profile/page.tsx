@@ -6,13 +6,13 @@ import toast from 'react-hot-toast';
 import { authService } from '@/services/auth.service';
 
 interface ProfileData {
-    full_name: string;
+    nombre_completo: string;
     email: string;
-    phone: string;
-    birth_date: string;
-    gender: 'male' | 'female' | 'other' | 'prefer_not_to_say';
-    emergency_contact_name: string;
-    emergency_contact_phone: string;
+    telefono: string;
+    fecha_nacimiento: string;
+    genero: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+    contacto_emergencia_nombre: string;
+    contacto_emergencia_telefono: string;
 }
 
 export default function StudentProfilePage() {
@@ -22,13 +22,13 @@ export default function StudentProfilePage() {
     const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'settings'>('profile');
 
     const [profileData, setProfileData] = useState<ProfileData>({
-        full_name: '',
+        nombre_completo: '',
         email: '',
-        phone: '',
-        birth_date: '',
-        gender: 'prefer_not_to_say',
-        emergency_contact_name: '',
-        emergency_contact_phone: ''
+        telefono: '',
+        fecha_nacimiento: '',
+        genero: 'prefer_not_to_say',
+        contacto_emergencia_nombre: '',
+        contacto_emergencia_telefono: ''
     });
 
     const [passwordData, setPasswordData] = useState({
@@ -56,13 +56,13 @@ export default function StudentProfilePage() {
             // Actually, if we are in transition, let's look at RegistrationForm. It sends data.gender.
 
             setProfileData({
-                full_name: profile.nombre_completo || '',
+                nombre_completo: profile.nombre_completo || '',
                 email: user?.email || '',
-                phone: profile.telefono || '',
-                birth_date: profile.fecha_nacimiento || '',
-                gender: (profile.gender as any) || 'prefer_not_to_say',
-                emergency_contact_name: emergencyContact.full_name || '',
-                emergency_contact_phone: emergencyContact.phone || ''
+                telefono: profile.telefono || '',
+                fecha_nacimiento: profile.fecha_nacimiento || '',
+                genero: (profile.genero as any) || 'prefer_not_to_say',
+                contacto_emergencia_nombre: profile.contacto_emergencia_nombre || '',
+                contacto_emergencia_telefono: profile.contacto_emergencia_telefono || ''
             });
         } catch (error) {
             console.error('Error:', error);
@@ -80,14 +80,12 @@ export default function StudentProfilePage() {
 
             // Preparar datos para actualizacion en formato DB
             const updates = {
-                nombre_completo: profileData.full_name,
-                telefono: profileData.phone,
-                fecha_nacimiento: profileData.birth_date,
-                gender: profileData.gender,
-                contacto_emergencia: {
-                    full_name: profileData.emergency_contact_name,
-                    phone: profileData.emergency_contact_phone
-                }
+                nombre_completo: profileData.nombre_completo,
+                telefono: profileData.telefono,
+                fecha_nacimiento: profileData.fecha_nacimiento,
+                genero: profileData.genero,
+                contacto_emergencia_nombre: profileData.contacto_emergencia_nombre,
+                contacto_emergencia_telefono: profileData.contacto_emergencia_telefono
             };
 
             await authService.updateProfile(user.id, updates);
@@ -185,8 +183,8 @@ export default function StudentProfilePage() {
                                     </label>
                                     <input
                                         type="text"
-                                        value={profileData.full_name}
-                                        onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                                        value={profileData.nombre_completo}
+                                        onChange={(e) => setProfileData({ ...profileData, nombre_completo: e.target.value })}
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     />
                                 </div>
@@ -210,8 +208,8 @@ export default function StudentProfilePage() {
                                     </label>
                                     <input
                                         type="tel"
-                                        value={profileData.phone}
-                                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                                        value={profileData.telefono}
+                                        onChange={(e) => setProfileData({ ...profileData, telefono: e.target.value })}
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     />
                                 </div>
@@ -222,8 +220,8 @@ export default function StudentProfilePage() {
                                     </label>
                                     <input
                                         type="date"
-                                        value={profileData.birth_date}
-                                        onChange={(e) => setProfileData({ ...profileData, birth_date: e.target.value })}
+                                        value={profileData.fecha_nacimiento}
+                                        onChange={(e) => setProfileData({ ...profileData, fecha_nacimiento: e.target.value })}
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     />
                                 </div>
@@ -233,8 +231,8 @@ export default function StudentProfilePage() {
                                         Género
                                     </label>
                                     <select
-                                        value={profileData.gender}
-                                        onChange={(e) => setProfileData({ ...profileData, gender: e.target.value as any })}
+                                        value={profileData.genero}
+                                        onChange={(e) => setProfileData({ ...profileData, genero: e.target.value as any })}
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="male">Masculino</option>
@@ -254,8 +252,8 @@ export default function StudentProfilePage() {
                                         </label>
                                         <input
                                             type="text"
-                                            value={profileData.emergency_contact_name}
-                                            onChange={(e) => setProfileData({ ...profileData, emergency_contact_name: e.target.value })}
+                                            value={profileData.contacto_emergencia_nombre}
+                                            onChange={(e) => setProfileData({ ...profileData, contacto_emergencia_nombre: e.target.value })}
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         />
                                     </div>
@@ -266,8 +264,8 @@ export default function StudentProfilePage() {
                                         </label>
                                         <input
                                             type="tel"
-                                            value={profileData.emergency_contact_phone}
-                                            onChange={(e) => setProfileData({ ...profileData, emergency_contact_phone: e.target.value })}
+                                            value={profileData.contacto_emergencia_telefono}
+                                            onChange={(e) => setProfileData({ ...profileData, contacto_emergencia_telefono: e.target.value })}
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         />
                                     </div>

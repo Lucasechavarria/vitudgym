@@ -14,26 +14,26 @@ export const gymEquipmentService = {
      * Get all gym equipment
      */
     async getAll(filters?: {
-        category?: string;
-        isAvailable?: boolean;
+        categoria?: string;
+        disponible?: boolean;
         search?: string;
     }) {
         const supabase = await createClient();
         let query = supabase
             .from('equipamiento')
             .select('*')
-            .order('name');
+            .order('nombre');
 
-        if (filters?.category) {
-            query = query.eq('category', filters.category);
+        if (filters?.categoria) {
+            query = query.eq('categoria', filters.categoria);
         }
 
-        if (filters?.isAvailable !== undefined) {
-            query = query.eq('is_available', filters.isAvailable);
+        if (filters?.disponible !== undefined) {
+            query = query.eq('disponible', filters.disponible);
         }
 
         if (filters?.search) {
-            query = query.ilike('name', `%${filters.search}%`);
+            query = query.ilike('nombre', `%${filters.search}%`);
         }
 
         const { data, error } = await query;
@@ -58,16 +58,16 @@ export const gymEquipmentService = {
     },
 
     /**
-     * Get equipment by category
+     * Get equipment by categoria
      */
-    async getByCategory(category: string) {
+    async getByCategory(categoria: string) {
         const supabase = await createClient();
         const { data, error } = await supabase
             .from('equipamiento')
             .select('*')
-            .eq('category', category)
-            .eq('is_available', true)
-            .order('name');
+            .eq('categoria', categoria)
+            .eq('disponible', true)
+            .order('nombre');
 
         if (error) throw error;
         return data as GymEquipment[];
@@ -81,9 +81,9 @@ export const gymEquipmentService = {
         const { data, error } = await supabase
             .from('equipamiento')
             .select('*')
-            .eq('is_available', true)
-            .order('category', { ascending: true })
-            .order('name', { ascending: true });
+            .eq('disponible', true)
+            .order('categoria', { ascending: true })
+            .order('nombre', { ascending: true });
 
         if (error) throw error;
         return data as GymEquipment[];
@@ -136,15 +136,16 @@ export const gymEquipmentService = {
     /**
      * Update equipment availability
      */
-    async updateAvailability(id: string, isAvailable: boolean) {
-        return this.update(id, { is_available: isAvailable });
+    async updateAvailability(id: string, disponible: boolean) {
+        return this.update(id, { disponible });
     },
 
     /**
      * Update equipment condition
      */
-    async updateCondition(id: string, condition: 'excellent' | 'good' | 'fair' | 'needs_repair') {
-        return this.update(id, { condition });
+    async updateCondition(id: string, estado: 'excellent' | 'good' | 'fair' | 'needs_repair') {
+        const estadoCasteado = estado as Database['public']['Tables']['equipamiento']['Row']['estado'];
+        return this.update(id, { estado: estadoCasteado });
     },
 
     /**
@@ -156,23 +157,24 @@ export const gymEquipmentService = {
         // Optimización: Pedir solo los campos necesarios para reducir ancho de banda
         const { data, error } = await supabase
             .from('equipamiento')
-            .select('category, is_available, condition');
+            .select('categoria, disponible, estado');
 
         if (error) throw error;
+        if (!data) return null;
 
-        // Estos recuentos son rápidos en memoria si el volumen es manejable (<1000 items)
-        // Para mayor escala, se debería usar una función RPC en PostgreSQL
         const stats = {
             total: data.length,
-            available: data.filter(e => e.is_available).length,
+            available: data.filter(e => e.disponible).length,
             byCategory: {} as Record<string, number>,
             byCondition: {} as Record<string, number>,
         };
 
         data.forEach(equipment => {
-            stats.byCategory[equipment.category] = (stats.byCategory[equipment.category] || 0) + 1;
-            if (equipment.condition) {
-                stats.byCondition[equipment.condition] = (stats.byCondition[equipment.condition] || 0) + 1;
+            if (equipment.categoria) {
+                stats.byCategory[equipment.categoria] = (stats.byCategory[equipment.categoria] || 0) + 1;
+            }
+            if (equipment.estado) {
+                stats.byCondition[equipment.estado] = (stats.byCondition[equipment.estado] || 0) + 1;
             }
         });
 

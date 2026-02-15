@@ -5,11 +5,11 @@
  */
 export interface ClassBooking {
     id: string;
-    user_id: string;
-    class_id: string;
-    date: string; // ISO 8601
-    status: 'confirmed' | 'attended' | 'no_show' | 'cancelled';
-    created_at: string;
+    usuario_id: string;
+    clase_id: string;
+    fecha: string; // ISO 8601
+    estado: 'confirmed' | 'attended' | 'no_show' | 'cancelled' | 'reservada' | 'asistida' | 'cancelada' | 'en_lista_espera' | 'no_asistio';
+    creado_en: string;
 }
 
 /**
@@ -17,12 +17,12 @@ export interface ClassBooking {
  */
 export interface Measurement {
     id: string;
-    user_id: string;
+    usuario_id: string;
     weight?: number; // kg
     height?: number; // cm
     body_fat_percentage?: number;
     muscle_mass?: number; // kg
-    recorded_at: string; // ISO 8601
+    registrado_en: string; // ISO 8601
     notes?: string;
 }
 
@@ -31,13 +31,13 @@ export interface Measurement {
  */
 export interface RoutineExercise {
     id: string;
-    routine_id: string;
-    exercise_name: string;
-    sets: number;
-    reps: string; // Puede ser "10" o "8-12" o "AMRAP"
-    weight?: number;
-    rest_seconds?: number;
-    notes?: string;
+    rutina_id: string;
+    nombre_ejercicio: string;
+    series: number;
+    repeticiones: string; // Puede ser "10" o "8-12" o "AMRAP"
+    peso?: number;
+    descanso_segundos?: number;
+    notas?: string;
 }
 
 /**
@@ -45,12 +45,12 @@ export interface RoutineExercise {
  */
 export interface Routine {
     id: string;
-    user_id: string;
-    name: string;
-    description?: string;
-    is_active: boolean;
-    exercises?: RoutineExercise[];
-    created_at: string;
+    usuario_id: string;
+    nombre: string;
+    descripcion?: string;
+    esta_activa: boolean;
+    ejercicios?: RoutineExercise[];
+    creado_en: string;
 }
 
 /**

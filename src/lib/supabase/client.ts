@@ -20,7 +20,7 @@ export const createClient = () => {
     return createBrowserClient<Database>(
         supabaseUrl,
         supabaseAnonKey
-    ) as any;
+    );
 };
 
 // Singleton instance for client-side usage

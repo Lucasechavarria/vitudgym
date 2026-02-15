@@ -33,10 +33,10 @@ export async function GET(req: Request) {
 
         // Convertir a tipo compatible (solo tenemos fecha y estado del query)
         const bookingsData = (bookings || []).map((b: { fecha: string; estado: string }) => ({
-            date: b.fecha,
-            status: b.estado
+            fecha: b.fecha,
+            estado: b.estado as any // Force cast if strict check fails or use 'as ClassBooking["estado"]'
         }));
-        const attendanceMetrics = processAttendance(bookingsData as Pick<ClassBooking, 'date' | 'status'>[]);
+        const attendanceMetrics = processAttendance(bookingsData as Pick<ClassBooking, 'fecha' | 'estado'>[]);
 
         // 3. Fetch Measurements / Physical Progress
         let measurementsData = [];
@@ -130,8 +130,8 @@ export async function GET(req: Request) {
                 measurements: measurementsData,
                 prescribedVolume: totalPrescribedVolume,
                 summary: {
-                    attendanceRate: calculateAttendanceRate(bookingsData),
-                    totalAttended: bookingsData?.filter(b => b.status === 'attended').length || 0,
+                    attendanceRate: calculateAttendanceRate(bookingsData as any),
+                    totalAttended: bookingsData?.filter(b => b.estado === 'attended' || b.estado === 'asistida').length || 0,
                 }
             }
         });
@@ -171,10 +171,10 @@ export async function GET(req: Request) {
 
 /**
  * Procesa datos de asistencia y calcula métricas por mes
- * @param bookings - Array de bookings de clases (solo necesita date y status)
+ * @param bookings - Array de bookings de clases (solo necesita fecha y estado)
  * @returns Array de métricas mensuales de asistencia
  */
-function processAttendance(bookings: Pick<ClassBooking, 'date' | 'status'>[]): MonthlyAttendance[] {
+function processAttendance(bookings: Pick<ClassBooking, 'fecha' | 'estado'>[]): MonthlyAttendance[] {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const currentYear = new Date().getFullYear();
 
@@ -186,16 +186,16 @@ function processAttendance(bookings: Pick<ClassBooking, 'date' | 'status'>[]): M
 
     const result = bookings.reduce((acc: Record<string, { month: string; attended: number; total: number }>, booking) => {
         // Validar estructura del booking
-        if (!booking || !booking.date) {
+        if (!booking || !booking.fecha) {
             console.warn('⚠️ Booking sin fecha:', booking);
             return acc;
         }
 
-        const date = new Date(booking.date);
+        const date = new Date(booking.fecha);
 
         // Validar fecha válida
         if (isNaN(date.getTime())) {
-            console.warn('⚠️ Fecha inválida en booking:', booking.date);
+            console.warn('⚠️ Fecha inválida en booking:', booking.fecha);
             return acc;
         }
 
@@ -206,7 +206,7 @@ function processAttendance(bookings: Pick<ClassBooking, 'date' | 'status'>[]): M
         if (!acc[month]) acc[month] = { month, attended: 0, total: 0 };
 
         acc[month].total++;
-        if (booking.status === 'attended') acc[month].attended++;
+        if (booking.estado === 'attended' || booking.estado === 'asistida') acc[month].attended++;
         return acc;
     }, {});
 
@@ -223,16 +223,16 @@ function processAttendance(bookings: Pick<ClassBooking, 'date' | 'status'>[]): M
 
 /**
  * Calcula la tasa de asistencia general
- * @param bookings - Array de bookings de clases (solo necesita status)
+ * @param bookings - Array de bookings de clases (solo necesita estado)
  * @returns Porcentaje de asistencia (0-100)
  */
-function calculateAttendanceRate(bookings: Pick<ClassBooking, 'status'>[]): number {
+function calculateAttendanceRate(bookings: Pick<ClassBooking, 'estado'>[]): number {
     // Validación de entrada
     if (!Array.isArray(bookings) || bookings.length === 0) {
         return 0;
     }
 
-    const attended = bookings.filter(b => b && b.status === 'attended').length;
+    const attended = bookings.filter(b => b && (b.estado === 'attended' || b.estado === 'asistida')).length;
 
     // Prevenir división por cero
     if (bookings.length === 0) return 0;

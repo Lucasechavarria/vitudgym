@@ -52,8 +52,8 @@ async function testSessions() {
     try {
         const adminClient = createAdminClient();
 
-        console.log('🧪 Testing simple SELECT on workout_sessions...');
-        const simple = await adminClient.from('workout_sessions').select('count', { count: 'exact', head: true });
+        console.log('🧪 Testing simple SELECT on sesiones_de_entrenamiento...');
+        const simple = await adminClient.from('sesiones_de_entrenamiento').select('count', { count: 'exact', head: true });
         if (simple.error) {
             console.error('❌ Simple SELECT failed:', simple.error);
         } else {

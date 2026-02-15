@@ -25,7 +25,7 @@ export class SessionsService {
                 rutina_id: routineId,
                 estado: 'active',
                 hora_inicio: new Date().toISOString()
-            } as any)
+            })
             .select()
             .single();
 
@@ -46,8 +46,9 @@ export class SessionsService {
                 series_reales: performance.series_reales,
                 repeticiones_reales: performance.repeticiones_reales,
                 peso_real: performance.peso_real,
-                fue_completado: performance.fue_completado
-            } as any)
+                fue_completado: performance.fue_completado,
+                puntuacion_dificultad: performance.puntuacion_dificultad
+            })
             .select()
             .single();
 
@@ -68,7 +69,7 @@ export class SessionsService {
                 puntos_totales: totalPoints,
                 puntuacion_animo: moodRating,
                 notas: notes
-            } as any)
+            })
             .eq('id', sessionId)
             .select()
             .single();

@@ -55,8 +55,8 @@ export async function GET() {
             .limit(10);
 
         // 3. Fetch Recent Attendance (Bookings)
-        const { data: bookings } = await (supabase
-            .from('reservas_de_clase') as any) // Changed 'class_bookings' to 'class_bookings' (no change here based on instruction, but snippet showed 'class_schedules')
+        const { data: bookings } = await supabase
+            .from('reservas_de_clase')
             .select('*')
             .eq('usuario_id', user.id)
             .eq('estado', 'asistida')
@@ -78,7 +78,7 @@ export async function GET() {
             .from('perfiles')
             .select('exencion_aceptada, nombre_completo, url_avatar, fecha_fin_membresia, gender')
             .eq('id', user.id)
-            .single() as any;
+            .single();
 
         // 6. Fetch Workout Volume (New - Functional Training)
         const { data: sessionLogs } = await supabase
@@ -98,7 +98,7 @@ export async function GET() {
             .limit(20);
 
         // Process Attendance Data for Chart
-        const bookingsData: Pick<ClassBooking, 'date'>[] = bookings || [];
+        const bookingsData: Pick<ClassBooking, 'fecha'>[] = bookings || [];
         const attendanceByMonth = processAttendance(bookingsData);
 
         // Process Volume Data for Chart
@@ -127,10 +127,10 @@ export async function GET() {
 
 /**
  * Procesa datos de asistencia y agrupa por mes
- * @param bookings - Array de bookings (solo necesita date)
+ * @param bookings - Array de bookings (solo necesita fecha)
  * @returns Array con conteo de asistencias por mes
  */
-function processAttendance(bookings: Pick<ClassBooking, 'date'>[]): Array<{ month: string; rate: number }> {
+function processAttendance(bookings: Pick<ClassBooking, 'fecha'>[]): Array<{ month: string; rate: number }> {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
     // Validación de entrada
@@ -141,16 +141,16 @@ function processAttendance(bookings: Pick<ClassBooking, 'date'>[]): Array<{ mont
 
     const result = bookings.reduce((acc: Record<string, number>, booking) => {
         // Validar estructura del booking
-        if (!booking || !(booking as any).fecha) {
+        if (!booking || !booking.fecha) {
             console.warn('⚠️ Booking sin fecha:', booking);
             return acc;
         }
 
-        const date = new Date((booking as any).fecha);
+        const date = new Date(booking.fecha);
 
         // Validar fecha válida
         if (isNaN(date.getTime())) {
-            console.warn('⚠️ Fecha inválida en booking:', booking.date);
+            console.warn('⚠️ Fecha inválida en booking:', booking.fecha);
             return acc;
         }
 
