@@ -21,8 +21,8 @@ export async function GET(request: Request) {
                     is_primary,
                     coach:perfiles!coach_id (
                         id,
-                        full_name,
-                        email
+                        nombre_completo,
+                        email:correo
                     )
                 )
             `)
@@ -39,11 +39,11 @@ export async function GET(request: Request) {
             return {
                 ...u,
                 id: u.id,
-                name: u.full_name || 'Sin Nombre',
-                email: u.email,
-                role: u.role,
-                membershipStatus: u.membership_status || 'inactive',
-                membershipEnds: u.membership_end_date,
+                name: u.nombre_completo || 'Sin Nombre',
+                email: u.email || u.correo, // Fallback to correo if email is missing (perfiles has 'correo')
+                role: u.rol,
+                membershipStatus: u.estado_membresia || 'inactive',
+                membershipEnds: u.fecha_fin_membresia,
                 assigned_coach_id: assignedCoachId // Compatibility field
             };
         });

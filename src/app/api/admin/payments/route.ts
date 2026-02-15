@@ -17,25 +17,28 @@ export async function GET(request: Request) {
 
         // Obtener pagos con información del usuario
         const { data, error: paymentsError } = await supabase
-            .from('payments')
+            .from('pagos')
             .select(`
                 *,
-                perfiles!payments_user_id_fkey (
-                    full_name,
-                    email
+                perfiles!pagos_user_id_fkey (
+                    nombre_completo,
+                    email:correo
                 )
             `)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (paymentsError) throw paymentsError;
 
         // Transform data
-        const payments = (data || []).map((payment: { id: string; amount: number; status: string; created_at: string; perfiles?: { full_name?: string; email?: string } }) => ({
+        const payments = (data || []).map((payment: any) => ({
             id: payment.id,
-            amount: payment.amount,
-            status: payment.status,
-            date: payment.created_at,
-            user_name: payment.perfiles?.full_name || 'Sin nombre',
+            amount: payment.monto,
+            status: payment.estado,
+            created_at: payment.created_at, // Return created_at as expected by frontend
+            concept: payment.concepto,
+            payment_method: payment.metodo_pago,
+            metadata: payment.metadata,
+            user_name: payment.perfiles?.nombre_completo || 'Sin nombre',
             user_email: payment.perfiles?.email || ''
         }));
 
@@ -71,14 +74,14 @@ export async function POST(request: Request) {
         const { concept, amount, status, payment_method, payment_provider, notes, metadata, user_id } = body;
 
         const { data, error: insertError } = await supabase
-            .from('payments')
+            .from('pagos')
             .insert({
-                concept,
-                amount,
-                status: status || 'pending',
-                payment_method: payment_method || 'manual',
-                payment_provider: payment_provider || 'internal',
-                notes,
+                concepto: concept,
+                monto: amount,
+                estado: status || 'pending',
+                metodo_pago: payment_method || 'manual',
+                proveedor_pago: payment_provider || 'internal',
+                notas: notes,
                 metadata,
                 user_id: user_id || null // Expenses might not have a user_id
             })

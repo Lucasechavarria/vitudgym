@@ -9,7 +9,7 @@ export async function GET() {
         const { data, error } = await supabase
             .from('actividades')
             .select('*')
-            .order('name', { ascending: true });
+            .order('nombre', { ascending: true });
 
         if (error) throw error;
 
@@ -26,21 +26,21 @@ export async function POST(req: Request) {
 
     try {
         // Validate required fields
-        if (!body.name) {
-            return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+        if (!body.nombre) {
+            return NextResponse.json({ error: 'Nombre is required' }, { status: 400 });
         }
 
         const { data, error } = await supabase
             .from('actividades')
             .insert([
                 {
-                    name: body.name,
-                    description: body.description,
+                    nombre: body.nombre,
+                    descripcion: body.descripcion,
                     color: body.color || '#3b82f6',
                     duration_minutes: body.duration_minutes || 60,
-                    type: body.type || 'CLASS',
-                    category: body.category || 'General',
-                    is_active: true
+                    tipo: body.tipo || 'CLASS',
+                    categoria: body.categoria || 'General',
+                    esta_activa: true
                 }
             ])
             .select()
@@ -67,13 +67,13 @@ export async function PUT(req: Request) {
         const { data, error } = await supabase
             .from('actividades')
             .update({
-                name: body.name,
-                description: body.description,
+                nombre: body.nombre,
+                descripcion: body.descripcion,
                 color: body.color,
                 duration_minutes: body.duration_minutes,
-                type: body.type,
-                category: body.category,
-                is_active: body.is_active
+                tipo: body.tipo,
+                categoria: body.categoria,
+                esta_activa: body.esta_activa
             })
             .eq('id', body.id)
             .select()

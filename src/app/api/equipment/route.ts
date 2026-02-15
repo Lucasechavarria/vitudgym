@@ -11,10 +11,10 @@ export async function GET(req: Request) {
         const category = searchParams.get('category');
         const available = searchParams.get('available');
 
-        let query = supabase.from('equipamiento').select('*').order('name');
+        let query = supabase.from('equipamiento').select('*').order('nombre');
 
-        if (category) query = query.eq('category', category);
-        if (available) query = query.eq('is_available', available === 'true');
+        if (category) query = query.eq('categoria', category);
+        if (available) query = query.eq('disponible', available === 'true');
 
         const { data, error } = await query;
         if (error) throw error;
@@ -37,7 +37,13 @@ export async function POST(req: Request) {
 
         const { data, error } = await supabase
             .from('equipamiento' as any)
-            .insert(body)
+            .insert({
+                nombre: body.name,
+                categoria: body.category,
+                estado: body.condition || 'Excelente', // Default or map if needed
+                disponible: body.is_available !== undefined ? body.is_available : true,
+                ultimo_mantenimiento: body.last_maintenance
+            })
             .select()
             .single();
 
@@ -83,9 +89,17 @@ export async function PATCH(req: Request) {
             }
         }
 
+        // Map updates to Spanish columns
+        const mappedUpdates: any = {};
+        if (updates.name) mappedUpdates.nombre = updates.name;
+        if (updates.category) mappedUpdates.categoria = updates.category;
+        if (updates.condition) mappedUpdates.estado = updates.condition;
+        if (updates.is_available !== undefined) mappedUpdates.disponible = updates.is_available;
+        if (updates.last_maintenance) mappedUpdates.ultimo_mantenimiento = updates.last_maintenance;
+
         const { data, error } = await supabase
             .from('equipamiento' as any)
-            .update(updates as any)
+            .update(mappedUpdates)
             .eq('id', id)
             .select()
             .single();

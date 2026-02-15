@@ -37,6 +37,7 @@ interface Routine {
 
 interface Student {
     id: string;
+    nombre_completo?: string;
     full_name?: string;
     name?: string;
     email: string;
@@ -304,7 +305,7 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                             </option>
                             {students.map((student) => (
                                 <option key={student.id} value={student.id}>
-                                    {student.full_name || student.name} - {student.email}
+                                    {student.nombre_completo || student.full_name || student.name} - {student.email}
                                 </option>
                             ))}
                         </select>
@@ -322,10 +323,10 @@ export default function RoutineGenerator({ initialTemplate }: { initialTemplate?
                                 <p className="text-blue-300 text-sm font-bold mb-2">📋 Perfil Seleccionado:</p>
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-black">
-                                        {(selectedStudentData.full_name || selectedStudentData.name || '?')[0]}
+                                        {(selectedStudentData.nombre_completo || selectedStudentData.full_name || selectedStudentData.name || '?')[0]}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-white text-sm font-bold">{selectedStudentData.full_name || selectedStudentData.name}</p>
+                                        <p className="text-white text-sm font-bold">{selectedStudentData.nombre_completo || selectedStudentData.full_name || selectedStudentData.name}</p>
                                         <p className="text-blue-200/50 text-[10px]">{selectedStudentData.email}</p>
                                     </div>
                                 </div>

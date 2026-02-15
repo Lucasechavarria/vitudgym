@@ -137,7 +137,7 @@ export default function RoutinesPage() {
                 .select(`
                     *,
                     profiles:user_id (
-                        full_name,
+                        nombre_completo,
                         avatar_url
                     )
                 `)
@@ -329,10 +329,10 @@ export default function RoutinesPage() {
                                 >
                                     <div className="flex items-start gap-4 mb-4">
                                         <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${template?.color || 'from-gray-500 to-gray-600'} flex items-center justify-center text-white font-black text-xl shadow-lg uppercase`}>
-                                            {routine.profiles?.full_name?.charAt(0) || '?'}
+                                            {routine.profiles?.nombre_completo?.charAt(0) || '?'}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-bold text-white text-lg">{routine.profiles?.full_name || 'Alumno'}</h3>
+                                            <h3 className="font-bold text-white text-lg">{routine.profiles?.nombre_completo || 'Alumno'}</h3>
                                             <p className="text-sm text-gray-400">{routine.name}</p>
                                         </div>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${routine.is_active

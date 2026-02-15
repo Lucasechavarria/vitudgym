@@ -65,9 +65,11 @@ export default function UsersPage() {
             // and how 'membershipStatus' and 'membershipEnds' are derived.
             const formattedUsers: User[] = (data as SupabaseUserProfile[]).map(profile => ({
                 ...profile,
-                name: profile.full_name || profile.email, // Assuming 'full_name' or 'email' can be used for 'name'
-                membershipStatus: profile.is_active ? 'active' : 'inactive', // Example mapping
-                membershipEnds: profile.membership_ends_at || null, // Example mapping
+                name: profile.nombre_completo || profile.email || 'Sin Nombre',
+                email: profile.correo || profile.email,
+                role: profile.rol, // Ensure rol is mapped if needed by User interface
+                membershipStatus: profile.estado_membresia || 'inactive',
+                membershipEnds: profile.fecha_fin_membresia || null,
             }));
             setUsers(formattedUsers);
         } catch (_error) {
@@ -85,7 +87,7 @@ export default function UsersPage() {
             const response = await fetch('/api/auth/set-role', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ uid, role: newRole }),
+                body: JSON.stringify({ uid, role: newRole }), // API auth/set-role likely expects 'role'
             });
 
             const data = await response.json();

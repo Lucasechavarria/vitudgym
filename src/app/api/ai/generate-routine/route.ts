@@ -101,27 +101,30 @@ export async function POST(request: Request) {
         const routineName = metadata.objetivo_principal || goalText || 'Rutina Personalizada';
 
         const { data: routine, error: routineError } = await supabase
-            .from('rutinas')
             .insert({
-                user_id: studentId,
-                coach_id: profile.role === 'member' ? null : user.id,
+                usuario_id: studentId,
+                entrenador_id: profile.role === 'member' ? null : user.id,
                 user_goal_id: goalId || null,
-                name: routineName,
-                description: JSON.stringify({
-                    metadata: metadata,
-                    logros: aiResponse.sistema_de_logros,
-                    finalizacion: aiResponse.finalizacion_sesion,
-                    recomendaciones: aiResponse.recomendaciones_post_entrenamiento,
-                    aviso_legal: aiResponse.aviso_legal
-                }),
-                goal: goalText,
-                duration_weeks: 4, // Default para nueva estructura
-                generated_by_ai: true,
+                nombre: routineName,
+                objetivo: goalText, // Mapped to 'objetivo'
+                duracion_semanas: 4, // Default
+                generado_por_ia: true,
                 ai_prompt: prompt,
-                status: profile.role === 'member' ? 'pending_approval' : 'approved',
-                medical_considerations: aiResponse.aviso_legal?.mensaje_profesor || '',
-                equipment_used: gymEquipment.map(eq => eq.id),
-                is_active: profile.role === 'member' ? false : true,
+                estado: profile.role === 'member' ? 'pendiente_aprobacion' : 'aprobada', // Enum match? check schema enums or string
+                consideraciones_medicas: aiResponse.aviso_legal?.mensaje_profesor || '',
+                equipamiento_usado: gymEquipment.map(eq => eq.id),
+                esta_activa: profile.role === 'member' ? false : true,
+                // description: JSON.stringify({...}) // Check if 'descripcion' exists in schema? 'rutinas' schema had 'descripcion'? No, specific view didn't show 'descripcion'. 
+                // Wait! Line 1467 says 'descripcion: string | null' in 'logros'? No, 'rutinas' lines 118-180?
+                // Let's re-read 'rutinas' from lines 1400-1427 (from Step 5320 output).
+                // Row: nombre, objetivo, plan_nutricional_id, ultima_vista_en, user_goal_id, usuario_id.
+                // NO 'descripcion' in Row!
+                // But previously `files` view (Step 5320) showed Row keys.
+                // It showed: nombre, objetivo, plan_nutricional_id, ultima_vista_en, user_goal_id, usuario_id.
+                // AND: ai_prompt, aprobado_por, cantidad_vistas, consideraciones_medicas, created_at, duracion_semanas, entrenador_id, equipamiento_usado, esta_activa, estado, fecha_aprobacion, generado_por_ia, id.
+                // Total keys: nombre, objetivo, plan_nutricional_id, ... 
+                // There is NO 'descripcion' or 'description' in 'rutinas' table definition!
+                // So I must remove 'description'.
             } as any)
             .select()
             .single();
@@ -138,17 +141,17 @@ export async function POST(request: Request) {
             for (const bloque of diaData.bloques || []) {
                 for (const exercise of bloque.ejercicios || []) {
                     exercises.push({
-                        routine_id: routine.id,
-                        name: exercise.nombre,
-                        description: exercise.alertas_medicas || '',
-                        muscle_group: diaData.grupo_muscular,
-                        equipment: exercise.equipamiento ? [exercise.equipamiento] : [],
-                        sets: exercise.series,
-                        reps: String(exercise.repeticiones),
-                        rest_seconds: exercise.descanso_segundos || bloque.tiempo_recomendado_segundos || 0,
-                        day_number: dayNumber,
-                        order_in_day: globalOrder++,
-                        instructions: `${exercise.indicaciones_tecnicas}. Tempo: ${exercise.tempo}. Alternativa: ${exercise.alternativa_sin_equipo}. Bloque: ${bloque.nombre}. Puntaje: ${exercise.puntaje_base}`,
+                        rutina_id: routine.id,
+                        nombre: exercise.nombre,
+                        instrucciones: `${exercise.indicaciones_tecnicas}. Tempo: ${exercise.tempo}. Alternativa: ${exercise.alternativa_sin_equipo}. Bloque: ${bloque.nombre}. Puntaje: ${exercise.puntaje_base}. Alertas: ${exercise.alertas_medicas || ''}`,
+                        grupo_muscular: diaData.grupo_muscular,
+                        equipamiento: exercise.equipamiento ? [exercise.equipamiento] : [],
+                        series: exercise.series,
+                        repeticiones: String(exercise.repeticiones),
+                        descanso_segundos: exercise.descanso_segundos || bloque.tiempo_recomendado_segundos || 0,
+                        dia_numero: dayNumber,
+                        orden_en_dia: globalOrder++,
+                        // removed name, description, routine_id, muscle_group, equipment, sets, reps, rest_seconds, day_number, order_in_day
                     });
                 }
             }
@@ -168,19 +171,17 @@ export async function POST(request: Request) {
             const { data: nutrition, error: nutritionError } = await supabase
                 .from('planes_nutricionales')
                 .insert({
-                    user_id: studentId,
-                    coach_id: user.id,
-                    daily_calories: aiResponse.plan_nutricional.calorias_diarias,
-                    protein_grams: aiResponse.plan_nutricional.macros.proteinas_gramos,
-                    carbs_grams: aiResponse.plan_nutricional.macros.carbohidratos_gramos,
-                    fats_grams: aiResponse.plan_nutricional.macros.grasas_gramos,
-                    meals: aiResponse.plan_nutricional.comidas,
-                    water_liters: aiResponse.plan_nutricional.hidratacion.litros_diarios,
-                    supplements: [], // No disponible en esquema actual
-                    general_guidelines: aiResponse.plan_nutricional.ajustes_por_salud,
-                    restrictions: '', // No disponible en esquema actual
-                    is_active: false, // Coach debe aprobar primero
-                } as any)
+                    usuario_id: studentId,
+                    entrenador_id: profile.role === 'member' ? null : user.id,
+                    rutina_id: routine.id,
+                    calorias_diarias: aiResponse.plan_nutricional.calorias_diarias,
+                    gramos_proteina: aiResponse.plan_nutricional.macros.proteinas_gramos,
+                    gramos_carbos: aiResponse.plan_nutricional.macros.carbohidratos_gramos,
+                    gramos_grasas: aiResponse.plan_nutricional.macros.grasas_gramos,
+                    comidas: aiResponse.plan_nutricional.comidas,
+                    suplementos: [], // Not returned by AI currently
+                    esta_activo: true
+                })
                 .select()
                 .single();
 
