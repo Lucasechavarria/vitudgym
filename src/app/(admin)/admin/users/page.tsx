@@ -232,7 +232,7 @@ export default function UsersPage() {
                                         </select>
                                     </td>
                                     <td className="px-6 py-4">
-                                        {['admin', 'coach'].includes(user.role) ? (
+                                        {['admin', 'coach'].includes(user.role?.toLowerCase()) ? (
                                             <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30">
                                                 🛡️ Staff
                                             </span>
@@ -252,7 +252,7 @@ export default function UsersPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {user.role === 'member' ? (
+                                        {!['admin', 'coach'].includes(user.role?.toLowerCase()) ? (
                                             <select
                                                 className="bg-[#1c1c1e] border border-[#3a3a3c] rounded px-3 py-1.5 text-xs text-gray-400 focus:border-purple-500 outline-none hover:bg-[#2c2c2e] transition-colors max-w-[150px]"
                                                 value={user.assigned_coach_id || ""}

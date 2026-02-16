@@ -36,12 +36,17 @@ export async function GET(request: Request) {
             const primaryRelation = u.relacion_alumno_coach?.find((r: any) => r.is_primary);
             const assignedCoachId = primaryRelation?.coach?.id || null;
 
+            // Normalizar el rol para el frontend
+            const rawRole = (u.rol || '').toLowerCase();
+            const normalizedRole = ['coach', 'profesor'].includes(rawRole) ? 'coach' :
+                (['admin', 'administrador'].includes(rawRole) ? 'admin' : 'member');
+
             return {
                 ...u,
                 id: u.id,
                 name: u.nombre_completo || 'Sin Nombre',
                 email: u.email || u.correo, // Fallback to correo if email is missing (perfiles has 'correo')
-                role: u.rol,
+                role: normalizedRole,
                 membershipStatus: u.estado_membresia || 'inactive',
                 membershipEnds: u.fecha_fin_membresia,
                 assigned_coach_id: assignedCoachId // Compatibility field
