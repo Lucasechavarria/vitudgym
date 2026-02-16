@@ -65,6 +65,49 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'registros_de_ejercicio' AND column_name = 'exercise_id') THEN
         ALTER TABLE registros_de_ejercicio RENAME COLUMN exercise_id TO ejercicio_id;
     END IF;
+
+    -- EQUIPAMIENTO (Especial: Usamos 'estado' en lugar de 'condicion' porque el código lo prefiere)
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'equipamiento' AND column_name = 'condition') THEN
+        ALTER TABLE equipamiento RENAME COLUMN condition TO estado;
+    ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'equipamiento' AND column_name = 'condicion') THEN
+        ALTER TABLE equipamiento RENAME COLUMN condicion TO estado;
+    END IF;
+
+    -- RESERVAS DE CLASE (Asegurar columna 'fecha')
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reservas_de_clase' AND column_name = 'fecha') THEN
+        ALTER TABLE reservas_de_clase ADD COLUMN fecha DATE;
+    END IF;
+
+    -- PLANES NUTRICIONALES (Asegurar columnas JSON)
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'planes_nutricionales' AND column_name = 'comidas') THEN
+        ALTER TABLE planes_nutricionales ADD COLUMN comidas JSONB DEFAULT '[]'::jsonb;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'planes_nutricionales' AND column_name = 'suplementos') THEN
+        ALTER TABLE planes_nutricionales ADD COLUMN suplementos JSONB DEFAULT '[]'::jsonb;
+    END IF;
+
+    -- PREFERENCIAS DE NOTIFICACIÓN (Asegurar campos específicos)
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notificaciones_preferencias') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notificaciones_preferencias' AND column_name = 'pagos_confirmacion') THEN
+            ALTER TABLE notificaciones_preferencias ADD COLUMN pagos_confirmacion BOOLEAN DEFAULT true;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notificaciones_preferencias' AND column_name = 'clases_recordatorio') THEN
+            ALTER TABLE notificaciones_preferencias ADD COLUMN clases_recordatorio BOOLEAN DEFAULT true;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notificaciones_preferencias' AND column_name = 'logros_nuevos') THEN
+            ALTER TABLE notificaciones_preferencias ADD COLUMN logros_nuevos BOOLEAN DEFAULT true;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notificaciones_preferencias' AND column_name = 'mensajes_nuevos') THEN
+            ALTER TABLE notificaciones_preferencias ADD COLUMN mensajes_nuevos BOOLEAN DEFAULT true;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notificaciones_preferencias' AND column_name = 'rutinas_nuevas') THEN
+            ALTER TABLE notificaciones_preferencias ADD COLUMN rutinas_nuevas BOOLEAN DEFAULT true;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notificaciones_preferencias' AND column_name = 'sistema') THEN
+            ALTER TABLE notificaciones_preferencias ADD COLUMN sistema BOOLEAN DEFAULT true;
+        END IF;
+    END IF;
+
 END $$;
 
 -- 4. FUNCIONES DE SEGURIDAD OPTIMIZADAS (JWT METADATA)
