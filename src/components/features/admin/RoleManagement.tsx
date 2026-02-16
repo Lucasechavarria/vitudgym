@@ -14,9 +14,9 @@ type RoleId = typeof AVAILABLE_ROLES[number]['id'];
 
 interface User {
     id: string;
-    full_name: string;
-    email: string;
-    role: RoleId | string;
+    nombre_completo: string;
+    correo: string;
+    rol: RoleId | string;
 }
 
 export function RoleManagement() {
@@ -42,9 +42,9 @@ export function RoleManagement() {
             toast.error('Error al cargar usuarios');
             // Mock data fallback
             setUsers([
-                { id: '1', full_name: 'Juan Pérez', email: 'juan@demo.com', role: 'user' },
-                { id: '2', full_name: 'María García', email: 'maria@demo.com', role: 'coach' },
-                { id: '3', full_name: 'Carlos López', email: 'carlos@demo.com', role: 'user' },
+                { id: '1', nombre_completo: 'Juan Pérez', correo: 'juan@demo.com', rol: 'user' },
+                { id: '2', nombre_completo: 'María García', correo: 'maria@demo.com', rol: 'coach' },
+                { id: '3', nombre_completo: 'Carlos López', correo: 'carlos@demo.com', rol: 'user' },
             ]);
         } finally {
             setLoading(false);
@@ -105,23 +105,23 @@ export function RoleManagement() {
                     </thead>
                     <tbody className="divide-y divide-white/5">
                         {users.map((user) => {
-                            const roleInfo = AVAILABLE_ROLES.find(r => r.id === user.role);
+                            const roleInfo = AVAILABLE_ROLES.find(r => r.id === user.rol);
                             return (
                                 <tr key={user.id} className="hover:bg-white/5 transition-colors">
                                     <td className="p-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                                                {user.full_name?.charAt(0) || 'U'}
+                                                {user.nombre_completo?.charAt(0) || 'U'}
                                             </div>
-                                            <span className="font-medium text-white">{user.full_name || 'Sin nombre'}</span>
+                                            <span className="font-medium text-white">{user.nombre_completo || 'Sin nombre'}</span>
                                         </div>
                                     </td>
-                                    <td className="p-3 text-gray-400">{user.email}</td>
+                                    <td className="p-3 text-gray-400">{user.correo}</td>
                                     <td className="p-3">
                                         <div className="flex items-center gap-2">
                                             <span className="text-lg">{roleInfo?.icon}</span>
                                             <span className={`font-bold ${roleInfo?.color}`}>
-                                                {roleInfo?.label || user.role}
+                                                {roleInfo?.label || user.rol}
                                             </span>
                                         </div>
                                     </td>
@@ -165,8 +165,8 @@ export function RoleManagement() {
                             <div className="mb-6">
                                 <p className="text-gray-400 mb-2">Usuario seleccionado:</p>
                                 <div className="bg-white/5 rounded-lg p-3">
-                                    <p className="font-bold text-white">{selectedUser.full_name}</p>
-                                    <p className="text-sm text-gray-400">{selectedUser.email}</p>
+                                    <p className="font-bold text-white">{selectedUser.nombre_completo}</p>
+                                    <p className="text-sm text-gray-400">{selectedUser.correo}</p>
                                 </div>
                             </div>
 
@@ -176,8 +176,8 @@ export function RoleManagement() {
                                     <button
                                         key={role.id}
                                         onClick={() => handleRoleChange(role.id)}
-                                        disabled={role.id === selectedUser.role}
-                                        className={`w-full p-4 rounded-xl border-2 transition-all text-left ${role.id === selectedUser.role
+                                        disabled={role.id === selectedUser.rol}
+                                        className={`w-full p-4 rounded-xl border-2 transition-all text-left ${role.id === selectedUser.rol
                                             ? 'bg-white/5 border-white/10 cursor-not-allowed opacity-50'
                                             : 'bg-white/5 border-white/10 hover:border-purple-500 hover:bg-purple-500/10'
                                             }`}
@@ -186,7 +186,7 @@ export function RoleManagement() {
                                             <span className="text-2xl">{role.icon}</span>
                                             <div>
                                                 <p className={`font-bold ${role.color}`}>{role.label}</p>
-                                                {role.id === selectedUser.role && (
+                                                {role.id === selectedUser.rol && (
                                                     <p className="text-xs text-gray-500">Rol actual</p>
                                                 )}
                                             </div>

@@ -24,8 +24,17 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        // En producción, guardar en tabla weight_history
-        // Por ahora solo retornamos éxito
+        // Guardar en tabla mediciones
+        const { error: insertError } = await supabase
+            .from('mediciones')
+            .insert({
+                usuario_id: user.id,
+                peso: weight,
+                registrado_en: new Date().toISOString(),
+                // Otros campos como grasa_corporal podrían agregarse si se extiende el form
+            });
+
+        if (insertError) throw insertError;
 
         return NextResponse.json({
             success: true,

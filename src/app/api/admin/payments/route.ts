@@ -25,7 +25,7 @@ export async function GET(request: Request) {
                     email:correo
                 )
             `)
-            .order('created_at', { ascending: false });
+            .order('creado_en', { ascending: false });
 
         if (paymentsError) throw paymentsError;
 
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
             id: payment.id,
             amount: payment.monto,
             status: payment.estado,
-            created_at: payment.created_at, // Return created_at as expected by frontend
+            created_at: payment.creado_en, // Return created_at as expected by frontend
             concept: payment.concepto,
             payment_method: payment.metodo_pago,
             metadata: payment.metadata,

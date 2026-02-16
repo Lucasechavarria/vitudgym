@@ -10,24 +10,24 @@ export default async function AdminDashboard() {
         .from('perfiles')
         .select('*');
 
-    const activeMembers = (perfiles as any)?.filter((p: any) => p.membership_status === 'active').length || 0;
-    const totalUsers = (perfiles as any)?.filter((p: any) => p.role !== 'admin' && p.role !== 'superadmin').length || 0;
+    const activeMembers = (perfiles as any)?.filter((p: any) => p.estado_membresia === 'active').length || 0;
+    const totalUsers = (perfiles as any)?.filter((p: any) => p.rol !== 'admin' && p.rol !== 'superadmin').length || 0;
 
     // Fetch Classes for Today
     const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
     const { count: classesToday } = await supabase
-        .from('classes')
+        .from('horarios_de_clase')
         .select('*', { count: 'exact', head: true })
-        .eq('day_of_week', today)
-        .eq('is_active', true);
+        .eq('dia_semana', today)
+        .eq('esta_activo', true);
 
     // Fetch Expiring Memberships
     const { data: expiringMemberships } = await supabase
         .from('perfiles')
-        .select('full_name, membership_end_date')
-        .eq('membership_status', 'active')
-        .lte('membership_end_date', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('membership_end_date', { ascending: true })
+        .select('nombre_completo, fecha_fin_membresia')
+        .eq('estado_membresia', 'active')
+        .lte('fecha_fin_membresia', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
+        .order('fecha_fin_membresia', { ascending: true })
         .limit(5);
 
 
@@ -41,8 +41,8 @@ export default async function AdminDashboard() {
     // Fetch recent activity
     const { data: recentProfiles } = await supabase
         .from('perfiles')
-        .select('full_name, created_at')
-        .order('created_at', { ascending: false })
+        .select('nombre_completo, creado_en')
+        .order('creado_en', { ascending: false })
         .limit(5);
 
     return (
@@ -64,11 +64,11 @@ export default async function AdminDashboard() {
                                 <div className="flex items-center gap-3">
                                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                                     <span className="text-sm text-gray-300">
-                                        {profile.full_name || 'Usuario'} se registró
+                                        {profile.nombre_completo || 'Usuario'} se registró
                                     </span>
                                 </div>
                                 <span className="text-xs text-gray-500">
-                                    {new Date(profile.created_at).toLocaleDateString('es-AR')}
+                                    {new Date(profile.creado_en).toLocaleDateString('es-AR')}
                                 </span>
                             </div>
                         ))}
@@ -82,11 +82,11 @@ export default async function AdminDashboard() {
                         {(expiringMemberships as any)?.map((m: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-3 bg-red-500/10 rounded-xl border border-red-500/20">
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-white">{m.full_name}</span>
-                                    <span className="text-xs text-red-400">Vence: {new Date(m.membership_end_date).toLocaleDateString('es-AR')}</span>
+                                    <span className="text-sm font-bold text-white">{m.nombre_completo}</span>
+                                    <span className="text-xs text-red-400">Vence: {new Date(m.fecha_fin_membresia).toLocaleDateString('es-AR')}</span>
                                 </div>
                                 <Link
-                                    href={`/admin/users?search=${m.full_name}`}
+                                    href={`/admin/users?search=${m.nombre_completo}`}
                                     className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded transition-colors"
                                 >
                                     Ver Info

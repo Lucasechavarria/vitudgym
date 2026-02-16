@@ -15,8 +15,8 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
     if (!isOpen || !user) return null;
 
     // Helper to safely access JSON fields
-    const medical = user.medical_info || {};
-    const emergency = user.emergency_contact || {};
+    const medical = user.informacion_medica || {};
+    const emergency = user.contacto_emergencia || {};
 
     return (
         <AnimatePresence>
@@ -44,9 +44,9 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                 <div>
                                     <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                                         <span className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold">
-                                            {user.name?.charAt(0) || user.full_name?.charAt(0) || 'U'}
+                                            {user.name?.charAt(0) || user.nombre_completo?.charAt(0) || 'U'}
                                         </span>
-                                        {user.name || user.full_name || user.email}
+                                        {user.name || user.nombre_completo || user.email || user.correo}
                                     </h2>
                                     <p className="text-gray-400 text-sm mt-1 ml-14">Ficha Técnica Digital</p>
                                 </div>
@@ -73,33 +73,33 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Género</p>
                                             <p className="text-white font-medium capitalize">
-                                                {user.gender === 'male' ? 'Masculino' : user.gender === 'female' ? 'Femenino' : user.gender === 'other' ? 'Otro' : user.gender === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
+                                                {user.genero === 'male' ? 'Masculino' : user.genero === 'female' ? 'Femenino' : user.genero === 'other' ? 'Otro' : user.genero === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
                                             </p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Género</p>
                                             <p className="text-white font-medium capitalize">
-                                                {user.gender === 'male' ? 'Masculino' : user.gender === 'female' ? 'Femenino' : user.gender === 'other' ? 'Otro' : 'Prefiero no decir'}
+                                                {user.genero === 'male' ? 'Masculino' : user.genero === 'female' ? 'Femenino' : user.genero === 'other' ? 'Otro' : 'Prefiero no decir'}
                                             </p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Fecha Nacimiento</p>
                                             <p className="text-white font-medium">
-                                                {user.date_of_birth || user.birth_date ? new Date(user.date_of_birth || user.birth_date).toLocaleDateString() : 'No registrada'}
+                                                {user.fecha_nacimiento ? new Date(user.fecha_nacimiento).toLocaleDateString() : 'No registrada'}
                                             </p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Teléfono</p>
-                                            <p className="text-white font-medium">{user.phone || 'No registrado'}</p>
+                                            <p className="text-white font-medium">{user.telefono || 'No registrado'}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Email</p>
-                                            <p className="text-white font-medium">{user.email}</p>
+                                            <p className="text-white font-medium">{user.correo || user.email}</p>
                                         </div>
                                         <div className="md:col-span-2">
                                             <p className="text-xs text-gray-500 uppercase">Dirección</p>
                                             <p className="text-white font-medium">
-                                                {user.address} {user.city ? `(${user.city})` : ''}
+                                                {user.direccion} {user.ciudad ? `(${user.ciudad})` : ''}
                                             </p>
                                         </div>
                                     </div>
@@ -187,14 +187,14 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                     <h3 className="text-lg font-bold text-gray-400 mb-4 flex items-center gap-2">
                                         📋 Deslinde Legal
                                     </h3>
-                                    <div className={`p-4 rounded-xl border ${user.waiver_accepted ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'} flex justify-between items-center`}>
+                                    <div className={`p-4 rounded-xl border ${user.exencion_aceptada ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'} flex justify-between items-center`}>
                                         <div>
-                                            <p className={`font-bold ${user.waiver_accepted ? 'text-green-400' : 'text-red-400'}`}>
-                                                {user.waiver_accepted ? '✓ Deslinde Firmado y Aceptado' : '⚠ Pendiente de Firma'}
+                                            <p className={`font-bold ${user.exencion_aceptada ? 'text-green-400' : 'text-red-400'}`}>
+                                                {user.exencion_aceptada ? '✓ Deslinde Firmado y Aceptado' : '⚠ Pendiente de Firma'}
                                             </p>
-                                            {user.waiver_accepted && (
+                                            {user.exencion_aceptada && (
                                                 <p className="text-xs text-gray-500 mt-1">
-                                                    Firmado digitalmente el: {new Date(user.waiver_date).toLocaleString()}
+                                                    Firmado digitalmente el: {new Date(user.fecha_exencion).toLocaleString()}
                                                 </p>
                                             )}
                                         </div>

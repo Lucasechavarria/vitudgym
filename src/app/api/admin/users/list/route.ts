@@ -26,7 +26,7 @@ export async function GET(request: Request) {
                     )
                 )
             `)
-            .order('created_at', { ascending: false });
+            .order('creado_en', { ascending: false });
 
         if (dbError) throw dbError;
 

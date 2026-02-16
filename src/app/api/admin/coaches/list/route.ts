@@ -13,9 +13,9 @@ export async function GET(request: Request) {
 
         const { data: coaches, error: dbError } = await supabase!
             .from('perfiles')
-            .select('id, full_name, email, role')
-            .in('role', ['coach', 'admin'])
-            .order('full_name', { ascending: true });
+            .select('id, nombre_completo, email:correo, rol')
+            .in('rol', ['coach', 'admin'])
+            .order('nombre_completo', { ascending: true });
 
         if (dbError) throw dbError;
 

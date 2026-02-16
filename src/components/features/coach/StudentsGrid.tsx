@@ -36,15 +36,15 @@ export default function StudentsGrid() {
                     // Map to component structure using real data from the API
                     const formattedStudents = data.students.map((p: any) => ({
                         id: p.id,
-                        nombre: p.full_name || 'Sin Nombre',
+                        nombre: p.nombre_completo || 'Sin Nombre',
                         email: p.email,
-                        experiencia: p.active_goal?.primary_goal
-                            ? `Meta: ${p.active_goal.primary_goal}`
+                        experiencia: p.active_goal?.objetivo_principal
+                            ? `Meta: ${p.active_goal.objetivo_principal}`
                             : 'Sin objetivo activo',
                         status: p.active_routine ? 'active' : 'alert',
                         lastAttendance: 'Consultar', // Pendiente de implementar en DB
                         nextClass: 'Pendiente',      // Pendiente de implementar en DB
-                        edad: p.medical_info?.age || 0,
+                        edad: p.informacion_medica?.edad || 0,
                         active_goal: p.active_goal,
                         active_routine: p.active_routine
                     }));

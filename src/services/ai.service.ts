@@ -12,13 +12,20 @@ export interface StudentProfile {
   full_name?: string;
   nombre_completo?: string;
   gender?: string;
+  genero?: string;
   informacion_medica?: {
     weight?: number;
+    peso?: number | string;
     height?: number;
+    altura?: number | string;
     chronic_diseases?: string;
+    enfermedades_cronicas?: string;
     injuries?: string;
+    lesiones?: string;
     allergies?: string;
+    alergias?: string;
     medications?: string;
+    medicacion?: string;
   };
   metas_fitness?: Record<string, unknown>;
   [key: string]: unknown;
@@ -130,14 +137,14 @@ Actúa como un entrenador personal profesional, planificador deportivo y arquite
 Tu tarea es generar una rutina de entrenamiento OPTIMIZADA, INTERACTIVA Y COMPARTIBLE entre profesor y alumno, basada EXCLUSIVAMENTE en los siguientes datos:
 
 1️⃣ INVENTARIO DEL GIMNASIO (equipamiento disponible):
-${gymEquipment.map(eq => `- ${eq.name || eq.nombre} (${eq.category || eq.categoria})`).join('\n')}
+${gymEquipment.map(eq => `- ${eq.nombre || eq.name} (${eq.categoria || eq.category})`).join('\n')}
 
 2️⃣ PLANILLA MÉDICA DEL ALUMNO:
 - Alumno: ${studentProfile.nombre_completo || studentProfile.full_name}
-- Sexo: ${studentProfile.gender || 'No especificado'}
-- Medidas: ${medicalData.weight || '?'}kg, ${medicalData.height || '?'}cm
-- Condiciones médicas: ${medicalData.chronic_diseases || 'Ninguna'}
-- Lesiones/Restricciones: ${medicalData.injuries || 'Ninguna'}
+- Sexo: ${studentProfile.genero || studentProfile.gender || 'No especificado'}
+- Medidas: ${medicalData.peso || medicalData.weight || '?'}kg, ${medicalData.altura || medicalData.height || '?'}cm
+- Condiciones médicas: ${medicalData.enfermedades_cronicas || medicalData.chronic_diseases || 'Ninguna'}
+- Lesiones/Restricciones: ${medicalData.lesiones || medicalData.injuries || 'Ninguna'}
 
 3️⃣ INDICACIONES DEL PROFESOR:
 ${coachNotes || 'Ninguna indicación previa.'}
@@ -151,9 +158,9 @@ ${coachNotes || 'Ninguna indicación previa.'}
 ${safeTemplate.promptSuffix}
 
 6️⃣ PLAN NUTRICIONAL Y SALUD (Si aplica):
-  - Enfermedades Crónicas: ${medicalData.chronic_diseases || 'Ninguna'}
-  - Alergias Alimentarias: ${medicalData.allergies || 'Ninguna'}
-  - Medicación actual: ${medicalData.medications || 'Ninguna'}
+  - Enfermedades Crónicas: ${medicalData.enfermedades_cronicas || medicalData.chronic_diseases || 'Ninguna'}
+  - Alergias Alimentarias: ${medicalData.alergias || medicalData.allergies || 'Ninguna'}
+  - Medicación actual: ${medicalData.medicacion || medicalData.medications || 'Ninguna'}
   
   REGLA DE ORO NUTRICIONAL:
   Si el alumno tiene enfermedades como Diabetes, Hipertensión, Celiaquía o trastornos digestivos, 
@@ -162,7 +169,7 @@ ${safeTemplate.promptSuffix}
   Calcula macros con Mifflin-St Jeor.
  
 7️⃣ PROTOCOLO DE SEGURIDAD LEGAL:
-- Si detectas patologías como: ${medicalData.chronic_diseases || 'Ninguna'}, debes redactar un "aviso_legal" NIVEL ALTO/MEDIO.
+- Si detectas patologías como: ${medicalData.enfermedades_cronicas || medicalData.chronic_diseases || 'Ninguna'}, debes redactar un "aviso_legal" NIVEL ALTO/MEDIO.
 - Si no hay patologías, usa NIVEL BAJO (standard).
 
 ---

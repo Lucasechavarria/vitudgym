@@ -29,7 +29,7 @@ export async function GET(request: Request) {
                 estado,
                 perfiles!rutinas_usuario_id_fkey (
                     nombre_completo,
-                    email
+                    email:correo
                 )
             `)
             .eq('estado', 'detailed_plan_generated') // Or whatever status means "AI done, waiting approval"
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         if (routinesError) throw routinesError;
 
         // Transform data
-        const routinesWithCounts = (routines || []).map((routine: { id: string; nombre: string; objetivo?: string; perfiles?: { nombre_completo: string; email: string }; creado_en: string; estado: string }) => ({
+        const routinesWithCounts = (routines || []).map((routine: any) => ({
             id: routine.id,
             name: routine.nombre,
             goal: routine.objetivo,

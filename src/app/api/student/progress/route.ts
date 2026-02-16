@@ -15,27 +15,44 @@ export async function GET(request: Request) {
 
         if (error) return error;
 
-        // Obtener mediciones reales
+        // 1. Obtener mediciones reales para el historial de peso y métricas
         const { data: measurements } = await supabase
             .from('mediciones')
             .select('*')
             .eq('usuario_id', user.id)
             .order('registrado_en', { ascending: true });
 
-        // Mock data fallback or mix
+        // 2. Obtener estadísticas de sesiones de entrenamiento
+        const { data: sessions } = await supabase
+            .from('sesiones_de_entrenamiento')
+            .select('estado, hora_inicio')
+            .eq('usuario_id', user.id);
+
+        const completedWorkouts = sessions?.filter(s => s.estado === 'completed').length || 0;
+        const totalWorkouts = sessions?.length || 0;
+
+        // 3. Obtener racha desde gamificación
+        const { data: gamification } = await supabase
+            .from('gamificacion_del_usuario')
+            .select('racha_actual, racha_mas_larga')
+            .eq('usuario_id', user.id)
+            .single();
+
+        // 4. Mapear historial de peso
+        const weightHistory = (measurements || [])
+            .filter(m => m.peso)
+            .map(m => ({
+                fecha: m.registrado_en,
+                peso: m.peso
+            }));
+
         const progress = {
-            weight_history: [
-                { date: '2024-01-01', weight: 80 },
-                { date: '2024-02-01', weight: 78.5 },
-                { date: '2024-03-01', weight: 77 },
-                { date: '2024-04-01', weight: 76 },
-                { date: '2024-05-01', weight: 75.5 },
-            ],
-            completed_workouts: 45,
-            total_workouts: 60,
-            current_streak: 7,
-            best_streak: 12,
-            measurements: measurements || [] // Use fetched data, or an empty array if null
+            historial_peso: weightHistory,
+            entrenamientos_completados: completedWorkouts,
+            entrenamientos_totales: totalWorkouts,
+            racha_actual: gamification?.racha_actual || 0,
+            mejor_racha: gamification?.racha_mas_larga || 0,
+            mediciones: measurements || []
         };
 
         return NextResponse.json({

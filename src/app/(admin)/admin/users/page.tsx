@@ -18,7 +18,7 @@ interface User extends SupabaseUserProfile {
 
 interface Coach {
     id: string;
-    full_name: string;
+    nombre_completo: string;
     email: string;
 }
 
@@ -53,7 +53,7 @@ export default function UsersPage() {
             const { data, error } = await supabase
                 .from('perfiles') // Changed from 'profiles' to 'perfiles'
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order('creado_en', { ascending: false });
 
             if (error) {
                 throw new Error(error.message);
@@ -262,7 +262,7 @@ export default function UsersPage() {
                                                 <option value="">Sin Asignar</option>
                                                 {coaches.map(c => (
                                                     <option key={c.id} value={c.id}>
-                                                        {c.full_name || 'Coach'}
+                                                        {c.nombre_completo || 'Coach'}
                                                     </option>
                                                 ))}
                                             </select>

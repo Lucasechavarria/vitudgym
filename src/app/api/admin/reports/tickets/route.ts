@@ -55,7 +55,7 @@ export async function PATCH(req: Request) {
             .update({
                 status,
                 admin_response,
-                updated_at: new Date().toISOString()
+                actualizado_en: new Date().toISOString()
             })
             .eq('id', id)
             .select()

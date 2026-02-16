@@ -17,7 +17,7 @@ export async function GET(request: Request) {
         // 1. Obtener perfiles (En producción hay: admin, superadmin, coach. Permitimos todos para pruebas)
         const { data: profiles, error: profilesError } = await supabase
             .from('perfiles')
-            .select('id, email, nombre_completo, url_avatar, onboarding_completado, informacion_medica, contacto_emergencia, rol')
+            .select('id, email:correo, nombre_completo, url_avatar, onboarding_completado, informacion_medica, contacto_emergencia, rol')
             .order('nombre_completo', { ascending: true });
 
         if (profilesError) throw profilesError;

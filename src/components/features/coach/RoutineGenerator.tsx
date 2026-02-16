@@ -42,7 +42,7 @@ interface Student {
     name?: string;
     email: string;
     role?: string;
-    medical_info?: Record<string, any>; // JSONB from DB
+    informacion_medica?: Record<string, any>; // JSONB from DB
 }
 
 export default function RoutineGenerator({ initialTemplate }: { initialTemplate?: string | null } = {}) {

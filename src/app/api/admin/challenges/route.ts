@@ -60,7 +60,7 @@ export async function GET(request: Request) {
                     user:perfiles(nombre_completo)
                 )
             `)
-            .order('created_at', { ascending: false });
+            .order('creado_en', { ascending: false });
 
         if (dbError) throw dbError;
 

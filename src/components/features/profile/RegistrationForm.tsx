@@ -9,30 +9,30 @@ import { useRouter } from 'next/navigation';
 
 // Tipos para el formulario (coincide con JSONB de DB)
 type EmergencyContact = {
-    full_name: string;
-    relationship: string;
-    phone: string;
-    address: string;
+    nombre_completo: string;
+    relacion: string;
+    telefono: string;
+    direccion: string;
 };
 
 type MedicalInfo = {
-    is_active: boolean; // ¿Realiza actividad física?
-    activity_details: string; // ¿Cual?
-    is_smoker: boolean;
-    weight: string; // Peso
-    blood_type: string; // Grupo Sanguíneo
-    blood_pressure: string; // Hipertenso Alta/Baja
-    injuries: string; // Lesiones
-    allergies: string; // Alergias
-    chronic_diseases: string; // Enfermedades Crónicas
-    pathologies: string; // Patologías
-    background: string; // Antecedentes
+    esta_activo: boolean; // ¿Realiza actividad física?
+    detalles_actividad: string; // ¿Cual?
+    fuma: boolean;
+    peso: string; // Peso
+    grupo_sanguineo: string; // Grupo Sanguíneo
+    presion_arterial: string; // Hipertenso Alta/Baja
+    lesiones: string; // Lesiones
+    alergias: string; // Alergias
+    enfermedades_cronicas: string; // Enfermedades Crónicas
+    patologias: string; // Patologías
+    antecedentes: string; // Antecedentes
 };
 
 type RegistrationFormData = {
     // Personal
     dni: string;
-    gender: "male" | "female" | "other" | "prefer_not_to_say";
+    genero: "male" | "female" | "other" | "prefer_not_to_say";
     phone: string;
     address: string;
     city: string;
@@ -57,7 +57,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
         mode: 'onChange'
     });
 
-    const medicalActive = watch('medical.is_active');
+
 
     const nextStep = async () => {
         const result = await trigger(); // Valida todo el formulario, idealmente validar solo campos del step
@@ -82,7 +82,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 .from('perfiles') as any)
                 .update({
                     dni: data.dni,
-                    gender: data.gender,
+                    genero: data.genero,
                     telefono: data.phone, // phone -> telefono
                     direccion: data.address, // address -> direccion
                     ciudad: data.city, // city -> ciudad
@@ -132,7 +132,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Género</label>
                     <select
-                        {...register('gender', { required: 'Seleccione una opción' })}
+                        {...register('genero', { required: 'Seleccione una opción' })}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     >
                         <option value="" className="bg-gray-800">Seleccionar...</option>
@@ -184,17 +184,17 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <span className="text-white">¿Realiza actividad física?</span>
                 <div className="flex gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" value="true" {...register('medical.is_active')} className="accent-orange-500" /> Si
+                        <input type="radio" value="true" {...register('medical.esta_activo')} className="accent-orange-500" /> Si
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" value="false" {...register('medical.is_active')} className="accent-orange-500" /> No
+                        <input type="radio" value="false" {...register('medical.esta_activo')} className="accent-orange-500" /> No
                     </label>
                 </div>
             </div>
 
             {/* Conditional input handled by checking 'medicalActive' */}
             <AnimatePresence>
-                {String(medicalActive) === 'true' && (
+                {String(watch('medical.esta_activo')) === 'true' && (
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -203,7 +203,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                     >
                         <label className="block text-sm text-gray-400 mb-1">¿Cual?</label>
                         <input
-                            {...register('medical.activity_details', { required: 'Especifique la actividad' })}
+                            {...register('medical.detalles_actividad', { required: 'Especifique la actividad' })}
                             className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                             placeholder="Ej: Running, Natación, Crossfit"
                         />
@@ -215,7 +215,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Peso (kg)</label>
                     <input
-                        {...register('medical.weight')}
+                        {...register('medical.peso')}
                         type="text"
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
@@ -223,14 +223,14 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Grupo Sanguíneo</label>
                     <input
-                        {...register('medical.blood_type')}
+                        {...register('medical.grupo_sanguineo')}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
                 </div>
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Presión Arterial</label>
                     <input
-                        {...register('medical.blood_pressure')}
+                        {...register('medical.presion_arterial')}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                         placeholder="Normal / Alta / Baja"
                     />
@@ -239,7 +239,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
 
             <div className="mt-4">
                 <label className="flex items-center gap-2 bg-white/5 p-3 rounded-lg cursor-pointer max-w-xs">
-                    <input type="checkbox" {...register('medical.is_smoker')} className="w-4 h-4 accent-orange-500" />
+                    <input type="checkbox" {...register('medical.fuma')} className="w-4 h-4 accent-orange-500" />
                     <span className="text-white">¿Fuma?</span>
                 </label>
             </div>
@@ -248,7 +248,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Lesiones</label>
                     <textarea
-                        {...register('medical.injuries')}
+                        {...register('medical.lesiones')}
                         rows={2}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
@@ -256,7 +256,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Alergias</label>
                     <textarea
-                        {...register('medical.allergies')}
+                        {...register('medical.alergias')}
                         rows={2}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
@@ -264,7 +264,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Enfermedades Crónicas</label>
                     <textarea
-                        {...register('medical.chronic_diseases')}
+                        {...register('medical.enfermedades_cronicas')}
                         rows={2}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
@@ -272,7 +272,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Patologías</label>
                     <textarea
-                        {...register('medical.pathologies')}
+                        {...register('medical.patologias')}
                         rows={2}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
@@ -280,7 +280,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Antecedentes Médicos</label>
                     <textarea
-                        {...register('medical.background')}
+                        {...register('medical.antecedentes')}
                         rows={2}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
@@ -296,21 +296,21 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Nombre y Apellido</label>
                     <input
-                        {...register('emergency.full_name', { required: 'Requerido' })}
+                        {...register('emergency.nombre_completo', { required: 'Requerido' })}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
                 </div>
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Parentesco</label>
                     <input
-                        {...register('emergency.relationship', { required: 'Requerido' })}
+                        {...register('emergency.relacion', { required: 'Requerido' })}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
                 </div>
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Teléfono</label>
                     <input
-                        {...register('emergency.phone', { required: 'Requerido' })}
+                        {...register('emergency.telefono', { required: 'Requerido' })}
                         type="tel"
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     />
@@ -318,7 +318,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Localidad</label>
                     <input
-                        {...register('emergency.address')} // Usando address para localidad segun modelo, o crear otro campo. Usamos Address para "Dirección/Localidad"
+                        {...register('emergency.direccion')}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                         placeholder="Dirección / Localidad"
                     />

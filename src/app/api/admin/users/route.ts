@@ -19,7 +19,7 @@ export async function GET(request: Request) {
         const { data: users, error: usersError } = await supabase
             .from('perfiles')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('creado_en', { ascending: false });
 
         if (usersError) throw usersError;
 

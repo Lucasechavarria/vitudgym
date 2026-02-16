@@ -127,7 +127,7 @@ export async function GET(request: Request) {
             .from('coach_attendance')
             .select('*')
             .eq('coach_id', user.id)
-            .order('created_at', { ascending: false })
+            .order('creado_en', { ascending: false })
             .limit(limit);
 
         if (fetchError) throw fetchError;

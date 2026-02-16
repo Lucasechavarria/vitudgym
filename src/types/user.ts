@@ -35,18 +35,22 @@ export interface MedicalHistory {
 
 export interface SupabaseUserProfile {
     id: string;
-    full_name: string | null;
-    email: string;
-    role: UserRole;
-    avatar_url?: string | null;
-    phone?: string | null;
-    birth_date?: string | null;
-    gender?: string | null;
-    medical_info?: any | null;
-    waiver_accepted?: boolean;
-    membership_status?: 'active' | 'inactive' | 'pending' | 'expired';
-    membership_end_date?: string | null;
-    created_at?: string;
+    nombre_completo: string | null;
+    correo: string;
+    email?: string; // Legacy/Alias support
+    rol: UserRole;
+    url_avatar?: string | null;
+    telefono?: string | null;
+    fecha_nacimiento?: string | null;
+    genero?: string | null;
+    informacion_medica?: any | null;
+    contacto_emergencia?: any | null;
+    exencion_aceptada?: boolean;
+    fecha_exencion?: string | null;
+    estado_membresia?: 'active' | 'inactive' | 'pending' | 'expired';
+    fecha_fin_membresia?: string | null;
+    creado_en?: string;
+    actualizado_en?: string;
     [key: string]: any; // Allow extra fields
 }
 

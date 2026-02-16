@@ -101,15 +101,16 @@ export async function POST(request: Request) {
         const routineName = metadata.objetivo_principal || goalText || 'Rutina Personalizada';
 
         const { data: routine, error: routineError } = await supabase
+            .from('rutinas')
             .insert({
                 usuario_id: studentId,
                 entrenador_id: profile.role === 'member' ? null : user.id,
-                user_goal_id: goalId || null,
+                objetivo_usuario_id: goalId || null,
                 nombre: routineName,
                 objetivo: goalText, // Mapped to 'objetivo'
                 duracion_semanas: 4, // Default
-                generado_por_ia: true,
-                ai_prompt: prompt,
+                generada_por_ia: true,
+                prompt_ia: prompt,
                 estado: profile.role === 'member' ? 'pendiente_aprobacion' : 'aprobada', // Enum match? check schema enums or string
                 consideraciones_medicas: aiResponse.aviso_legal?.mensaje_profesor || '',
                 equipamiento_usado: gymEquipment.map(eq => eq.id),
@@ -176,7 +177,7 @@ export async function POST(request: Request) {
                     rutina_id: routine.id,
                     calorias_diarias: aiResponse.plan_nutricional.calorias_diarias,
                     gramos_proteina: aiResponse.plan_nutricional.macros.proteinas_gramos,
-                    gramos_carbos: aiResponse.plan_nutricional.macros.carbohidratos_gramos,
+                    gramos_carbohidratos: aiResponse.plan_nutricional.macros.carbohidratos_gramos,
                     gramos_grasas: aiResponse.plan_nutricional.macros.grasas_gramos,
                     comidas: aiResponse.plan_nutricional.comidas,
                     suplementos: [], // Not returned by AI currently
@@ -192,7 +193,7 @@ export async function POST(request: Request) {
             // Vincular plan nutricional con rutina
             await supabase
                 .from('rutinas')
-                .update({ nutrition_plan_id: nutrition.id } as any)
+                .update({ plan_nutricional_id: nutrition.id } as any)
                 .eq('id', routine.id);
         }
 
