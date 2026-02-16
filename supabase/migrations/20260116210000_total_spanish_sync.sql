@@ -1,126 +1,100 @@
-﻿-- ============================================================================
--- MIGRACIÓN: Corrección de Recursión RLS y Sincronización de Roles
--- ============================================================================
--- Objetivo:
--- 1. Redefinir funciones de seguridad para usar JWT metadata (evitar recursión).
--- 2. Asegurar sincronización bidireccional de metadatos (rol/role).
--- 3. Corregir políticas de la tabla 'perfiles'.
--- ============================================================================
+﻿-- ==============================================================================
+-- MIGRACIÓN DE SINCRONIZACIÓN TOTAL "ESPAÑOL SEGURO" (Idempotente + RLS FIX)
+-- ==============================================================================
+-- Esta migración renombra tablas y columnas a español solo si existen.
+-- Corrige recursión de RLS y sincroniza roles con JWT metadata.
+-- ==============================================================================
 
-BEGIN;
+SET session_replication_role = 'replica';
 
--- 1. Redefinir funciones de seguridad para máxima eficiencia y sin recursión
--- Usamos auth.jwt() para obtener los claims del token actual sin consultar tablas.
+-- 1. HABILITAR EXTENSIONES Y DEFINIR TIPOS ENUM
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'nivel_dificultad') THEN
+        CREATE TYPE nivel_dificultad AS ENUM ('principiante', 'intermedio', 'avanzado', 'todos_los_niveles');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_conversacion') THEN
+        CREATE TYPE tipo_conversacion AS ENUM ('privada', 'soporte', 'grupo');
+    END IF;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- 2. ELIMINAR VISTAS DEPENDIENTES
+DROP VIEW IF EXISTS user_bookings_detailed CASCADE;
+DROP VIEW IF EXISTS active_memberships CASCADE;
+DROP VIEW IF EXISTS classes_with_availability CASCADE;
+
+-- 3. RENOMBRADO SEGURO DE TABLAS Y COLUMNAS
+DO $$ 
+BEGIN
+    -- PERFILES
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perfiles' AND column_name = 'full_name') THEN
+        ALTER TABLE perfiles RENAME COLUMN full_name TO nombre_completo;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perfiles' AND column_name = 'avatar_url') THEN
+        ALTER TABLE perfiles RENAME COLUMN avatar_url TO url_avatar;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perfiles' AND column_name = 'role') THEN
+        ALTER TABLE perfiles RENAME COLUMN role TO rol;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perfiles' AND column_name = 'created_at') THEN
+        ALTER TABLE perfiles RENAME COLUMN created_at TO creado_en;
+    END IF;
+
+    -- SESIONES DE ENTRENAMIENTO
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'workout_sessions') THEN
+        ALTER TABLE workout_sessions RENAME TO sesiones_de_entrenamiento;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sesiones_de_entrenamiento' AND column_name = 'user_id') THEN
+        ALTER TABLE sesiones_de_entrenamiento RENAME COLUMN user_id TO usuario_id;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sesiones_de_entrenamiento' AND column_name = 'routine_id') THEN
+        ALTER TABLE sesiones_de_entrenamiento RENAME COLUMN routine_id TO rutina_id;
+    END IF;
+
+    -- REGISTROS DE EJERCICIO
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'exercise_performance_logs') THEN
+        ALTER TABLE exercise_performance_logs RENAME TO registros_de_ejercicio;
+    ELSIF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'exercise_logs') THEN
+        ALTER TABLE exercise_logs RENAME TO registros_de_ejercicio;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'registros_de_ejercicio' AND column_name = 'session_id') THEN
+        ALTER TABLE registros_de_ejercicio RENAME COLUMN session_id TO sesion_id;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'registros_de_ejercicio' AND column_name = 'exercise_id') THEN
+        ALTER TABLE registros_de_ejercicio RENAME COLUMN exercise_id TO ejercicio_id;
+    END IF;
+END $$;
+
+-- 4. FUNCIONES DE SEGURIDAD OPTIMIZADAS (JWT METADATA)
 CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  -- Priorizamos JWT metadata para evitar hits a la DB y recursión RLS
-  SELECT (
-    COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
-  );
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT (COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_coach()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  -- El coach puede ser 'coach' o 'admin'
-  SELECT (
-    COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role') IN ('coach', 'admin')
-  );
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT (COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role') IN ('coach', 'admin'));
 $$;
 
--- 2. Trigger robusto para sincronización de metadatos
--- Este trigger se asegura de que cuando el rol cambie en la tabla perfiles, 
--- se actualice inmediatamente en la tabla auth.users (metadatos del JWT).
+-- 5. POLÍTICAS RLS (SIN RECURSIÓN)
+DROP POLICY IF EXISTS "perfiles_select_policy" ON perfiles;
+CREATE POLICY "perfiles_select_policy" ON perfiles FOR SELECT USING (auth.uid() = id OR is_admin());
+
+DROP POLICY IF EXISTS "perfiles_update_policy" ON perfiles;
+CREATE POLICY "perfiles_update_policy" ON perfiles FOR UPDATE USING (auth.uid() = id OR is_admin());
+
+-- 6. TRIGGER DE SINCRONIZACIÓN DE ROLES
 CREATE OR REPLACE FUNCTION public.sync_user_role_metadata()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Actualizamos auth.users para que el siguiente JWT emitido tenga el rol correcto
-  -- Sincronizamos tanto 'rol' como 'role' para máxima compatibilidad con código viejo/nuevo
-  UPDATE auth.users
-  SET raw_app_meta_data = 
-    COALESCE(raw_app_meta_data, '{}'::jsonb) || 
-    jsonb_build_object(
-      'rol', NEW.rol::text,
-      'role', NEW.rol::text
-    )
-  WHERE id = NEW.id;
-  
+  UPDATE auth.users SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || jsonb_build_object('rol', NEW.rol::text, 'role', NEW.rol::text) WHERE id = NEW.id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Re-vincular trigger
 DROP TRIGGER IF EXISTS on_profile_role_change ON public.perfiles;
-CREATE TRIGGER on_profile_role_change
-AFTER INSERT OR UPDATE OF rol ON public.perfiles
-FOR EACH ROW
-EXECUTE FUNCTION public.sync_user_role_metadata();
+CREATE TRIGGER on_profile_role_change AFTER INSERT OR UPDATE OF rol ON public.perfiles FOR EACH ROW EXECUTE FUNCTION public.sync_user_role_metadata();
 
--- 3. Corregir Políticas de la tabla 'perfiles' (PUNTO CRÍTICO)
--- Eliminamos políticas viejas que causaban recursión
-DROP POLICY IF EXISTS "Usuarios ven propio perfil" ON perfiles;
-DROP POLICY IF EXISTS "Admins ven todo perfil" ON perfiles;
-DROP POLICY IF EXISTS "Update propio perfil" ON perfiles;
-DROP POLICY IF EXISTS "Admins update todo perfil" ON perfiles;
-DROP POLICY IF EXISTS "Usuarios pueden ver su propio perfil" ON perfiles;
-DROP POLICY IF EXISTS "Admins ven todos los perfiles" ON perfiles;
-DROP POLICY IF EXISTS "Usuarios editan su propio perfil" ON perfiles;
-DROP POLICY IF EXISTS "Admins editan cualquier perfil" ON perfiles;
-
--- Eliminar también las nuevas por si se re-ejecuta el script
-DROP POLICY IF EXISTS "perfiles_select_policy" ON perfiles;
-DROP POLICY IF EXISTS "perfiles_update_policy" ON perfiles;
-DROP POLICY IF EXISTS "perfiles_insert_policy" ON perfiles;
-
--- Definir políticas nuevas basadas en auth.uid() y metadatos (sin loops)
--- LECTURA
-CREATE POLICY "perfiles_select_policy" 
-ON perfiles FOR SELECT 
-USING (
-  auth.uid() = id OR is_admin()
-);
-
--- ACTUALIZACIÓN
-CREATE POLICY "perfiles_update_policy" 
-ON perfiles FOR UPDATE 
-USING (
-  auth.uid() = id OR is_admin()
-);
-
--- INSERT (Solo el usuario al crearse o admin)
-DROP POLICY IF EXISTS "Permitir inserción de perfil propio" ON perfiles;
-CREATE POLICY "perfiles_insert_policy" 
-ON perfiles FOR INSERT 
-WITH CHECK (
-  auth.uid() = id OR is_admin()
-);
-
--- 4. Forzar una sincronización inicial para usuarios existentes (opcional pero recomendado)
--- Esto ayuda a que los usuarios actuales no tengan que esperar a un update para tener metadatos correctos.
--- Nota: En despliegues grandes esto puede ser lento, pero para Virtud Gym es seguro.
-DO $$
-DECLARE
-  u RECORD;
-BEGIN
-  FOR u IN SELECT id, rol FROM public.perfiles LOOP
-    UPDATE auth.users
-    SET raw_app_meta_data = 
-      COALESCE(raw_app_meta_data, '{}'::jsonb) || 
-      jsonb_build_object(
-        'rol', u.rol::text,
-        'role', u.rol::text
-      )
-    WHERE id = u.id;
-  END LOOP;
-END $$;
-
-COMMIT;
+SET session_replication_role = 'origin';
