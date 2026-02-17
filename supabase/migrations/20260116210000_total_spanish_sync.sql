@@ -113,12 +113,12 @@ END $$;
 -- 4. FUNCIONES DE SEGURIDAD OPTIMIZADAS (JWT METADATA)
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT (COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+  SELECT (LOWER(COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role')) = 'admin');
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_coach()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT (COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role') IN ('coach', 'admin'));
+  SELECT (LOWER(COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role')) IN ('coach', 'admin', 'profesor'));
 $$;
 
 -- 5. POLÍTICAS RLS (SIN RECURSIÓN)

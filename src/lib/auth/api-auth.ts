@@ -109,8 +109,11 @@ export async function requireRole(
             role = profile.rol;
         }
 
-        // 3. Verificación de permisos
-        if (!allowedRoles.includes(role)) {
+        // 3. Verificación de permisos (Insensible a mayúsculas)
+        const normalizedUserRole = (role || '').toLowerCase();
+        const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
+
+        if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
             console.warn(`requireRole: Acceso denegado para ${userId}. Rol: ${role}, Requeridos: ${allowedRoles}`);
             return {
                 error: NextResponse.json(

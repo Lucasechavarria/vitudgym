@@ -39,11 +39,17 @@ export default function UsersPage() {
         try {
             const res = await fetch('/api/admin/coaches/list');
             const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Error al obtener lista de coaches');
+            }
+
             if (data.coaches) {
                 setCoaches(data.coaches);
             }
         } catch (_error) {
-            console.error(_error);
+            console.error('fetchCoaches error:', _error);
+            toast.error('No se pudo cargar la lista de profesores');
         }
     };
 
