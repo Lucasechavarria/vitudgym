@@ -110,15 +110,27 @@ BEGIN
 
 END $$;
 
--- 4. FUNCIONES DE SEGURIDAD OPTIMIZADAS (JWT METADATA)
+-- 4. FUNCIONES DE SEGURIDAD OPTIMIZADAS (NORMALIZACIÓN DE ROLES)
+-- Esta función normaliza nombres de roles (Profesor -> coach, etc) para evitar fallos de RLS
+CREATE OR REPLACE FUNCTION public.get_normalized_role(role_text text)
+RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+BEGIN
+  RETURN CASE 
+    WHEN LOWER(role_text) IN ('admin', 'administrador') THEN 'admin'
+    WHEN LOWER(role_text) IN ('coach', 'profesor', 'entrenador') THEN 'coach'
+    ELSE 'member'
+  END;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT (LOWER(COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role')) = 'admin');
+  SELECT (public.get_normalized_role(COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role')) = 'admin');
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_coach()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT (LOWER(COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role')) IN ('coach', 'admin', 'profesor'));
+  SELECT (public.get_normalized_role(COALESCE(auth.jwt() -> 'app_metadata' ->> 'rol', auth.jwt() -> 'app_metadata' ->> 'role')) IN ('coach', 'admin'));
 $$;
 
 -- 5. POLÍTICAS RLS (SIN RECURSIÓN)
@@ -128,16 +140,30 @@ CREATE POLICY "perfiles_select_policy" ON perfiles FOR SELECT USING (auth.uid() 
 DROP POLICY IF EXISTS "perfiles_update_policy" ON perfiles;
 CREATE POLICY "perfiles_update_policy" ON perfiles FOR UPDATE USING (auth.uid() = id OR is_admin());
 
--- 6. TRIGGER DE SINCRONIZACIÓN DE ROLES
+-- 6. TRIGGER DE SINCRONIZACIÓN DE ROLES (MEJORADO)
 CREATE OR REPLACE FUNCTION public.sync_user_role_metadata()
 RETURNS TRIGGER AS $$
+DECLARE
+  norm_role text;
 BEGIN
-  UPDATE auth.users SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || jsonb_build_object('rol', NEW.rol::text, 'role', NEW.rol::text) WHERE id = NEW.id;
+  norm_role := public.get_normalized_role(NEW.rol::text);
+  UPDATE auth.users 
+  SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || 
+    jsonb_build_object('rol', norm_role, 'role', norm_role) 
+  WHERE id = NEW.id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS on_profile_role_change ON public.perfiles;
-CREATE TRIGGER on_profile_role_change AFTER INSERT OR UPDATE OF rol ON public.perfiles FOR EACH ROW EXECUTE FUNCTION public.sync_user_role_metadata();
+CREATE TRIGGER on_profile_role_change 
+AFTER INSERT OR UPDATE OF rol 
+ON public.perfiles 
+FOR EACH ROW 
+EXECUTE FUNCTION public.sync_user_role_metadata();
+
+-- ASEGURAR QUE LOS PERFILES TIENEN EL ROL CORRECTO
+UPDATE perfiles SET rol = 'coach' WHERE rol::text IN ('Profesor', 'profesor', 'Coach', 'Entrenador');
+UPDATE perfiles SET rol = 'admin' WHERE rol::text IN ('Admin', 'Administrador');
 
 SET session_replication_role = 'origin';
