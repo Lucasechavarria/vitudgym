@@ -13,16 +13,18 @@ export async function GET(request: Request) {
 
         const { data: coaches, error: dbError } = await supabase!
             .from('perfiles')
-            .select('id, nombre_completo, email:correo, rol')
+            .select('*')
             .or('rol.ilike.coach,rol.ilike.profesor,rol.ilike.admin')
             .order('nombre_completo', { ascending: true });
 
         if (dbError) throw dbError;
 
-        // Normalizar los roles en la respuesta para el frontend
-        const normalizedCoaches = coaches?.map(c => ({
-            ...c,
-            rol: ['coach', 'profesor'].includes(c.rol?.toLowerCase()) ? 'coach' : 'admin'
+        // Normalizar los roles y emails en la respuesta para el frontend
+        const normalizedCoaches = (coaches as any[])?.map(c => ({
+            id: c.id,
+            nombre_completo: c.nombre_completo,
+            email: c.email || c.correo || '', // Soporte para ambos nombres de columna
+            rol: ['coach', 'profesor'].includes((c.rol || '').toLowerCase()) ? 'coach' : 'admin'
         }));
 
         return NextResponse.json({ coaches: normalizedCoaches });

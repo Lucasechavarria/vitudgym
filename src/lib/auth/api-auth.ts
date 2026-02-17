@@ -109,8 +109,15 @@ export async function requireRole(
             role = profile.rol;
         }
 
-        // 3. Verificación de permisos (Insensible a mayúsculas)
-        const normalizedUserRole = (role || '').toLowerCase();
+        // 3. Verificación de permisos (Insensible a mayúsculas y soporte español)
+        const roleMapping: Record<string, string> = {
+            'profesor': 'coach',
+            'miembro': 'member',
+            'administrador': 'admin'
+        };
+
+        const rawRole = (role || '').toLowerCase();
+        const normalizedUserRole = roleMapping[rawRole] || rawRole;
         const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
         if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
