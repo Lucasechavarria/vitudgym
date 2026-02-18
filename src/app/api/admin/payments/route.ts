@@ -15,32 +15,26 @@ export async function GET(request: Request) {
 
         if (error) return error;
 
-        // Obtener pagos con información del usuario
+        // Obtener pagos con información del usuario - Usar nombres reales detectados
         const { data, error: paymentsError } = await supabase
             .from('pagos')
             .select(`
                 *,
-                perfiles!pagos_user_id_fkey (
-                    nombre_completo,
-                    email:correo
+                perfiles!user_id (
+                    *
                 )
             `)
-            .order('creado_en', { ascending: false });
+            .order('created_at' as any, { ascending: false });
 
-        if (paymentsError) throw paymentsError;
+        if (paymentsError) {
+            console.error('❌ Error loading payments:', paymentsError);
+            // Fallback sin join si el join falla
+            const fallback = await supabase.from('pagos').select('*').order('created_at' as any, { ascending: false });
+            if (fallback.error) throw fallback.error;
+            return NextResponse.json({ success: true, payments: fallback.data.map((p: any) => normalizePayment(p)) });
+        }
 
-        // Transform data
-        const payments = (data || []).map((payment: any) => ({
-            id: payment.id,
-            amount: payment.monto,
-            status: payment.estado,
-            created_at: payment.creado_en, // Return created_at as expected by frontend
-            concept: payment.concepto,
-            payment_method: payment.metodo_pago,
-            metadata: payment.metadata,
-            user_name: payment.perfiles?.nombre_completo || 'Sin nombre',
-            user_email: payment.perfiles?.email || ''
-        }));
+        const payments = (data || []).map((payment: any) => normalizePayment(payment));
 
         return NextResponse.json({
             success: true,
@@ -54,6 +48,21 @@ export async function GET(request: Request) {
             error: err.message || 'Error loading payments'
         }, { status: 500 });
     }
+}
+
+function normalizePayment(payment: any) {
+    const user = payment.perfiles || {};
+    return {
+        id: payment.id,
+        amount: payment.monto,
+        status: payment.estado,
+        created_at: payment.created_at || payment.creado_en,
+        concept: payment.concepto,
+        payment_method: payment.metodo_pago,
+        metadata: payment.metadata,
+        user_name: user.nombre_completo || `${user.nombre || ''} ${user.apellido || ''}`.trim() || 'Sin nombre',
+        user_email: user.correo || user.email || ''
+    };
 }
 
 /**

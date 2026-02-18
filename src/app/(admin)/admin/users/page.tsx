@@ -57,27 +57,23 @@ export default function UsersPage() {
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from('perfiles') // Changed from 'profiles' to 'perfiles'
+                .from('perfiles')
                 .select('*')
-                .order('creado_en', { ascending: false });
+                .order('created_at' as any, { ascending: false }); // Usar created_at (nombre real en DB)
 
             if (error) {
-                throw new Error(error.message);
+                // Fallback si created_at tampoco existe (por si acaso)
+                if (error.code === '42703') {
+                    const fallback = await supabase.from('perfiles').select('*');
+                    if (fallback.error) throw fallback.error;
+                    setUsers(normalizeUsers(fallback.data));
+                } else {
+                    throw new Error(error.message);
+                }
+                return;
             }
 
-            // Assuming 'data' directly contains the user profiles and needs mapping
-            // to the 'User' interface, especially for 'name' and membership status.
-            // This part might need adjustment based on your 'perfiles' table structure
-            // and how 'membershipStatus' and 'membershipEnds' are derived.
-            const formattedUsers: User[] = (data as SupabaseUserProfile[]).map(profile => ({
-                ...profile,
-                name: profile.nombre_completo || profile.email || 'Sin Nombre',
-                email: profile.correo || profile.email,
-                role: profile.rol, // Ensure rol is mapped if needed by User interface
-                membershipStatus: profile.estado_membresia || 'inactive',
-                membershipEnds: profile.fecha_fin_membresia || null,
-            }));
-            setUsers(formattedUsers);
+            setUsers(normalizeUsers(data));
         } catch (_error) {
             const err = _error as Error;
             console.error(err);
@@ -85,6 +81,17 @@ export default function UsersPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const normalizeUsers = (data: any[]): User[] => {
+        return (data as any[]).map(profile => ({
+            ...profile,
+            name: profile.nombre_completo || `${profile.nombre || ''} ${profile.apellido || ''}`.trim() || profile.correo || profile.email || 'Sin Nombre',
+            email: profile.correo || profile.email || '',
+            role: profile.rol,
+            membershipStatus: profile.estado_membresia || 'inactive',
+            membershipEnds: profile.fecha_fin_membresia || null,
+        }));
     };
 
     const handleRoleUpdate = async (uid: string, newRole: string) => {
