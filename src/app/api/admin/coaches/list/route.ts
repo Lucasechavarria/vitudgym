@@ -21,14 +21,19 @@ export async function GET(request: Request) {
             .from('perfiles')
             .select('*')
             // Filtro flexible: probar con 'rol' y como fallback no filtrar si falla
-            .in('rol' as any, ['coach', 'admin', 'profesor', 'Coach', 'Admin', 'Profesor']);
+            .in('rol' as any, ['coach', 'admin', 'profesor', 'administrador', 'Coach', 'Admin', 'Profesor', 'Administrador']);
 
         if (dbError) {
             console.error('❌ [DEBUG] Error en consulta de coaches:', dbError);
-            // Si el error es de columna inexistente, intentar sin filtros ni orden
+            // Fallback ultra-seguro: traer todo pero filtrar en memoria por rol
             const fallback = await supabase!.from('perfiles').select('*');
             if (fallback.error) throw fallback.error;
-            return NextResponse.json({ coaches: normalizeCoaches(fallback.data) });
+
+            const filtered = (fallback.data as any[]).filter(u =>
+                ['coach', 'admin', 'profesor', 'administrador', 'Coach', 'Admin', 'Profesor', 'Administrador'].includes(u.rol)
+            );
+
+            return NextResponse.json({ coaches: normalizeCoaches(filtered) });
         }
 
         return NextResponse.json({ coaches: normalizeCoaches(coaches) });
@@ -45,15 +50,17 @@ export async function GET(request: Request) {
 }
 
 function normalizeCoaches(data: any[]) {
-    return (data as any[])?.map(c => {
-        const email = c.correo || c.email || '';
-        const nombre = c.nombre_completo || `${c.nombre || ''} ${c.apellido || ''}`.trim() || email;
+    return (data as any[])
+        ?.filter(c => ['coach', 'admin', 'profesor', 'administrador', 'Coach', 'Admin', 'Profesor', 'Administrador'].includes(c.rol))
+        .map(c => {
+            const email = c.correo || c.email || '';
+            const nombre = c.nombre_completo || `${c.nombre || ''} ${c.apellido || ''}`.trim() || email;
 
-        return {
-            id: c.id,
-            nombre_completo: nombre,
-            email: email,
-            rol: ['coach', 'profesor', 'Coach', 'Profesor'].includes(c.rol) ? 'coach' : 'admin'
-        };
-    });
+            return {
+                id: c.id,
+                nombre_completo: nombre,
+                email: email,
+                rol: ['coach', 'profesor', 'Coach', 'Profesor'].includes(c.rol) ? 'coach' : 'admin'
+            };
+        });
 }
