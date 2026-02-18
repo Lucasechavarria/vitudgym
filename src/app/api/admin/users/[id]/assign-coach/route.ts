@@ -16,39 +16,29 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🤖 Asignando coach: User=${userId}, Coach=${coachId}`);
+        console.log(`🤖 Usando RPC para asignar coach: User=${userId}, Coach=${coachId}`);
 
-        // 1. Demote any existing primary coach for this user
-        const { error: demoteError } = await supabase!
-            .from('relacion_alumno_coach')
-            .update({ is_primary: false })
-            .eq('user_id', userId)
-            .eq('is_primary', true);
+        // Llamada a la función RPC que maneja la lógica internamente en SQL
+        // Esto evita errores de "column not found in schema cache" de PostgREST
+        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_safe', {
+            p_user_id: userId,
+            p_coach_id: coachId
+        });
 
-        if (demoteError) {
-            console.error('❌ Error demoting old coach:', demoteError);
-            throw new Error(`Error quitando coach anterior: ${demoteError.message}`);
+        if (rpcError) {
+            console.error('❌ Error in RPC assign_coach_safe:', rpcError);
+            throw new Error(`Error en base de datos (RPC): ${rpcError.message}`);
         }
 
-        // 2. Assign new coach (if provided)
-        if (coachId) {
-            const { error: assignError } = await supabase!
-                .from('relacion_alumno_coach')
-                .upsert({
-                    user_id: userId,
-                    coach_id: coachId,
-                    is_primary: true,
-                    is_active: true,
-                    assigned_at: new Date().toISOString()
-                }, { onConflict: 'user_id,coach_id' }); // Sin espacios por seguridad
-
-            if (assignError) {
-                console.error('❌ Error in upsert:', assignError);
-                throw new Error(`Error en upsert: ${assignError.message}`);
-            }
+        // El RPC devuelve un JSON con {success: boolean, message?: string, error?: string}
+        if (rpcData && rpcData.success === false) {
+            throw new Error(rpcData.error || 'Error desconocido en la función de asignación');
         }
 
-        return NextResponse.json({ success: true, message: 'Coach asignado correctamente' });
+        return NextResponse.json({
+            success: true,
+            message: rpcData?.message || 'Coach asignado correctamente'
+        });
 
     } catch (error) {
         console.error('❌ Error assigning coach (CATCH):', error);
