@@ -32,6 +32,9 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perfiles' AND column_name = 'full_name') THEN
         ALTER TABLE perfiles RENAME COLUMN full_name TO nombre_completo;
     END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perfiles' AND column_name = 'email') THEN
+        ALTER TABLE perfiles RENAME COLUMN email TO correo;
+    END IF;
     IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'perfiles' AND column_name = 'avatar_url') THEN
         ALTER TABLE perfiles RENAME COLUMN avatar_url TO url_avatar;
     END IF;

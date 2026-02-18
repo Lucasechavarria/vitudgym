@@ -13,19 +13,24 @@ export async function GET(request: Request) {
 
         const { data: coaches, error: dbError } = await supabase!
             .from('perfiles')
-            .select('id, nombre, apellido, correo, rol')
+            .select('*')
             .in('rol', ['coach', 'admin', 'profesor', 'Coach', 'Admin', 'Profesor'])
-            .order('nombre', { ascending: true });
+            .order('id', { ascending: true } as any);
 
         if (dbError) throw dbError;
 
-        // Normalizar los roles y datos en la respuesta para el frontend
-        const normalizedCoaches = (coaches as any[])?.map(c => ({
-            id: c.id,
-            nombre_completo: `${c.nombre || ''} ${c.apellido || ''}`.trim() || c.correo,
-            email: c.correo || '',
-            rol: ['coach', 'profesor', 'Coach', 'Profesor'].includes(c.rol) ? 'coach' : 'admin'
-        }));
+        // Normalizar los roles y datos en la respuesta para el frontend de forma ultra-resiliente
+        const normalizedCoaches = (coaches as any[])?.map(c => {
+            const email = c.correo || c.email || '';
+            const nombre = c.nombre_completo || `${c.nombre || ''} ${c.apellido || ''}`.trim() || email;
+
+            return {
+                id: c.id,
+                nombre_completo: nombre,
+                email: email,
+                rol: ['coach', 'profesor', 'Coach', 'Profesor'].includes(c.rol) ? 'coach' : 'admin'
+            };
+        });
 
         return NextResponse.json({ coaches: normalizedCoaches });
 

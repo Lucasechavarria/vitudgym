@@ -20,13 +20,11 @@ export async function GET(request: Request) {
                 relacion_alumno_coach (
                     is_primary,
                     coach:perfiles!coach_id (
-                        id,
-                        nombre_completo,
-                        email:correo
+                        *
                     )
                 )
             `)
-            .order('creado_en', { ascending: false });
+            .order('id', { ascending: false } as any);
 
         if (dbError) throw dbError;
 
@@ -34,7 +32,12 @@ export async function GET(request: Request) {
         const formattedUsers = (users as any[]).map(u => {
             // Find primary coach if exists
             const primaryRelation = u.relacion_alumno_coach?.find((r: any) => r.is_primary);
-            const assignedCoachId = primaryRelation?.coach?.id || null;
+            const coachData = primaryRelation?.coach;
+            const assignedCoachId = coachData?.id || null;
+
+            // Normalizar email de usuario
+            const userEmail = u.correo || u.email || '';
+            const userName = u.nombre_completo || `${u.nombre || ''} ${u.apellido || ''}`.trim() || userEmail;
 
             // Normalizar el rol para el frontend
             const rawRole = (u.rol || '').toLowerCase();
@@ -44,12 +47,12 @@ export async function GET(request: Request) {
             return {
                 ...u,
                 id: u.id,
-                name: u.nombre_completo || 'Sin Nombre',
-                email: u.email || u.correo, // Fallback to correo if email is missing (perfiles has 'correo')
+                name: userName,
+                email: userEmail,
                 role: normalizedRole,
                 membershipStatus: u.estado_membresia || 'inactive',
                 membershipEnds: u.fecha_fin_membresia,
-                assigned_coach_id: assignedCoachId // Compatibility field
+                assigned_coach_id: assignedCoachId
             };
         });
 
