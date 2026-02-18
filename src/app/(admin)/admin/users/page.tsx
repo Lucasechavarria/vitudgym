@@ -140,6 +140,7 @@ export default function UsersPage() {
     };
 
     const handleActivateMembership = async (userId: string) => {
+        if (!confirm('¿Estás seguro de que deseas activar la membresía de este usuario por 30 días?')) return;
         setLoading(true);
         try {
             const response = await fetch(`/api/admin/users/${userId}/activate`, {
@@ -163,6 +164,37 @@ export default function UsersPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDeactivateMembership = async (userId: string) => {
+        if (!confirm('¿Estás seguro de que deseas DESACTIVAR la membresía de este usuario? Esta acción revertirá el acceso activo.')) return;
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/deactivate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+
+            toast.success('Membresía desactivada correctamente');
+            setUsers(users.map(u => u.id === userId ? {
+                ...u,
+                membershipStatus: 'inactive',
+                membershipEnds: null
+            } : u));
+        } catch (_error) {
+            const err = _error as Error;
+            toast.error('Error al desactivar membresía: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRemoveFromStaff = async (userId: string) => {
+        if (!confirm('¿Estás seguro de que deseas quitar a este usuario del staff? Pasará a ser un Miembro normal.')) return;
+        handleRoleUpdate(userId, 'member');
     };
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -293,15 +325,38 @@ export default function UsersPage() {
                                                 📄
                                             </button>
 
-                                            {/* Solo mostrar renovación para miembros */}
-                                            {!['admin', 'coach'].includes(user.role) && (
+                                            {/* Acciones para miembros del staff */}
+                                            {['admin', 'coach'].includes(user.role?.toLowerCase()) && (
                                                 <button
-                                                    onClick={() => handleActivateMembership(user.id)}
-                                                    className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold border border-green-600/30 transition-all"
-                                                    title="Renovar Membresía"
+                                                    onClick={() => handleRemoveFromStaff(user.id)}
+                                                    className="px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg text-xs font-bold border border-red-600/30 transition-all"
+                                                    title="Quitar del Staff"
                                                 >
-                                                    💳
+                                                    🚪
                                                 </button>
+                                            )}
+
+                                            {/* Acciones para miembros normales */}
+                                            {!['admin', 'coach'].includes(user.role?.toLowerCase()) && (
+                                                <>
+                                                    {user.membershipStatus === 'active' ? (
+                                                        <button
+                                                            onClick={() => handleDeactivateMembership(user.id)}
+                                                            className="px-3 py-1.5 bg-orange-600/20 text-orange-400 hover:bg-orange-600 hover:text-white rounded-lg text-xs font-bold border border-orange-600/30 transition-all"
+                                                            title="Desactivar Membresía (Revertir)"
+                                                        >
+                                                            ↩️
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleActivateMembership(user.id)}
+                                                            className="px-3 py-1.5 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold border border-green-600/30 transition-all"
+                                                            title="Activar Membresía"
+                                                        >
+                                                            💳
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </td>
