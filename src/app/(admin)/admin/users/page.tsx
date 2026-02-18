@@ -13,6 +13,7 @@ interface User extends SupabaseUserProfile {
     name: string; // API sends this
     membershipStatus: string;
     membershipEnds: string | null;
+    assigned_coach_id?: string | null;
     items?: unknown[]; // For older types compatibility if needed
 }
 
@@ -58,8 +59,14 @@ export default function UsersPage() {
         try {
             const { data, error } = await supabase
                 .from('perfiles')
-                .select('*')
-                .order('created_at' as any, { ascending: false }); // Usar created_at (nombre real en DB)
+                .select(`
+                    *,
+                    relacion_alumno_coach!relacion_alumno_coach_user_id_fkey(
+                        coach_id,
+                        is_primary
+                    )
+                `)
+                .order('created_at' as any, { ascending: false });
 
             if (error) {
                 // Fallback si created_at tampoco existe (por si acaso)
@@ -84,14 +91,21 @@ export default function UsersPage() {
     };
 
     const normalizeUsers = (data: any[]): User[] => {
-        return (data as any[]).map(profile => ({
-            ...profile,
-            name: profile.nombre_completo || `${profile.nombre || ''} ${profile.apellido || ''}`.trim() || profile.correo || profile.email || 'Sin Nombre',
-            email: profile.correo || profile.email || '',
-            role: profile.rol,
-            membershipStatus: profile.estado_membresia || 'inactive',
-            membershipEnds: profile.fecha_fin_membresia || null,
-        }));
+        return (data as any[]).map(profile => {
+            // Buscar la relación primaria
+            const relations = profile.relacion_alumno_coach || [];
+            const primaryRelation = relations.find((r: any) => r.is_primary);
+
+            return {
+                ...profile,
+                name: profile.nombre_completo || `${profile.nombre || ''} ${profile.apellido || ''}`.trim() || profile.correo || profile.email || 'Sin Nombre',
+                email: profile.correo || profile.email || '',
+                role: profile.rol,
+                membershipStatus: profile.estado_membresia || 'inactive',
+                membershipEnds: profile.fecha_fin_membresia || null,
+                assigned_coach_id: primaryRelation?.coach_id || null
+            };
+        });
     };
 
     const handleRoleUpdate = async (uid: string, newRole: string) => {

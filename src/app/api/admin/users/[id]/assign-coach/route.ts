@@ -16,13 +16,12 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🤖 Usando RPC para asignar coach: User=${userId}, Coach=${coachId}`);
+        console.log(`🤖 Usando RPC v2 para asignar coach: User=${userId}, Coach=${coachId}`);
 
-        // Llamada a la función RPC que maneja la lógica internamente en SQL
-        // Esto evita errores de "column not found in schema cache" de PostgREST
-        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_safe', {
-            p_user_id: userId,
-            p_coach_id: coachId
+        // Llamada a la función RPC v2 (nueva para forzar recarga de cache)
+        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_v2', {
+            p_coach_id: coachId,
+            p_user_id: userId
         });
 
         if (rpcError) {
