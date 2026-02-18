@@ -16,7 +16,7 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🤖 Intentando asignar coach: User=${userId}, Coach=${coachId}`);
+        console.log(`🤖 Asignando coach: User=${userId}, Coach=${coachId}`);
 
         // 1. Demote any existing primary coach for this user
         const { error: demoteError } = await supabase!
