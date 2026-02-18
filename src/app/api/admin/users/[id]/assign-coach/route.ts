@@ -13,21 +13,25 @@ export async function PUT(
         if (error) return error;
 
         const { id: userId } = await params;
-        const { coachId } = await request.json();
+        const body = await request.json();
+        const { coachId } = body;
+
+        console.log(`🤖 Intentando asignar coach: User=${userId}, Coach=${coachId}`);
 
         // 1. Demote any existing primary coach for this user
-        // We update all active primary relationships to be non-primary
         const { error: demoteError } = await supabase!
             .from('relacion_alumno_coach')
             .update({ is_primary: false })
             .eq('user_id', userId)
             .eq('is_primary', true);
 
-        if (demoteError) throw demoteError;
+        if (demoteError) {
+            console.error('❌ Error demoting old coach:', demoteError);
+            throw new Error(`Error quitando coach anterior: ${demoteError.message}`);
+        }
 
         // 2. Assign new coach (if provided)
         if (coachId) {
-            // Upsert: Create new or update existing relationship to be primary and active
             const { error: assignError } = await supabase!
                 .from('relacion_alumno_coach')
                 .upsert({
@@ -36,16 +40,19 @@ export async function PUT(
                     is_primary: true,
                     is_active: true,
                     assigned_at: new Date().toISOString()
-                }, { onConflict: 'user_id, coach_id' });
+                }, { onConflict: 'user_id,coach_id' }); // Sin espacios por seguridad
 
-            if (assignError) throw assignError;
+            if (assignError) {
+                console.error('❌ Error in upsert:', assignError);
+                throw new Error(`Error en upsert: ${assignError.message}`);
+            }
         }
 
         return NextResponse.json({ success: true, message: 'Coach asignado correctamente' });
 
     } catch (error) {
-        console.error('❌ Error assigning coach:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error assigning coach';
+        console.error('❌ Error assigning coach (CATCH):', error);
+        const errorMessage = error instanceof Error ? error.message : 'Error interno desconocido';
         return NextResponse.json({
             error: errorMessage
         }, { status: 500 });
