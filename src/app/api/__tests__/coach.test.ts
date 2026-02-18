@@ -45,6 +45,11 @@ jest.mock('@/lib/supabase/server', () => ({
                         data = [{ id: 'routine1', user_id: '1', name: 'Push Day', is_active: true }];
                     }
                     return Promise.resolve(resolve({ data, error: null }));
+                }),
+                insert: jest.fn(function () {
+                    return {
+                        select: jest.fn(function () { return Promise.resolve({ data: null, error: null }); })
+                    };
                 })
             };
 

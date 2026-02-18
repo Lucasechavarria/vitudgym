@@ -31,6 +31,9 @@ jest.mock('@/lib/supabase/server', () => ({
                         error: null
                     })),
                     // Add other methods if needed
+                })),
+                insert: jest.fn(() => ({
+                    select: jest.fn(() => Promise.resolve({ data: null, error: null }))
                 }))
             };
         })
