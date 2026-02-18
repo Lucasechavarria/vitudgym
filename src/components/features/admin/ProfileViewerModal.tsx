@@ -1,17 +1,41 @@
 'use client';
 
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-import { SupabaseUserProfile } from '@/types/user';
 
 interface ProfileViewerModalProps {
     isOpen: boolean;
     onClose: () => void;
-    user: SupabaseUserProfile | null;
+    user: any | null; // Usar any para soportar campos dinámicos de la API
 }
 
 export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileViewerModalProps) {
+    const [history, setHistory] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && user?.id) {
+            fetchHistory();
+        } else {
+            setHistory([]);
+        }
+    }, [isOpen, user?.id]);
+
+    const fetchHistory = async () => {
+        setLoadingHistory(true);
+        try {
+            const res = await fetch(`/api/admin/users/${user.id}/history`);
+            const data = await res.json();
+            if (res.ok) {
+                setHistory(data.history || []);
+            }
+        } catch (err) {
+            console.error('Error fetching history:', err);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
     if (!isOpen || !user) return null;
 
     // Helper to safely access JSON fields
@@ -74,12 +98,6 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                             <p className="text-xs text-gray-500 uppercase">Género</p>
                                             <p className="text-white font-medium capitalize">
                                                 {user.genero === 'male' ? 'Masculino' : user.genero === 'female' ? 'Femenino' : user.genero === 'other' ? 'Otro' : user.genero === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 uppercase">Género</p>
-                                            <p className="text-white font-medium capitalize">
-                                                {user.genero === 'male' ? 'Masculino' : user.genero === 'female' ? 'Femenino' : user.genero === 'other' ? 'Otro' : 'Prefiero no decir'}
                                             </p>
                                         </div>
                                         <div>
@@ -182,7 +200,49 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                     </div>
                                 </section>
 
-                                {/* Section 4: Legal */}
+                                {/* Section 4: History log */}
+                                <section>
+                                    <h3 className="text-lg font-bold text-purple-400 mb-4 flex items-center gap-2">
+                                        📜 Historial de Cambios
+                                    </h3>
+                                    <div className="bg-black/20 rounded-xl border border-white/5 overflow-hidden">
+                                        {loadingHistory ? (
+                                            <div className="p-8 text-center text-gray-500 animate-pulse">Cargando historial...</div>
+                                        ) : history.length === 0 ? (
+                                            <div className="p-8 text-center text-gray-500">No hay registros de cambios recientes.</div>
+                                        ) : (
+                                            <div className="divide-y divide-white/5">
+                                                {history.map((log: any) => (
+                                                    <div key={log.id} className="p-4 hover:bg-white/5 transition-colors">
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <span className="text-xs font-black text-purple-400 uppercase tracking-wider">
+                                                                {log.field_changed === 'estado_membresia' ? 'Membresía' :
+                                                                    log.field_changed === 'rol' ? 'Rol/Acceso' : log.field_changed}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-600 font-mono">
+                                                                {new Date(log.created_at).toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-300">
+                                                            Cambió de <span className="text-white font-bold">{log.old_value}</span> a <span className="text-green-400 font-bold">{log.new_value}</span>
+                                                        </p>
+                                                        <div className="mt-2 flex items-center gap-2">
+                                                            <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px]">
+                                                                👤
+                                                            </div>
+                                                            <p className="text-[11px] text-gray-500">
+                                                                Por <span className="text-gray-300">{log.autor?.nombre_completo || log.autor?.correo || 'Sistema'}</span>
+                                                                {log.reason && <span className="italic"> — {log.reason}</span>}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+
+                                {/* Section 5: Legal */}
                                 <section>
                                     <h3 className="text-lg font-bold text-gray-400 mb-4 flex items-center gap-2">
                                         📋 Deslinde Legal

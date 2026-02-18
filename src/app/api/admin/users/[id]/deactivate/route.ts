@@ -17,7 +17,14 @@ export async function POST(
         const { id } = await params;
         const userId = id;
 
-        // Actualizar perfil a inactivo
+        // 1. Obtener estado actual para el log
+        const { data: currentProfile } = await supabase!
+            .from('perfiles')
+            .select('estado_membresia')
+            .eq('id', userId)
+            .single();
+
+        // 2. Actualizar perfil a inactivo
         const { error: updateError } = await supabase!
             .from('perfiles')
             .update({
@@ -27,6 +34,18 @@ export async function POST(
             .eq('id', userId);
 
         if (updateError) throw updateError;
+
+        // 3. Registrar en historial
+        await supabase!
+            .from('historial_cambios_perfil')
+            .insert({
+                profile_id: userId,
+                changed_by: user.id,
+                field_changed: 'estado_membresia',
+                old_value: currentProfile?.estado_membresia || 'unknown',
+                new_value: 'inactive',
+                reason: 'Desactivación/Reversión manual por administrador'
+            });
 
         return NextResponse.json({
             success: true,

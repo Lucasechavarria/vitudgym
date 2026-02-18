@@ -19,7 +19,7 @@ export async function POST(request: Request) {
             .single();
 
         const isAuthorized = requesterProfile &&
-            ['admin'].includes(requesterProfile.rol);
+            ['admin', 'superadmin'].includes(requesterProfile.rol);
 
         if (!isAuthorized) {
             return NextResponse.json({ error: 'Forbidden: Requires Admin privileges' }, { status: 403 });
@@ -37,9 +37,14 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
         }
 
-        // 4. Update Target User Profile
-        // Assuming RLS allows admins to update profiles, or using Service Role if RLS prevents it.
-        // For now, try standard client. If RLS fails, we might need a Service Role client.
+        // 4. Obtener estado actual para el log
+        const { data: currentProfile } = await supabase
+            .from('perfiles')
+            .select('rol')
+            .eq('id', uid)
+            .single();
+
+        // 5. Update Target User Profile
         const { error: updateError } = await supabase
             .from('perfiles')
             .update({ rol: role })
@@ -49,6 +54,18 @@ export async function POST(request: Request) {
             console.error('Error updating profile:', updateError);
             return NextResponse.json({ error: 'Failed to update user role' }, { status: 500 });
         }
+
+        // 6. Registrar en historial
+        await supabase
+            .from('historial_cambios_perfil')
+            .insert({
+                profile_id: uid,
+                changed_by: user.id, // ID del administrador autenticado
+                field_changed: 'rol',
+                old_value: currentProfile?.rol || 'unknown',
+                new_value: role,
+                reason: 'Cambio de rol manual por administrador'
+            });
 
         return NextResponse.json({ success: true, message: `Role ${role} assigned to ${uid}` });
 

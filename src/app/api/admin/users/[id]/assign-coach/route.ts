@@ -9,7 +9,7 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { supabase, error } = await authenticateAndRequireRole(request, ['admin']);
+        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
         if (error) return error;
 
         const { id: userId } = await params;

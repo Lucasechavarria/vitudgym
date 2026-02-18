@@ -22,7 +22,14 @@ export async function POST(
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + days);
 
-        // Update profile
+        // 1. Obtener estado actual para el log
+        const { data: currentProfile } = await supabase!
+            .from('perfiles')
+            .select('estado_membresia, fecha_fin_membresia')
+            .eq('id', userId)
+            .single();
+
+        // 2. Update profile
         const { error: updateError } = await supabase!
             .from('perfiles')
             .update({
@@ -33,7 +40,17 @@ export async function POST(
 
         if (updateError) throw updateError;
 
-        // Log action (optional, could be in payments table as manual generic payment or audit log)
+        // 3. Registrar en historial
+        await supabase!
+            .from('historial_cambios_perfil')
+            .insert({
+                profile_id: userId,
+                changed_by: user.id, // ID del administrador que realiza la acción
+                field_changed: 'estado_membresia',
+                old_value: currentProfile?.estado_membresia || 'unknown',
+                new_value: 'active',
+                reason: `Activación manual por ${days} días`
+            });
 
         return NextResponse.json({
             success: true,
