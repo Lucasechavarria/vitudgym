@@ -16,14 +16,12 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🤖 Usando RPC JSON para asignar coach: User=${userId}, Coach=${coachId}`);
+        console.log(`🤖 Usando RPC v3 para asignar coach: User=${userId}, Coach=${coachId}`);
 
-        // Usamos assign_coach_json para máxima resiliencia a cache de esquema
-        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_json', {
-            p_data: {
-                userId,
-                coachId
-            }
+        // Usamos assign_coach_v3 con parámetros directos
+        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_v3', {
+            userid: userId,
+            coachid: coachId || null
         });
 
         if (rpcError) {
