@@ -144,6 +144,7 @@ export default function UsersPage() {
             if (!response.ok) throw new Error(data.error);
 
             toast.success('Coach asignado correctamente');
+            fetchUsers(); // Recargar de la DB para asegurar sincronización total
             setUsers(users.map(u => u.id === studentId ? { ...u, assigned_coach_id: coachId === "" ? undefined : coachId } : u));
         } catch (_error) {
             const err = _error as Error;

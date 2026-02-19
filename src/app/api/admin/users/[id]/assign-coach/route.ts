@@ -16,17 +16,19 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🤖 Usando RPC v2 para asignar coach: User=${userId}, Coach=${coachId}`);
+        console.log(`🤖 Usando RPC JSON para asignar coach: User=${userId}, Coach=${coachId}`);
 
-        // Llamada a la función RPC v2 (nueva para forzar recarga de cache)
-        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_v2', {
-            p_coach_id: coachId,
-            p_user_id: userId
+        // Usamos assign_coach_json para máxima resiliencia a cache de esquema
+        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_json', {
+            p_data: {
+                userId,
+                coachId
+            }
         });
 
         if (rpcError) {
-            console.error('❌ Error in RPC assign_coach_safe:', rpcError);
-            throw new Error(`Error en base de datos (RPC): ${rpcError.message}`);
+            console.error('❌ Error in RPC assign_coach_json:', rpcError);
+            throw new Error(`Error en base de datos (RPC JSON): ${rpcError.message}`);
         }
 
         // El RPC devuelve un JSON con {success: boolean, message?: string, error?: string}
