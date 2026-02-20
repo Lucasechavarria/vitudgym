@@ -16,12 +16,20 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🤖 Usando RPC v3 para asignar coach: User=${userId}, Coach=${coachId}`);
+        console.log(`🤖 Iniciando asignación v4: User=${userId}, Coach=${coachId}`);
 
-        // Usamos assign_coach_v3 con parámetros directos
-        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_v3', {
-            userid: userId,
-            coachid: coachId || null
+        // VERIFICACIÓN DE VISIBILIDAD DE CACHÉ
+        const { data: pingData, error: pingError } = await supabase!.rpc('rpc_ping');
+        if (pingError) {
+            console.error('⚠️ PostgREST Cache Alert: rpc_ping failed.', pingError);
+        } else {
+            console.log('✅ PostgREST Cache OK: rpc_ping ->', pingData);
+        }
+
+        // Usamos assign_coach_v4 con parámetros directos
+        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_v4', {
+            p_coach_id: coachId || null,
+            p_user_id: userId
         });
 
         if (rpcError) {
