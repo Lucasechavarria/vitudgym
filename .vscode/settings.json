@@ -1,0 +1,22 @@
+{
+    "files.autoSave": "afterDelay",
+    "editor.fontFamily": "Consolas, 'Courier New', monospace",
+    "editor.allowVariableFontsInAccessibilityMode": true,
+    "editor.autoIndentOnPaste": false,
+    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+    "editor.codeActions.triggerOnFocusChange": true,
+    "editor.experimental.preferTreeSitter.css": true,
+    "editor.experimental.preferTreeSitter.ini": true,
+    "editor.experimental.preferTreeSitter.regex": true,
+    "editor.experimental.preferTreeSitter.typescript": true,
+    "editor.experimental.treeSitterTelemetry": true,
+    "editor.inlineSuggest.experimental.showOnSuggestConflict": "always",
+    "editor.quickSuggestions": {
+        "strings": "on",
+        "comments": "on"
+    },
+    "editor.suggest.preview": true,
+    "files.autoSaveWhenNoErrors": true,
+    "files.autoSaveWorkspaceFilesOnly": true,
+    "accessibility.openChatEditedFiles": true
+}
