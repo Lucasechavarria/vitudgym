@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 /**
  * PUT /api/admin/users/[id]/assign-coach
@@ -9,34 +10,53 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
-        if (error) return error;
+        const { error: authError } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
+        if (authError) return authError;
 
         const { id: userId } = await params;
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🤖 Iniciando asignación v5 (Ultimate): User=${userId}, Coach=${coachId}`);
+        console.log(`🚀 [BYPASS RPC] Iniciando asignación manual: User=${userId}, Coach=${coachId}`);
 
-        // Usamos assign_coach_ultimate_v5 desde el esquema public (el más seguro para la caché)
-        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_ultimate_v5', {
-            p_coach_id: coachId || null,
-            p_user_id: userId
-        });
+        // Usamos el cliente administrativo para saltar RLS y problemas de caché
+        const adminClient = createAdminClient();
 
-        if (rpcError) {
-            console.error('❌ Error in RPC assign_coach_json:', rpcError);
-            throw new Error(`Error en base de datos (RPC JSON): ${rpcError.message}`);
+        // PASO 1: Quitar primario anterior
+        const { error: updateError } = await (adminClient
+            .from('relacion_alumno_coach') as any)
+            .update({ is_primary: false })
+            .eq('user_id', userId)
+            .eq('is_primary', true);
+
+        if (updateError) {
+            console.error('❌ Error desvinculando coach anterior:', updateError);
+            throw new Error(`Error desvinculando coach anterior: ${updateError.message}`);
         }
 
-        // El RPC devuelve un JSON con {success: boolean, message?: string, error?: string}
-        if (rpcData && rpcData.success === false) {
-            throw new Error(rpcData.error || 'Error desconocido en la función de asignación');
+        // PASO 2: Asignar nuevo (si coachId existe)
+        if (coachId) {
+            const { error: upsertError } = await (adminClient
+                .from('relacion_alumno_coach') as any)
+                .upsert({
+                    user_id: userId,
+                    coach_id: coachId,
+                    is_primary: true,
+                    is_active: true,
+                    assigned_at: new Date().toISOString()
+                }, {
+                    onConflict: 'user_id, coach_id'
+                });
+
+            if (upsertError) {
+                console.error('❌ Error asignando nuevo coach:', upsertError);
+                throw new Error(`Error asignando nuevo coach: ${upsertError.message}`);
+            }
         }
 
         return NextResponse.json({
             success: true,
-            message: rpcData?.message || 'Coach asignado correctamente'
+            message: coachId ? 'Coach asignado correctamente' : 'Coach desvinculado correctamente'
         });
 
     } catch (error) {
