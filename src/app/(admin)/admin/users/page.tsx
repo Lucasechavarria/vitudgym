@@ -61,7 +61,7 @@ export default function UsersPage() {
                 .from('perfiles')
                 .select(`
                     *,
-                    relacion_alumno_coach!relacion_alumno_coach_user_id_fkey(
+                    asignaciones_coaches(
                         coach_id,
                         is_primary
                     )
@@ -93,7 +93,7 @@ export default function UsersPage() {
     const normalizeUsers = (data: any[]): User[] => {
         return (data as any[]).map(profile => {
             // Buscar la relación primaria
-            const relations = profile.relacion_alumno_coach || [];
+            const relations = profile.asignaciones_coaches || [];
             const primaryRelation = relations.find((r: any) => r.is_primary);
 
             return {

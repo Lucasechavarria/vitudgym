@@ -18,13 +18,14 @@ export async function PUT(
         const { coachId } = body;
 
         console.log(`🚀 [BYPASS RPC] Iniciando asignación manual: User=${userId}, Coach=${coachId}`);
+        console.log(`🚀 [BYPASS CACHE] Usando nueva tabla: asignaciones_coaches`);
 
         // Usamos el cliente administrativo para saltar RLS y problemas de caché
         const adminClient = createAdminClient();
 
-        // PASO 1: Quitar primario anterior
+        // PASO 1: Quitar primario anterior en la NUEVA tabla
         const { error: updateError } = await (adminClient
-            .from('relacion_alumno_coach') as any)
+            .from('asignaciones_coaches') as any)
             .update({ is_primary: false })
             .eq('user_id', userId)
             .eq('is_primary', true);
@@ -34,10 +35,10 @@ export async function PUT(
             throw new Error(`Error desvinculando coach anterior: ${updateError.message}`);
         }
 
-        // PASO 2: Asignar nuevo (si coachId existe)
+        // PASO 2: Asignar nuevo en la NUEVA tabla
         if (coachId) {
             const { error: upsertError } = await (adminClient
-                .from('relacion_alumno_coach') as any)
+                .from('asignaciones_coaches') as any)
                 .upsert({
                     user_id: userId,
                     coach_id: coachId,

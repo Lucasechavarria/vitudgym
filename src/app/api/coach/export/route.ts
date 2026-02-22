@@ -66,13 +66,13 @@ export async function GET(req: NextRequest) {
 
 async function exportStudents(supabase: any, coachId: string) {
     const { data } = await supabase
-        .from('relacion_alumno_coach')
+        .from('asignaciones_coaches')
         .select(`
             usuario_id,
             perfiles!inner(nombre_completo, email, telefono, fecha_nacimiento)
         `)
-        .eq('entrenador_id', coachId)
-        .eq('esta_activo', true);
+        .eq('coach_id', coachId)
+        .eq('is_active', true);
 
     if (!data) return [];
 
@@ -88,10 +88,10 @@ async function exportStudents(supabase: any, coachId: string) {
 async function exportAttendance(supabase: any, coachId: string) {
     // Obtener alumnos del coach
     const { data: students } = await supabase
-        .from('relacion_alumno_coach')
+        .from('asignaciones_coaches')
         .select('usuario_id')
-        .eq('entrenador_id', coachId)
-        .eq('esta_activo', true);
+        .eq('coach_id', coachId)
+        .eq('is_active', true);
 
     const studentIds = students?.map((s: any) => s.usuario_id) || [];
 
@@ -121,10 +121,10 @@ async function exportAttendance(supabase: any, coachId: string) {
 async function exportPerformance(supabase: any, coachId: string) {
     // Obtener alumnos del coach
     const { data: students } = await supabase
-        .from('relacion_alumno_coach')
+        .from('asignaciones_coaches')
         .select('usuario_id')
-        .eq('entrenador_id', coachId)
-        .eq('esta_activo', true);
+        .eq('coach_id', coachId)
+        .eq('is_active', true);
 
     const studentIds = students?.map((s: any) => s.usuario_id) || [];
 

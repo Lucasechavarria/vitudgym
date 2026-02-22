@@ -24,11 +24,11 @@ export async function POST(req: NextRequest) {
 
         // Validar que el coach tiene acceso a estos alumnos
         const { data: relations } = await supabase
-            .from('relacion_alumno_coach')
+            .from('asignaciones_coaches')
             .select('usuario_id')
-            .eq('entrenador_id', user.id)
+            .eq('coach_id', user.id)
             .in('usuario_id', studentIds)
-            .eq('esta_activo', true);
+            .eq('is_active', true);
 
         const validStudentIds = relations?.map(r => r.usuario_id) || [];
 

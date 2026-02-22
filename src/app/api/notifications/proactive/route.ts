@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
         // 2. Obtener los coaches primarios del alumno
         const { data: relations } = await supabase
-            .from('relacion_alumno_coach')
+            .from('asignaciones_coaches')
             .select('coach_id, perfiles:user_id(nombre_completo)')
             .eq('user_id', studentId)
             .eq('is_primary', true)
