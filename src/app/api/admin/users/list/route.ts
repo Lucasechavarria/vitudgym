@@ -56,20 +56,31 @@ export async function GET(request: Request) {
 
 function normalizeUser(u: any) {
     const relations = u.relacion_alumno_coach || [];
-    const primaryRelation = relations.find((r: any) => r.is_primary);
-    const assignedCoachId = primaryRelation?.coach_id || primaryRelation?.coach?.id || null;
+
+    // Buscar la relación primaria (aceptamos is_primary o es_principal)
+    const primaryRelation = relations.find((r: any) =>
+        r.is_primary === true ||
+        r.es_principal === true ||
+        (r.is_primary === undefined && r.es_principal === undefined && relations.length === 1)
+    );
+
+    // Extraer ID del coach (aceptamos múltiples nombres de columna por seguridad)
+    const assignedCoachId = primaryRelation?.coach_id ||
+        primaryRelation?.entrenador_id ||
+        primaryRelation?.coach?.id ||
+        null;
 
     if (primaryRelation) {
-        console.log(`🔍 [DEBUG] Alumno ${u.id}: Coach asignado ${assignedCoachId} (is_primary: true)`);
+        console.log(`🔍 [DEBUG] Alumno ${u.id}: Coach ${assignedCoachId} (Primario encontrado)`);
     } else if (relations.length > 0) {
-        console.log(`🔍 [DEBUG] Alumno ${u.id}: Tiene ${relations.length} relaciones pero NINGUNA es primaria.`);
+        console.warn(`⚠️ [DEBUG] Alumno ${u.id}: Tiene ${relations.length} relaciones pero NINGUNA es primaria.`);
     }
 
-    // Normalizar email de usuario
+    // Normalizar datos de perfil
     const userEmail = u.correo || u.email || '';
     const userName = u.nombre_completo || `${u.nombre || ''} ${u.apellido || ''}`.trim() || userEmail;
 
-    // Normalizar el rol para el frontend
+    // Normalizar el rol
     const rawRole = (u.rol || '').toLowerCase();
     const normalizedRole = ['coach', 'profesor'].includes(rawRole) ? 'coach' :
         (['admin', 'administrador'].includes(rawRole) ? 'admin' : 'member');

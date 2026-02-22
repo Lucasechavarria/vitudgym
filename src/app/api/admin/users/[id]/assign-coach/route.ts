@@ -22,43 +22,53 @@ export async function PUT(
         // Usamos el cliente administrativo para saltar RLS y problemas de caché
         const adminClient = createAdminClient();
 
-        // PASO 1: Desvincular cualquier coach primario actual del alumno
-        const { error: deactivateError } = await (adminClient
+        // PASO ATÓMICO: Primero eliminamos CUALQUIER relación previa de este alumno
+        // Esto limpia el terreno para evitar conflictos de llaves únicas o múltiples primarios.
+        const { error: deleteError } = await (adminClient
             .from('relacion_alumno_coach') as any)
-            .update({ is_primary: false })
-            .eq('user_id', userId)
-            .eq('is_primary', true);
+            .delete()
+            .eq('user_id', userId);
 
-        if (deactivateError) {
-            console.error('❌ [ASSIGN] Error desactivando primarios previos:', deactivateError);
+        if (deleteError) {
+            console.error('❌ [ASSIGN] Error en DELETE previo:', deleteError);
+            return NextResponse.json({
+                error: 'Error limpiando relaciones previas',
+                details: deleteError.message
+            }, { status: 500 });
         }
 
-        // PASO 2: Asignar el nuevo coach
+        // PASO 2: Insertar la nueva relación si se especificó un coach
+        let finalData = null;
         if (coachId && coachId !== "null" && coachId !== "") {
-            const { error: upsertError } = await (adminClient
+            const { data: insertData, error: insertError } = await (adminClient
                 .from('relacion_alumno_coach') as any)
-                .upsert({
+                .insert({
                     user_id: userId,
                     coach_id: coachId,
                     is_primary: true,
                     is_active: true,
                     assigned_at: new Date().toISOString()
-                }, {
-                    onConflict: 'user_id, coach_id'
-                });
+                })
+                .select();
 
-            if (upsertError) {
-                console.error('❌ [ASSIGN] Error en UPSERT:', upsertError);
-                return NextResponse.json({ error: upsertError.message }, { status: 500 });
+            if (insertError) {
+                console.error('❌ [ASSIGN] Error en INSERT definitivo:', insertError);
+                return NextResponse.json({
+                    error: 'Error al insertar la nueva relación',
+                    details: insertError.message
+                }, { status: 500 });
             }
-            console.log(`✅ [ASSIGN] Coach ${coachId} asignado correctamente.`);
+
+            finalData = insertData;
+            console.log(`✅ [ASSIGN] Éxito Atómico. DB Insertó:`, JSON.stringify(insertData));
         } else {
-            console.log(`ℹ️ [ASSIGN] Alumno ${userId} sin coach.`);
+            console.log(`ℹ️ [ASSIGN] El alumno ${userId} ha quedado sin coach (Atomic Delete Only).`);
         }
 
         return NextResponse.json({
             success: true,
-            message: coachId ? 'Coach asignado correctamente' : 'Coach desvinculado correctamente'
+            message: coachId ? 'Coach asignado correctamente' : 'Coach desvinculado correctamente',
+            debug: finalData
         });
 
     } catch (error) {
