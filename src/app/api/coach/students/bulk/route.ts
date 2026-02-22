@@ -23,14 +23,14 @@ export async function POST(req: NextRequest) {
         }
 
         // Validar que el coach tiene acceso a estos alumnos
-        const { data: relations } = await supabase
-            .from('asignaciones_coaches')
-            .select('usuario_id')
+        const { data: assignments, error: coachError } = await supabase
+            .from('relacion_alumno_coach')
+            .select('user_id')
             .eq('coach_id', user.id)
-            .in('usuario_id', studentIds)
+            .in('user_id', studentIds)
             .eq('is_active', true);
 
-        const validStudentIds = relations?.map(r => r.usuario_id) || [];
+        const validStudentIds = assignments?.map((r: any) => r.user_id) || [];
 
         if (validStudentIds.length === 0) {
             return NextResponse.json({ error: 'Sin permisos para estos alumnos' }, { status: 403 });

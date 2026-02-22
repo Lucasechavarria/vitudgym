@@ -17,7 +17,7 @@ export async function GET(request: Request) {
             .from('perfiles')
             .select(`
                 *,
-                asignaciones_coaches!user_id (
+                relacion_alumno_coach!user_id (
                     is_primary,
                     coach:perfiles!coach_id (
                         *
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
 }
 
 function normalizeUser(u: any) {
-    const primaryRelation = u.asignaciones_coaches?.find((r: any) => r.is_primary);
+    const primaryRelation = u.relacion_alumno_coach?.find((r: any) => r.is_primary);
     const coachData = primaryRelation?.coach;
     const assignedCoachId = coachData?.id || null;
 

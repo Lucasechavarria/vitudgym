@@ -66,9 +66,9 @@ export async function GET(req: NextRequest) {
 
 async function exportStudents(supabase: any, coachId: string) {
     const { data } = await supabase
-        .from('asignaciones_coaches')
+        .from('relacion_alumno_coach')
         .select(`
-            usuario_id,
+            user_id,
             perfiles!inner(nombre_completo, email, telefono, fecha_nacimiento)
         `)
         .eq('coach_id', coachId)
@@ -77,7 +77,7 @@ async function exportStudents(supabase: any, coachId: string) {
     if (!data) return [];
 
     return data.map((item: any) => ({
-        ID: item.usuario_id,
+        ID: item.user_id,
         Nombre: item.perfiles.nombre_completo,
         Email: item.perfiles.email,
         Teléfono: item.perfiles.telefono || 'N/A',
@@ -88,12 +88,12 @@ async function exportStudents(supabase: any, coachId: string) {
 async function exportAttendance(supabase: any, coachId: string) {
     // Obtener alumnos del coach
     const { data: students } = await supabase
-        .from('asignaciones_coaches')
-        .select('usuario_id')
+        .from('relacion_alumno_coach')
+        .select('user_id')
         .eq('coach_id', coachId)
         .eq('is_active', true);
 
-    const studentIds = students?.map((s: any) => s.usuario_id) || [];
+    const studentIds = students?.map((s: any) => s.user_id) || [];
 
     if (studentIds.length === 0) return [];
 
@@ -101,55 +101,53 @@ async function exportAttendance(supabase: any, coachId: string) {
         .from('asistencias')
         .select(`
             usuario_id,
-            fecha,
-            estado,
+            entrada,
+            rol_asistencia,
             perfiles!inner(nombre_completo)
         `)
         .in('usuario_id', studentIds)
-        .order('fecha', { ascending: false })
+        .order('entrada', { ascending: false })
         .limit(1000);
 
     if (!data) return [];
 
     return data.map((item: any) => ({
         Alumno: item.perfiles.nombre_completo,
-        Fecha: item.fecha,
-        Estado: item.estado,
+        Fecha: item.entrada,
+        Rol: item.rol_asistencia,
     }));
 }
 
 async function exportPerformance(supabase: any, coachId: string) {
     // Obtener alumnos del coach
     const { data: students } = await supabase
-        .from('asignaciones_coaches')
-        .select('usuario_id')
+        .from('relacion_alumno_coach')
+        .select('user_id')
         .eq('coach_id', coachId)
         .eq('is_active', true);
 
-    const studentIds = students?.map((s: any) => s.usuario_id) || [];
+    const studentIds = students?.map((s: any) => s.user_id) || [];
 
     if (studentIds.length === 0) return [];
 
     const { data } = await supabase
-        .from('sesiones_entrenamiento')
+        .from('sesiones_de_entrenamiento')
         .select(`
             usuario_id,
-            fecha,
-            duracion_minutos,
-            calorias_quemadas,
+            hora_inicio,
+            puntos_totales,
             perfiles!inner(nombre_completo)
         `)
         .in('usuario_id', studentIds)
-        .order('fecha', { ascending: false })
+        .order('hora_inicio', { ascending: false })
         .limit(1000);
 
     if (!data) return [];
 
     return data.map((item: any) => ({
         Alumno: item.perfiles.nombre_completo,
-        Fecha: item.fecha,
-        'Duración (min)': item.duracion_minutos || 'N/A',
-        'Calorías': item.calorias_quemadas || 'N/A',
+        Fecha: item.hora_inicio,
+        Puntos: item.puntos_totales || 0,
     }));
 }
 

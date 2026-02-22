@@ -22,25 +22,28 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Obtener los coaches primarios del alumno
-        const { data: relations } = await supabase
-            .from('asignaciones_coaches')
-            .select('coach_id, perfiles:user_id(nombre_completo)')
+        const { data: assignments, error: coachError } = await (supabase
+            .from('relacion_alumno_coach')
+            .select('coach_id, perfiles:coach_id(nombre_completo)')
             .eq('user_id', studentId)
             .eq('is_primary', true)
-            .eq('is_active', true);
+            .eq('is_active', true) as any);
 
-        if (!relations || relations.length === 0) {
-            return NextResponse.json({ success: false, message: 'Alumno sin coach asignado' });
+        if (coachError || !assignments || assignments.length === 0) {
+            console.log('ℹ️ No se encontró coach primario para el alumno:', studentId);
+            return NextResponse.json({ success: true, message: 'No se requiere notificación (sin coach asignado)' });
         }
 
-        const studentName = (relations[0].perfiles as any)?.nombre_completo || 'Un alumno';
-        const notificationPromises = relations.map(async (rel) => {
+        const studentProfile = await supabase.from('perfiles').select('nombre_completo').eq('id', studentId).single();
+        const studentName = studentProfile.data?.nombre_completo || 'Un alumno';
+
+        const notificationPromises = assignments.map(async (rel: any) => {
             let title = '⚠️ Alerta de Rendimiento';
             let message = '';
 
             if (highRisk) {
                 title = '🚨 ALERTA: Riesgo de Lesión';
-                message = `${studentName} tiene un nivel de riesgo ${riesgo_lesion.nivel.toUpperCase()}.`;
+                message = `${studentName} tiene un nivel de riesgo ${riesgo_lesion?.nivel?.toUpperCase() || 'ALTO'}.`;
             } else if (hasCriticalAlerts) {
                 title = '⚠️ Alerta Crítica IA';
                 message = `${studentName}: ${alertas_criticas[0]}`;
@@ -50,7 +53,6 @@ export async function POST(req: NextRequest) {
             }
 
             // Llamar al endpoint de push existente
-            // Usamos la URL absoluta de la API interna
             const pushBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
             return fetch(`${pushBaseUrl}/api/push/send`, {
                 method: 'POST',
@@ -68,7 +70,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'Notificaciones proactivas enviadas' });
     } catch (error: any) {
-        console.error('Error in proactive notification:', error);
+        console.error('❌ Error in proactive notification:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

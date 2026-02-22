@@ -61,7 +61,7 @@ export default function UsersPage() {
                 .from('perfiles')
                 .select(`
                     *,
-                    asignaciones_coaches!user_id(
+                    relacion_alumno_coach!user_id(
                         coach_id,
                         is_primary
                     )
@@ -93,8 +93,7 @@ export default function UsersPage() {
     const normalizeUsers = (data: any[]): User[] => {
         return (data as any[]).map(profile => {
             // Buscar la relación primaria
-            const relations = profile.asignaciones_coaches || [];
-            const primaryRelation = relations.find((r: any) => r.is_primary);
+            const assignment = profile.relacion_alumno_coach?.[0];
 
             return {
                 ...profile,
@@ -103,7 +102,7 @@ export default function UsersPage() {
                 role: profile.rol,
                 membershipStatus: profile.estado_membresia || 'inactive',
                 membershipEnds: profile.fecha_fin_membresia || null,
-                assigned_coach_id: primaryRelation?.coach_id || null
+                assigned_coach_id: assignment?.coach_id || null
             };
         });
     };
