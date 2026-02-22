@@ -23,11 +23,11 @@ export async function PUT(
         const adminClient = createAdminClient();
 
         // PASO ATÓMICO: Primero eliminamos CUALQUIER relación previa de este alumno
-        // Esto limpia el terreno para evitar conflictos de llaves únicas o múltiples primarios.
+        // IMPORTANTE: Al usar usuario_id nos aseguramos de no borrar accidentalmente relaciones de otros alumnos.
         const { error: deleteError } = await (adminClient
             .from('relacion_alumno_coach') as any)
             .delete()
-            .eq('user_id', userId);
+            .eq('usuario_id', userId);
 
         if (deleteError) {
             console.error('❌ [ASSIGN] Error en DELETE previo:', deleteError);
@@ -43,11 +43,11 @@ export async function PUT(
             const { data: insertData, error: insertError } = await (adminClient
                 .from('relacion_alumno_coach') as any)
                 .insert({
-                    user_id: userId,
-                    coach_id: coachId,
-                    is_primary: true,
-                    is_active: true,
-                    assigned_at: new Date().toISOString()
+                    usuario_id: userId,
+                    entrenador_id: coachId,
+                    es_principal: true,
+                    esta_activo: true,
+                    asignado_en: new Date().toISOString()
                 })
                 .select();
 
@@ -60,7 +60,7 @@ export async function PUT(
             }
 
             finalData = insertData;
-            console.log(`✅ [ASSIGN] Éxito Atómico. DB Insertó:`, JSON.stringify(insertData));
+            console.log(`✅ [ASSIGN] Éxito Atómico. DB Insertó (Spanish Schema):`, JSON.stringify(insertData));
         } else {
             console.log(`ℹ️ [ASSIGN] El alumno ${userId} ha quedado sin coach (Atomic Delete Only).`);
         }

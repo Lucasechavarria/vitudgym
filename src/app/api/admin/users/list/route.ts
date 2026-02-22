@@ -25,10 +25,10 @@ export async function GET(request: Request) {
             .from('perfiles')
             .select(`
                 *,
-                relacion_alumno_coach!user_id (
-                    is_primary,
-                    coach_id,
-                    coach:perfiles!coach_id (
+                relacion_alumno_coach!usuario_id (
+                    es_principal,
+                    entrenador_id,
+                    coach:perfiles!entrenador_id (
                         id,
                         nombre_completo,
                         correo
@@ -38,8 +38,8 @@ export async function GET(request: Request) {
             .order('created_at' as any, { ascending: false });
 
         if (dbError) {
-            console.error('❌ Error en DB:', dbError);
-            // Fallback si falla el JOIN o el order
+            console.error('❌ Error en DB query:', dbError);
+            // Fallback si falla el JOIN (posiblemente por desajuste de schema extremo)
             const fallback = await adminClient.from('perfiles').select('*');
             if (fallback.error) throw fallback.error;
             return NextResponse.json({ users: fallback.data.map(u => normalizeUser(u)) });
