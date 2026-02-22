@@ -61,7 +61,7 @@ export default function UsersPage() {
                 .from('perfiles')
                 .select(`
                     *,
-                    asignaciones_coaches(
+                    asignaciones_coaches!user_id(
                         coach_id,
                         is_primary
                     )

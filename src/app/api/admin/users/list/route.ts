@@ -17,7 +17,7 @@ export async function GET(request: Request) {
             .from('perfiles')
             .select(`
                 *,
-                asignaciones_coaches (
+                asignaciones_coaches!user_id (
                     is_primary,
                     coach:perfiles!coach_id (
                         *
