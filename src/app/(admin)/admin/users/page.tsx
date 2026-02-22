@@ -114,8 +114,9 @@ export default function UsersPage() {
             if (!response.ok) throw new Error(data.error);
 
             toast.success('Coach asignado correctamente');
-            fetchUsers(); // Recargar de la DB para asegurar sincronización total
-            setUsers(users.map(u => u.id === studentId ? { ...u, assigned_coach_id: coachId === "" ? undefined : coachId } : u));
+            await fetchUsers(); // Await the refresh from DB
+            // Optional: update local state if fetch takes long, but awaiting is safer for consistency
+            setUsers(prev => prev.map(u => u.id === studentId ? { ...u, assigned_coach_id: coachId === "" ? null : coachId } : u));
         } catch (_error) {
             const err = _error as Error;
             toast.error('Error asignando coach: ' + err.message);

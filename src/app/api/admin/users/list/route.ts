@@ -24,8 +24,11 @@ export async function GET(request: Request) {
                 *,
                 relacion_alumno_coach!user_id (
                     is_primary,
+                    coach_id,
                     coach:perfiles!coach_id (
-                        *
+                        id,
+                        nombre_completo,
+                        correo
                     )
                 )
             `)
@@ -50,8 +53,7 @@ export async function GET(request: Request) {
 
 function normalizeUser(u: any) {
     const primaryRelation = u.relacion_alumno_coach?.find((r: any) => r.is_primary);
-    const coachData = primaryRelation?.coach;
-    const assignedCoachId = coachData?.id || null;
+    const assignedCoachId = primaryRelation?.coach_id || primaryRelation?.coach?.id || null;
 
     // Normalizar email de usuario
     const userEmail = u.correo || u.email || '';
