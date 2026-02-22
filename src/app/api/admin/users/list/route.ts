@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { SupabaseUserProfile } from '@/types/user.ts';
 
 /**
@@ -10,10 +11,14 @@ import type { SupabaseUserProfile } from '@/types/user.ts';
  */
 export async function GET(request: Request) {
     try {
-        const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'coach']);
-        if (error) return error;
+        const { error: authError } = await authenticateAndRequireRole(request, ['admin', 'coach']);
+        if (authError) return authError;
 
-        const { data: users, error: dbError } = await supabase!
+        // Usamos el cliente administrativo para asegurar que las relaciones sean visibles 
+        // independientemente de las RLS sobre la tabla 'relacion_alumno_coach'
+        const adminClient = createAdminClient();
+
+        const { data: users, error: dbError } = await adminClient
             .from('perfiles')
             .select(`
                 *,
@@ -24,12 +29,12 @@ export async function GET(request: Request) {
                     )
                 )
             `)
-            .order('created_at' as any, { ascending: false }); // Usar created_at real
+            .order('created_at' as any, { ascending: false });
 
         if (dbError) {
             console.error('❌ Error en DB:', dbError);
             // Fallback si falla el JOIN o el order
-            const fallback = await supabase!.from('perfiles').select('*');
+            const fallback = await adminClient.from('perfiles').select('*');
             if (fallback.error) throw fallback.error;
             return NextResponse.json({ users: fallback.data.map(u => normalizeUser(u)) });
         }

@@ -57,30 +57,14 @@ export default function UsersPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('perfiles')
-                .select(`
-                    *,
-                    relacion_alumno_coach!user_id(
-                        coach_id,
-                        is_primary
-                    )
-                `)
-                .order('created_at' as any, { ascending: false });
+            const response = await fetch('/api/admin/users/list');
+            const data = await response.json();
 
-            if (error) {
-                // Fallback si created_at tampoco existe (por si acaso)
-                if (error.code === '42703') {
-                    const fallback = await supabase.from('perfiles').select('*');
-                    if (fallback.error) throw fallback.error;
-                    setUsers(normalizeUsers(fallback.data));
-                } else {
-                    throw new Error(error.message);
-                }
-                return;
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al obtener lista de usuarios');
             }
 
-            setUsers(normalizeUsers(data));
+            setUsers(data.users || []);
         } catch (_error) {
             const err = _error as Error;
             console.error(err);
@@ -90,22 +74,9 @@ export default function UsersPage() {
         }
     };
 
-    const normalizeUsers = (data: any[]): User[] => {
-        return (data as any[]).map(profile => {
-            // Buscar la relación primaria
-            const assignment = profile.relacion_alumno_coach?.[0];
-
-            return {
-                ...profile,
-                name: profile.nombre_completo || `${profile.nombre || ''} ${profile.apellido || ''}`.trim() || profile.correo || profile.email || 'Sin Nombre',
-                email: profile.correo || profile.email || '',
-                role: profile.rol,
-                membershipStatus: profile.estado_membresia || 'inactive',
-                membershipEnds: profile.fecha_fin_membresia || null,
-                assigned_coach_id: assignment?.coach_id || null
-            };
-        });
-    };
+    // La normalización ahora la hace el backend en /api/admin/users/list
+    // Mantenemos la función por si se necesita alguna transformación extra en el futuro
+    // pero por ahora los datos vienen listos de la API.
 
     const handleRoleUpdate = async (uid: string, newRole: string) => {
         setLoading(true);
