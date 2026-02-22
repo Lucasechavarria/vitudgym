@@ -57,12 +57,21 @@ export default function UsersPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/admin/users/list');
+            console.log('🔄 [DEBUG] Solicitando lista de usuarios...');
+            const response = await fetch('/api/admin/users/list', {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+            });
             const data = await response.json();
 
             if (!response.ok) {
                 throw new Error(data.error || 'Error al obtener lista de usuarios');
             }
+
+            console.log('✅ [DEBUG] Usuarios recibidos:', data.users?.length);
+            // Verificar si algún usuario tiene coach asignado para debugear
+            const assignedCount = data.users?.filter((u: any) => u.assigned_coach_id).length;
+            console.log('📊 [DEBUG] Usuarios con coach asignado:', assignedCount);
 
             setUsers(data.users || []);
         } catch (_error) {

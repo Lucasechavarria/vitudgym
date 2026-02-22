@@ -17,26 +17,24 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🚀 [BYPASS RPC] Iniciando asignación manual: User=${userId}, Coach=${coachId}`);
-        console.log(`🚀 [BYPASS CACHE] Usando tabla original restaurada: relacion_alumno_coach`);
+        console.log(`🚀 [ASSIGN] Unificando asignación: User=${userId}, Coach=${coachId}`);
 
         // Usamos el cliente administrativo para saltar RLS y problemas de caché
         const adminClient = createAdminClient();
 
-        // PASO 1: Quitar primario anterior en la NUEVA tabla
-        const { error: updateError } = await (adminClient
+        // PASO 1: Desvincular cualquier coach primario actual del alumno
+        const { error: deactivateError } = await (adminClient
             .from('relacion_alumno_coach') as any)
             .update({ is_primary: false })
             .eq('user_id', userId)
             .eq('is_primary', true);
 
-        if (updateError) {
-            console.error('❌ Error desvinculando coach anterior:', updateError);
-            throw new Error(`Error desvinculando coach anterior: ${updateError.message}`);
+        if (deactivateError) {
+            console.error('❌ [ASSIGN] Error desactivando primarios previos:', deactivateError);
         }
 
-        // PASO 2: Asignar nuevo en la NUEVA tabla
-        if (coachId) {
+        // PASO 2: Asignar el nuevo coach
+        if (coachId && coachId !== "null" && coachId !== "") {
             const { error: upsertError } = await (adminClient
                 .from('relacion_alumno_coach') as any)
                 .upsert({
@@ -50,9 +48,12 @@ export async function PUT(
                 });
 
             if (upsertError) {
-                console.error('❌ Error asignando nuevo coach:', upsertError);
-                throw new Error(`Error asignando nuevo coach: ${upsertError.message}`);
+                console.error('❌ [ASSIGN] Error en UPSERT:', upsertError);
+                return NextResponse.json({ error: upsertError.message }, { status: 500 });
             }
+            console.log(`✅ [ASSIGN] Coach ${coachId} asignado correctamente.`);
+        } else {
+            console.log(`ℹ️ [ASSIGN] Alumno ${userId} sin coach.`);
         }
 
         return NextResponse.json({
@@ -61,10 +62,9 @@ export async function PUT(
         });
 
     } catch (error) {
-        console.error('❌ Error assigning coach (CATCH):', error);
-        const errorMessage = error instanceof Error ? error.message : 'Error interno desconocido';
+        console.error('❌ [ASSIGN] Error crítico:', error);
         return NextResponse.json({
-            error: errorMessage
+            error: error instanceof Error ? error.message : 'Error desconocido'
         }, { status: 500 });
     }
 }

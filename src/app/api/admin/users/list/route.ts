@@ -3,6 +3,9 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { SupabaseUserProfile } from '@/types/user.ts';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * GET /api/admin/users/list
  * 
@@ -52,8 +55,15 @@ export async function GET(request: Request) {
 }
 
 function normalizeUser(u: any) {
-    const primaryRelation = u.relacion_alumno_coach?.find((r: any) => r.is_primary);
+    const relations = u.relacion_alumno_coach || [];
+    const primaryRelation = relations.find((r: any) => r.is_primary);
     const assignedCoachId = primaryRelation?.coach_id || primaryRelation?.coach?.id || null;
+
+    if (primaryRelation) {
+        console.log(`🔍 [DEBUG] Alumno ${u.id}: Coach asignado ${assignedCoachId} (is_primary: true)`);
+    } else if (relations.length > 0) {
+        console.log(`🔍 [DEBUG] Alumno ${u.id}: Tiene ${relations.length} relaciones pero NINGUNA es primaria.`);
+    }
 
     // Normalizar email de usuario
     const userEmail = u.correo || u.email || '';
