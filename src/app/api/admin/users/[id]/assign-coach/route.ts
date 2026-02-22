@@ -18,16 +18,16 @@ export async function PUT(
 
         console.log(`🤖 Iniciando asignación v4: User=${userId}, Coach=${coachId}`);
 
-        // VERIFICACIÓN DE VISIBILIDAD DE CACHÉ
-        const { data: pingData, error: pingError } = await supabase!.rpc('rpc_ping');
+        // VERIFICACIÓN DE VISIBILIDAD DE CACHÉ EN api_v2
+        const { data: pingData, error: pingError } = await supabase!.rpc('api_v2.rpc_ping' as any);
         if (pingError) {
-            console.error('⚠️ PostgREST Cache Alert: rpc_ping failed.', pingError);
+            console.error('⚠️ api_v2 Cache Alert: rpc_ping failed.', pingError);
         } else {
-            console.log('✅ PostgREST Cache OK: rpc_ping ->', pingData);
+            console.log('✅ api_v2 Cache OK: rpc_ping ->', pingData);
         }
 
-        // Usamos assign_coach_v4 con parámetros directos
-        const { data: rpcData, error: rpcError } = await supabase!.rpc('assign_coach_v4', {
+        // Usamos assign_coach_v4 desde el nuevo esquema
+        const { data: rpcData, error: rpcError } = await supabase!.rpc('api_v2.assign_coach_v4' as any, {
             p_coach_id: coachId || null,
             p_user_id: userId
         });

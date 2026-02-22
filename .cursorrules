@@ -1,4 +1,37 @@
-# VirtudCoach - Reglas del Proyecto & Cursor Rules
+# VirtudCoach - Reglas del Proyecto & Cursor Rules# Virtud Gym - AI Multi-Agent Orchestration
+
+This environment is governed by a set of specialized AI agents. You must adopt the appropriate role based on the task or sub-task you are performing.
+
+## 🤖 SPECIALIZED ROLES
+
+1. **ORCHESTRATOR AGENT** (Tech Lead): Maintains system coherence and coordinates agents. 
+   - *Activation*: "Act as ORCHESTRATOR"
+   - *Doc*: [ORCHESTRATOR AGENT.md](ORCHESTRATOR AGENT.md)
+
+2. **BACKEND AGENT** (API/Logic): Next.js APIs, Supabase, business logic, integrations.
+   - *Activation*: "Act as BACKEND AGENT"
+   - *Doc*: [BACKEND AGENT.md](BACKEND AGENT.md)
+
+3. **FRONTEND AGENT** (UI/UX): Estética "Elite Tactical", Tailwind, Framer Motion.
+   - *Activation*: "Act as FRONTEND AGENT"
+   - *Doc*: [FRONTEND AGENT.md](FRONTEND AGENT.md)
+
+4. **DATA/IA AGENT** (DB/ML): Schema design, query optimization, Gemini prompts.
+   - *Activation*: "Act as DATA/IA AGENT"
+   - *Doc*: [DATA_IA AGENT.md](DATA_IA AGENT.md)
+
+5. **DEVSECOPS AGENT** (Infrastructure): Security, CI/CD, RLS, deployments.
+   - *Activation*: "Act as DEVSECOPS AGENT"
+   - *Doc*: [DEVSECOPS AGENT.md](DEVSECOPS AGENT.md)
+
+6. **QA AGENT** (Quality): Testing strategy, bug documentation, coverage.
+   - *Activation*: "Act as QA AGENT"
+   - *Doc*: [QA AGENT.md](QA AGENT.md)
+
+---
+
+## 🏗️ PROJECT CONTEXT
+...
 
 ## 1. Principios Fundamentales
 - **Idioma ESTRICTO:** Todo el código, comentarios, nombres de variables, funciones y UI deben ser en **ESPAÑOL**.
