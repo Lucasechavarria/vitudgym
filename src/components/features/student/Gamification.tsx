@@ -30,6 +30,8 @@ interface Challenge {
     points_prize: number;
     participants_count: number;
     is_participant?: boolean;
+    participant_status?: string | null;
+    fecha_fin?: string;
 }
 
 interface Achievement {
@@ -542,10 +544,18 @@ export function Gamification() {
                                         <div className="flex items-center justify-center lg:justify-start gap-3">
                                             <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">{challenge.title}</h4>
                                             {challenge.is_participant && (
-                                                <span className="text-[10px] bg-green-500/20 text-green-400 font-black px-2 py-0.5 rounded-full border border-green-500/30 uppercase tracking-widest">En Curso</span>
+                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase tracking-widest ${challenge.participant_status === 'pending_validation'
+                                                    ? 'bg-blue-500/20 text-blue-400 border-blue-500/30 animate-pulse'
+                                                    : 'bg-green-500/20 text-green-400 border-green-500/30'
+                                                    }`}>
+                                                    {challenge.participant_status === 'pending_validation' ? 'En Revisión' : 'En Curso'}
+                                                </span>
                                             )}
                                         </div>
                                         <p className="text-zinc-500 text-xs leading-relaxed max-w-xl italic">"{challenge.description}"</p>
+                                        <p className="text-gray-500 text-[10px] font-mono mt-2 flex items-center gap-2 justify-center lg:justify-start">
+                                            <Target size={10} /> Termina: {challenge.fecha_fin ? new Date(challenge.fecha_fin).toLocaleDateString() : 'Sin fecha'}
+                                        </p>
 
                                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 mt-6">
                                             <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-xl border border-white/5">
@@ -567,9 +577,36 @@ export function Gamification() {
 
                                     <div className="flex flex-col gap-3 w-full lg:w-48">
                                         {challenge.is_participant ? (
-                                            <button className="w-full px-6 py-3.5 bg-zinc-800 text-zinc-500 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed border border-white/5 transition-all">
-                                                REPORTE ACTIVO
-                                            </button>
+                                            challenge.participant_status === 'pending_validation' ? (
+                                                <button className="w-full px-6 py-3.5 bg-blue-600/20 text-blue-400 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-blue-500/30 cursor-wait">
+                                                    EN REVISIÓN... ⏳
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={async () => {
+                                                        const toastId = toast.loading('Enviando reporte...');
+                                                        try {
+                                                            const res = await fetch('/api/challenges/complete', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ challengeId: challenge.id })
+                                                            });
+                                                            if (res.ok) {
+                                                                toast.success('¡Reporte enviado! Esperando validación del coach.', { id: toastId });
+                                                                fetchGamificationData();
+                                                            } else {
+                                                                const data = await res.json();
+                                                                toast.error(data.error || 'Error al reportar', { id: toastId });
+                                                            }
+                                                        } catch (err) {
+                                                            toast.error('Error de conexión', { id: toastId });
+                                                        }
+                                                    }}
+                                                    className="w-full px-6 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/20 hover:scale-105 transition-all"
+                                                >
+                                                    REPORTAR LOGRO ✅
+                                                </button>
+                                            )
                                         ) : (
                                             <motion.button
                                                 whileHover={{ scale: 1.02 }}

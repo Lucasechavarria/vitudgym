@@ -39,8 +39,20 @@ export default function AdminChallengesPage() {
     });
 
     useEffect(() => {
-        fetchChallenges();
+        const init = async () => {
+            await processExpired();
+            fetchChallenges();
+        };
+        init();
     }, []);
+
+    const processExpired = async () => {
+        try {
+            await fetch('/api/admin/challenges/process-expired', { method: 'POST' });
+        } catch (err) {
+            console.error('Error auto-processing expired challenges:', err);
+        }
+    };
 
     const fetchChallenges = async () => {
         try {
@@ -188,22 +200,35 @@ export default function AdminChallengesPage() {
                                         selectedChallenge.participants.map((p: any) => (
                                             <div key={p.user_id} className={`p-4 rounded-xl border flex justify-between items-center group transition-all ${p.status === 'winner'
                                                 ? 'bg-yellow-600/20 border-yellow-500/50'
-                                                : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                                : p.status === 'pending_validation'
+                                                    ? 'bg-blue-600/20 border-blue-500/50 animate-pulse'
+                                                    : 'bg-white/5 border-white/5 hover:bg-white/10'
                                                 }`}>
                                                 <div>
                                                     <span className="text-white font-bold flex items-center gap-2">
                                                         {p.user?.full_name || 'Atleta Anónimo'}
                                                         {p.status === 'winner' && <span className="text-yellow-500 text-sm">🏆 Ganador</span>}
+                                                        {p.status === 'pending_validation' && <span className="text-blue-400 text-[10px] uppercase font-black">Pendiente Validación</span>}
                                                     </span>
-                                                    <span className="text-[10px] text-gray-500 font-mono">Score: {p.current_score || '0'}</span>
+                                                    <span className="text-[10px] text-gray-500 font-mono">Status: {p.status} | Score: {p.current_score || '0'}</span>
                                                 </div>
                                                 {selectedChallenge.status === 'active' && (
-                                                    <button
-                                                        onClick={() => handleJudge(selectedChallenge.id, p.user_id)}
-                                                        className="px-4 py-2 bg-green-600/20 text-green-400 border border-green-500/30 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-all"
-                                                    >
-                                                        Declarar Ganador 🏆
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        {p.status === 'pending_validation' && (
+                                                            <button
+                                                                onClick={() => handleJudge(selectedChallenge.id, p.user_id)}
+                                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20"
+                                                            >
+                                                                Validar Objetivo ✅
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleJudge(selectedChallenge.id, p.user_id)}
+                                                            className="px-4 py-2 bg-green-600/20 text-green-400 border border-green-500/30 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-all"
+                                                        >
+                                                            Marcar Ganador 🏆
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         ))
@@ -280,6 +305,15 @@ export default function AdminChallengesPage() {
                                         <option value="open">Abierto</option>
                                         <option value="individual">Duelo</option>
                                     </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-gray-500 uppercase font-black ml-1">Fecha de Finalización</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
+                                        onChange={(e) => setNewChallenge({ ...newChallenge, end_date: e.target.value })}
+                                    />
                                 </div>
                                 <div className="flex gap-4 pt-4">
                                     <button

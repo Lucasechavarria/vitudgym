@@ -45,6 +45,42 @@ export async function POST(
 
         if (error) throw error;
 
+        // 3. Notificar al creador/juez del desafío
+        try {
+            const { data: challenge } = await supabase
+                .from('desafios')
+                .select('titulo, creado_por, perfiles:creado_por(nombre_completo)')
+                .eq('id', challengeId)
+                .single();
+
+            if (challenge && challenge.creado_por) {
+                // Registrar notificación en historial
+                await supabase.from('historial_notificaciones').insert({
+                    usuario_id: challenge.creado_por,
+                    tipo: 'sistema',
+                    titulo: '⚔️ Nuevo participante en desafío',
+                    cuerpo: `${user.user_metadata.full_name || 'Un alumno'} se ha unido a "${challenge.titulo}"`,
+                    datos: { challengeId, type: 'challenge_join' },
+                    enviada: false
+                });
+
+                // Intentar enviar push (opcional)
+                const pushBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+                fetch(`${pushBaseUrl}/api/push/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipientId: challenge.creado_por,
+                        title: '⚔️ Nuevo participante',
+                        body: `${user.user_metadata.full_name || 'Un alumno'} aceptó tu desafío: ${challenge.titulo}`,
+                        url: `/admin/challenges`
+                    })
+                }).catch(e => console.error('Error sending push:', e));
+            }
+        } catch (notifError) {
+            console.error('Error creating notification for challenge join:', notifError);
+        }
+
         return NextResponse.json(data);
     } catch (error: any) {
         console.error('Error joining challenge:', error);

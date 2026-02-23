@@ -59,16 +59,48 @@ export async function PUT(
                 .single();
 
             // 4. Otorgar puntos al ganador via RPC
-            await supabase!.rpc('increment_points', {
-                user_id_param: winnerId,
-                points_param: challenge?.puntos_recompensa || 100
+            await supabase!.rpc('incrementar_puntos', {
+                usuario_id_param: winnerId,
+                puntos_param: challenge?.puntos_recompensa || 100
             });
 
-            // 5. Guardar el ganador_id en la tabla principal
+            // 5. Guardar el ganador_id en la tabla principal si es un duelo o queremos cerrarlo
             await supabase!
-                .from('desafios')                // antes: challenges
-                .update({ ganador_id: winnerId }) // antes: winner_id
+                .from('desafios')
+                .update({ ganador_id: winnerId })
                 .eq('id', challengeId);
+
+            // 6. Notificar al alumno
+            try {
+                const { data: challenge } = await supabase!
+                    .from('desafios')
+                    .select('titulo')
+                    .eq('id', challengeId)
+                    .single();
+
+                await supabase!.from('historial_notificaciones').insert({
+                    usuario_id: winnerId,
+                    tipo: 'logro',
+                    titulo: '🏆 ¡Objetivo cumplido!',
+                    cuerpo: `El profesor ha validado tu cumplimiento en el desafío "${challenge?.titulo || 'Desafío'}". ¡Has sumado puntos!`,
+                    datos: { challengeId, type: 'challenge_approved' },
+                    enviada: false
+                });
+
+                const pushBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+                fetch(`${pushBaseUrl}/api/push/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipientId: winnerId,
+                        title: '🏆 ¡Objetivo Aprobado!',
+                        body: `¡Felicidades! Se validó tu objetivo en: ${challenge?.titulo || 'el desafío'}`,
+                        url: `/dashboard`
+                    })
+                }).catch(e => console.error('Error sending push:', e));
+            } catch (notifError) {
+                console.error('Error notifying student of approval:', notifError);
+            }
         }
 
         return NextResponse.json({ success: true });

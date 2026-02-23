@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         if (error) throw error;
 
         // Award points for booking (Gamification)
-        const { error: gamificationError } = await supabase.rpc('increment_points', {
+        const { error: gamificationError } = await supabase.rpc('incrementar_puntos', {
             usuario_id_param: user.id,
             puntos_param: 10
         });

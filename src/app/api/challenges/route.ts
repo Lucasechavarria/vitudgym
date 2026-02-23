@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET() {
     try {
         const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
         const { data, error } = await supabase
             .from('desafios')
@@ -20,7 +21,18 @@ export async function GET() {
 
         if (error) throw error;
 
-        return NextResponse.json({ challenges: data });
+        // Mapear para incluir el estado del usuario actual
+        const formattedChallenges = data.map(challenge => {
+            const myParticipation = user ? challenge.participantes?.find((p: any) => p.usuario_id === user.id) : null;
+            return {
+                ...challenge,
+                is_participant: !!myParticipation,
+                participant_status: myParticipation?.estado || null,
+                participants_count: challenge.participantes?.length || 0
+            };
+        });
+
+        return NextResponse.json({ challenges: formattedChallenges });
     } catch (_error) {
         const err = _error as Error;
         return NextResponse.json({ error: err.message }, { status: 500 });
