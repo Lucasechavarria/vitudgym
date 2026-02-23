@@ -120,7 +120,10 @@ export default function UsersPage() {
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
+            if (!response.ok) {
+                const errorMessage = data.details ? `${data.error}: ${data.details}` : data.error;
+                throw new Error(errorMessage);
+            }
 
             toast.success('Coach asignado correctamente');
             await fetchUsers(); // Await the refresh from DB
