@@ -25,16 +25,15 @@ describe('AIService', () => {
         nombre_completo: 'Juan Pérez',
         fecha_nacimiento: '1995-01-01',
         informacion_medica: {
-            chronic_diseases: 'Ninguna',
-            injuries: 'Rodilla izquierda',
-            weight: 75
+            enfermedades_cronicas: 'Ninguna',
+            lesiones: 'Rodilla izquierda',
+            peso: 75
         },
         observaciones_entrenador: 'Intermedio'
     };
 
     const mockUserGoal = {
         objetivo_principal: 'Hipertrofia',
-        objetivos_secundarios: ['Fuerza'],
         frecuencia_entrenamiento_por_semana: 4,
         tiempo_por_sesion_minutos: 60
     };
