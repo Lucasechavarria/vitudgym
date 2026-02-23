@@ -10,7 +10,7 @@ interface ProfileData {
     email: string;
     telefono: string;
     fecha_nacimiento: string;
-    genero: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+    gender: 'male' | 'female' | 'other' | 'prefer_not_to_say';
     contacto_emergencia_nombre: string;
     contacto_emergencia_telefono: string;
 }
@@ -26,7 +26,7 @@ export default function StudentProfilePage() {
         email: '',
         telefono: '',
         fecha_nacimiento: '',
-        genero: 'prefer_not_to_say',
+        gender: 'prefer_not_to_say',
         contacto_emergencia_nombre: '',
         contacto_emergencia_telefono: ''
     });
@@ -46,23 +46,16 @@ export default function StudentProfilePage() {
             const user = await authService.getCurrentUser();
             const profile = await authService.getUserProfile();
 
-            const emergencyContact = (profile.contacto_emergencia as any) || {};
-
-            // Validar que gender sea uno de los valores permitidos
-            // gender -> genero (assuming the column content is still 'male'/'female' etc or translated? 
-            // The migration didn't strictly map values for gender, only column name. 
-            // RegistrationForm uses 'male'/'female' in UI but maps to 'genero'. 
-            // Let's assume values are still English for now or verify later. 
-            // Actually, if we are in transition, let's look at RegistrationForm. It sends data.gender.
+            const emergency = (profile.contacto_emergencia as any) || {};
 
             setProfileData({
                 nombre_completo: profile.nombre_completo || '',
                 email: user?.email || '',
                 telefono: profile.telefono || '',
                 fecha_nacimiento: profile.fecha_nacimiento || '',
-                genero: (profile.genero as any) || 'prefer_not_to_say',
-                contacto_emergencia_nombre: profile.contacto_emergencia_nombre || '',
-                contacto_emergencia_telefono: profile.contacto_emergencia_telefono || ''
+                gender: (profile.gender as any) || 'prefer_not_to_say',
+                contacto_emergencia_nombre: emergency.nombre_completo || '',
+                contacto_emergencia_telefono: emergency.telefono || ''
             });
         } catch (error) {
             console.error('Error:', error);
@@ -78,14 +71,16 @@ export default function StudentProfilePage() {
             const user = await authService.getCurrentUser();
             if (!user) throw new Error('No user found');
 
-            // Preparar datos para actualizacion en formato DB
+            // Preparar datos para actualizacion en formato DB Nuclear
             const updates = {
                 nombre_completo: profileData.nombre_completo,
                 telefono: profileData.telefono,
                 fecha_nacimiento: profileData.fecha_nacimiento,
-                genero: profileData.genero,
-                contacto_emergencia_nombre: profileData.contacto_emergencia_nombre,
-                contacto_emergencia_telefono: profileData.contacto_emergencia_telefono
+                gender: profileData.gender,
+                contacto_emergencia: {
+                    nombre_completo: profileData.contacto_emergencia_nombre,
+                    telefono: profileData.contacto_emergencia_telefono
+                }
             };
 
             await authService.updateProfile(user.id, updates);
@@ -231,8 +226,8 @@ export default function StudentProfilePage() {
                                         Género
                                     </label>
                                     <select
-                                        value={profileData.genero}
-                                        onChange={(e) => setProfileData({ ...profileData, genero: e.target.value as any })}
+                                        value={profileData.gender}
+                                        onChange={(e) => setProfileData({ ...profileData, gender: e.target.value as any })}
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="male">Masculino</option>

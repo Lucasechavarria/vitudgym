@@ -97,7 +97,7 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Género</p>
                                             <p className="text-white font-medium capitalize">
-                                                {user.genero === 'male' ? 'Masculino' : user.genero === 'female' ? 'Femenino' : user.genero === 'other' ? 'Otro' : user.genero === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
+                                                {user.gender === 'male' ? 'Masculino' : user.gender === 'female' ? 'Femenino' : user.gender === 'other' ? 'Otro' : user.gender === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
                                             </p>
                                         </div>
                                         <div>
@@ -132,42 +132,42 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase">Grupo Sanguíneo</p>
-                                                <p className="text-white font-medium">{medical.blood_type || '--'}</p>
+                                                <p className="text-white font-medium">{medical.grupo_sanguineo || '--'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase">Presión</p>
-                                                <p className="text-white font-medium">{medical.blood_pressure || '--'}</p>
+                                                <p className="text-white font-medium">{medical.presion_arterial || '--'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase">Peso</p>
-                                                <p className="text-white font-medium">{medical.weight ? `${medical.weight}kg` : '--'}</p>
+                                                <p className="text-white font-medium">{medical.peso ? `${medical.peso}kg` : '--'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase">Fuma</p>
-                                                <p className="text-white font-medium">{medical.is_smoker ? 'Sí' : 'No'}</p>
+                                                <p className="text-white font-medium">{medical.fuma ? 'Sí' : 'No'}</p>
                                             </div>
                                         </div>
 
                                         <div className="pt-4 border-t border-white/5 grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <p className="text-sm font-bold text-gray-400 mb-1">Lesiones</p>
-                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.injuries || 'Ninguna declarada'}</p>
+                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.lesiones || 'Ninguna declarada'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-gray-400 mb-1">Alergias</p>
-                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.allergies || 'Ninguna declarada'}</p>
+                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.alergias || 'Ninguna declarada'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-gray-400 mb-1">Enfermedades Crónicas</p>
-                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.chronic_diseases || 'Ninguna declarada'}</p>
+                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.enfermedades_cronicas || 'Ninguna declarada'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-gray-400 mb-1">Patologías</p>
-                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.pathologies || 'Ninguna declarada'}</p>
+                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.patologias || 'Ninguna declarada'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-gray-400 mb-1">Antecedentes</p>
-                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.background || '--'}</p>
+                                                <p className="text-white text-sm bg-white/5 p-2 rounded-lg">{medical.antecedentes || '--'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -181,21 +181,21 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/20 p-4 rounded-xl border border-white/5">
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Nombre</p>
-                                            <p className="text-white font-medium">{emergency.full_name || '--'}</p>
+                                            <p className="text-white font-medium">{emergency.nombre_completo || '--'}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Relación</p>
-                                            <p className="text-white font-medium">{emergency.relationship || '--'}</p>
+                                            <p className="text-white font-medium">{emergency.relacion || '--'}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Teléfono</p>
-                                            <a href={`tel:${emergency.phone}`} className="text-blue-400 hover:underline font-medium">
-                                                {emergency.phone || '--'}
+                                            <a href={`tel:${emergency.telefono}`} className="text-blue-400 hover:underline font-medium">
+                                                {emergency.telefono || '--'}
                                             </a>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Dirección</p>
-                                            <p className="text-white font-medium">{emergency.address || '--'}</p>
+                                            <p className="text-white font-medium">{emergency.direccion || '--'}</p>
                                         </div>
                                     </div>
                                 </section>

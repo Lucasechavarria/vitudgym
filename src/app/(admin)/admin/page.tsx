@@ -18,7 +18,7 @@ export default async function AdminDashboard() {
     const { count: classesToday } = await supabase
         .from('horarios_de_clase')
         .select('*', { count: 'exact', head: true })
-        .eq('dia_semana', today)
+        .eq('dia_de_la_semana', today)
         .eq('esta_activo', true);
 
     // Fetch Expiring Memberships

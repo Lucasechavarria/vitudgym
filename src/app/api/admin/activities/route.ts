@@ -35,45 +35,49 @@ export async function POST(req: Request) {
             .insert([
                 {
                     nombre: body.nombre,
-                    descripcion: body.descripcion,
-                    color: body.color || '#3b82f6',
-                    duration_minutes: body.duration_minutes || 60,
                     tipo: body.tipo || 'CLASS',
-                    categoria: body.categoria || 'General',
-                    esta_activa: true
+                    descripcion: body.descripcion,
+                    esta_activa: true,
+                    duracion_minutos: body.duracion_minutos || 60,
+                    capacidad_maxima: body.capacidad_maxima,
+                    url_imagen: body.url_imagen,
+                    dificultad: body.dificultad,
+                    color: body.color || '#3b82f6', // Keep existing field
+                    categoria: body.categoria || 'General' // Keep existing field
                 }
             ])
             .select()
             .single();
 
         if (error) throw error;
-
-        return NextResponse.json(data);
-    } catch (error) {
-        return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
+        return NextResponse.json({ success: true, data });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
     }
 }
 
 // PUT: Update an activity
-export async function PUT(req: Request) {
+export async function PUT(request: Request) {
     const supabase = await createClient();
-    const body = await req.json();
-
     try {
-        if (!body.id) {
-            return NextResponse.json({ error: 'ID is required' }, { status: 400 });
-        }
+        const body = await request.json();
+        const { id, ...updateData } = body;
+
+        if (!id) throw new Error('ID is required');
 
         const { data, error } = await supabase
             .from('actividades')
             .update({
                 nombre: body.nombre,
-                descripcion: body.descripcion,
-                color: body.color,
-                duration_minutes: body.duration_minutes,
                 tipo: body.tipo,
-                categoria: body.categoria,
-                esta_activa: body.esta_activa
+                descripcion: body.descripcion,
+                esta_activa: body.esta_activa,
+                duracion_minutos: body.duracion_minutos,
+                capacidad_maxima: body.capacidad_maxima,
+                url_imagen: body.url_imagen,
+                dificultad: body.dificultad,
+                color: body.color, // Keep existing field
+                categoria: body.categoria // Keep existing field
             })
             .eq('id', body.id)
             .select()

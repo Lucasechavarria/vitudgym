@@ -7,33 +7,33 @@ import { toast } from 'react-hot-toast';
 
 interface ScheduleItem {
     id: string;
-    day_of_week: number;
-    start_time: string;
-    end_time: string;
-    is_active: boolean;
-    activity: {
+    dia_de_la_semana: number;
+    hora_inicio: string;
+    hora_fin: string;
+    esta_activa: boolean;
+    actividad: {
         id: string;
-        name: string;
+        nombre: string;
         color: string;
-        duration_minutes: number;
+        duracion_minutos: number;
     };
-    coach?: {
+    entrenador?: {
         id: string;
-        full_name: string;
+        nombre_completo: string;
     };
-    teacher_text?: string;
+    profesor_texto?: string;
 }
 
 interface Activity {
     id: string;
-    name: string;
-    duration_minutes: number;
+    nombre: string;
+    duracion_minutos: number;
 }
 
 interface Coach {
     id: string;
-    full_name: string;
-    email: string;
+    nombre_completo: string;
+    correo: string;
 }
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -58,13 +58,13 @@ export default function AdminSchedulePage() {
 
     // Form State
     const [formData, setFormData] = useState({
-        activity_id: '',
-        coach_id: '',
-        teacher_text: '',
-        day_of_week: 1,
-        start_time: '09:00',
-        end_time: '10:00',
-        is_active: true
+        actividad_id: '',
+        entrenador_id: '',
+        profesor_texto: '',
+        dia_de_la_semana: 1,
+        hora_inicio: '09:00',
+        hora_fin: '10:00',
+        esta_activa: true
     });
 
     useEffect(() => {
@@ -86,13 +86,13 @@ export default function AdminSchedulePage() {
             if (Array.isArray(scheduleData)) {
                 const mappedSchedule = scheduleData.map((item: any) => ({
                     id: item.id,
-                    day_of_week: item.day_of_week,
-                    start_time: item.start_time,
-                    end_time: item.end_time,
-                    is_active: item.is_active,
-                    activity: item.activities,
-                    coach: item.profiles,
-                    teacher_text: item.teacher_text
+                    dia_de_la_semana: item.dia_de_la_semana,
+                    hora_inicio: item.hora_inicio,
+                    hora_fin: item.hora_fin,
+                    esta_activa: item.esta_activa,
+                    actividad: item.actividades,
+                    entrenador: item.perfiles,
+                    profesor_texto: item.profesor_texto
                 }));
                 setSchedule(mappedSchedule);
             }
@@ -111,24 +111,24 @@ export default function AdminSchedulePage() {
         if (item) {
             setEditingItem(item);
             setFormData({
-                activity_id: item.activity.id,
-                coach_id: item.coach?.id || '',
-                teacher_text: item.teacher_text || '',
-                day_of_week: item.day_of_week,
-                start_time: item.start_time,
-                end_time: item.end_time,
-                is_active: item.is_active
+                actividad_id: item.actividad.id,
+                entrenador_id: item.entrenador?.id || '',
+                profesor_texto: item.profesor_texto || '',
+                dia_de_la_semana: item.dia_de_la_semana,
+                hora_inicio: item.hora_inicio,
+                hora_fin: item.hora_fin,
+                esta_activa: item.esta_activa
             });
         } else {
             setEditingItem(null);
             setFormData({
-                activity_id: activities[0]?.id || '',
-                coach_id: '',
-                teacher_text: '',
-                day_of_week: 1,
-                start_time: '09:00',
-                end_time: '10:00',
-                is_active: true
+                actividad_id: activities[0]?.id || '',
+                entrenador_id: '',
+                profesor_texto: '',
+                dia_de_la_semana: 1,
+                hora_inicio: '09:00',
+                hora_fin: '10:00',
+                esta_activa: true
             });
         }
         setIsModalOpen(true);
@@ -161,14 +161,14 @@ export default function AdminSchedulePage() {
             const url = editingItem ? `/api/admin/schedule?id=${editingItem.id}` : '/api/admin/schedule';
 
             // Basic validation
-            if (!formData.activity_id) return toast.error('Selecciona una actividad');
+            if (!formData.actividad_id) return toast.error('Selecciona una actividad');
 
             // Time range validation
-            const startHour = parseInt(formData.start_time.split(':')[0]);
-            const endHour = parseInt(formData.end_time.split(':')[0]);
+            const startHour = parseInt(formData.hora_inicio.split(':')[0]);
+            const endHour = parseInt(formData.hora_fin.split(':')[0]);
 
-            const isWeekDay = formData.day_of_week >= 1 && formData.day_of_week <= 5;
-            const isSaturday = formData.day_of_week === 6;
+            const isWeekDay = formData.dia_de_la_semana >= 1 && formData.dia_de_la_semana <= 5;
+            const isSaturday = formData.dia_de_la_semana === 6;
 
             if (isWeekDay && (startHour < 9 || endHour > 23)) {
                 return toast.error('Horario permitido Lunes-Viernes: 09:00 a 23:00');
@@ -179,7 +179,7 @@ export default function AdminSchedulePage() {
 
             const body = {
                 ...formData,
-                coach_id: formData.coach_id || null // Match DB column name
+                entrenador_id: formData.entrenador_id || null
             };
 
             const res = await fetch(url, {
@@ -215,8 +215,8 @@ export default function AdminSchedulePage() {
         // dayIndex comes from 0-5 (Lunes-Sábado), but DB uses 1-6
         const dbDayIndex = dayIndex + 1;
         return schedule
-            .filter(item => item.day_of_week === dbDayIndex)
-            .sort((a, b) => a.start_time.localeCompare(b.start_time));
+            .filter(item => item.dia_de_la_semana === dbDayIndex)
+            .sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
     };
 
     if (loading) return <div className="p-8 text-white">Cargando horario...</div>;
@@ -251,11 +251,11 @@ export default function AdminSchedulePage() {
                                     className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg p-3 cursor-pointer group relative overflow-hidden"
                                     onClick={() => handleOpenModal(item)}
                                 >
-                                    <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: item.activity.color }} />
+                                    <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: item.actividad.color }} />
 
                                     <div className="pl-3">
                                         <div className="flex justify-between items-start">
-                                            <span className="text-xs font-mono text-gray-400">{item.start_time.slice(0, 5)} - {item.end_time.slice(0, 5)}</span>
+                                            <span className="text-xs font-mono text-gray-400">{item.hora_inicio.slice(0, 5)} - {item.hora_fin.slice(0, 5)}</span>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
                                                 className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
@@ -263,9 +263,9 @@ export default function AdminSchedulePage() {
                                                 <Trash2 size={14} />
                                             </button>
                                         </div>
-                                        <p className="font-bold text-white text-sm truncate">{item.activity.name}</p>
+                                        <p className="font-bold text-white text-sm truncate">{item.actividad.nombre}</p>
                                         <p className="text-xs text-gray-400 truncate">
-                                            {item.coach ? item.coach.full_name : (item.teacher_text || 'Sin instructor')}
+                                            {item.entrenador ? item.entrenador.nombre_completo : (item.profesor_texto || 'Sin instructor')}
                                         </p>
                                     </div>
                                 </motion.div>
@@ -305,8 +305,8 @@ export default function AdminSchedulePage() {
                                     <div>
                                         <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">Día Semanal</label>
                                         <select
-                                            value={formData.day_of_week}
-                                            onChange={e => setFormData({ ...formData, day_of_week: Number(e.target.value) })}
+                                            value={formData.dia_de_la_semana}
+                                            onChange={e => setFormData({ ...formData, dia_de_la_semana: Number(e.target.value) })}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all"
                                         >
                                             {Object.entries(DAY_INDEX_MAP).map(([val, label]) => (
@@ -327,13 +327,13 @@ export default function AdminSchedulePage() {
                                         </div>
                                         {!isCreatingActivity ? (
                                             <select
-                                                value={formData.activity_id}
-                                                onChange={e => setFormData({ ...formData, activity_id: e.target.value })}
+                                                value={formData.actividad_id}
+                                                onChange={e => setFormData({ ...formData, actividad_id: e.target.value })}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all font-bold"
                                             >
                                                 <option value="" className="bg-[#1c1c1e]">Seleccionar...</option>
                                                 {activities.map(act => (
-                                                    <option key={act.id} value={act.id} className="bg-[#1c1c1e]">{act.name}</option>
+                                                    <option key={act.id} value={act.id} className="bg-[#1c1c1e]">{act.nombre}</option>
                                                 ))}
                                             </select>
                                         ) : (
@@ -363,8 +363,8 @@ export default function AdminSchedulePage() {
                                             <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                                             <input
                                                 type="time"
-                                                value={formData.start_time}
-                                                onChange={e => setFormData({ ...formData, start_time: e.target.value })}
+                                                value={formData.hora_inicio}
+                                                onChange={e => setFormData({ ...formData, hora_inicio: e.target.value })}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
                                             />
                                         </div>
@@ -375,8 +375,8 @@ export default function AdminSchedulePage() {
                                             <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                                             <input
                                                 type="time"
-                                                value={formData.end_time}
-                                                onChange={e => setFormData({ ...formData, end_time: e.target.value })}
+                                                value={formData.hora_fin}
+                                                onChange={e => setFormData({ ...formData, hora_fin: e.target.value })}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
                                             />
                                         </div>
@@ -387,13 +387,13 @@ export default function AdminSchedulePage() {
                                     <div>
                                         <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">Coach Registrado</label>
                                         <select
-                                            value={formData.coach_id}
-                                            onChange={e => setFormData({ ...formData, coach_id: e.target.value, teacher_text: '' })}
+                                            value={formData.entrenador_id}
+                                            onChange={e => setFormData({ ...formData, entrenador_id: e.target.value, profesor_texto: '' })}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all"
                                         >
                                             <option value="" className="bg-[#1c1c1e]">Sin asignar / Externo</option>
                                             {coaches.map(coach => (
-                                                <option key={coach.id} value={coach.id} className="bg-[#1c1c1e]">{coach.full_name}</option>
+                                                <option key={coach.id} value={coach.id} className="bg-[#1c1c1e]">{coach.nombre_completo}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -401,9 +401,9 @@ export default function AdminSchedulePage() {
                                         <label className="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1.5 ml-1">Instructor Externo (Fallback)</label>
                                         <input
                                             type="text"
-                                            disabled={!!formData.coach_id}
-                                            value={formData.teacher_text}
-                                            onChange={e => setFormData({ ...formData, teacher_text: e.target.value })}
+                                            disabled={!!formData.entrenador_id}
+                                            value={formData.profesor_texto}
+                                            onChange={e => setFormData({ ...formData, profesor_texto: e.target.value })}
                                             placeholder="Solo si no es Coach..."
                                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all placeholder:text-gray-600 disabled:opacity-30"
                                         />
@@ -413,12 +413,12 @@ export default function AdminSchedulePage() {
                                 <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
                                     <input
                                         type="checkbox"
-                                        id="isActive"
-                                        checked={formData.is_active}
-                                        onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
+                                        id="esta_activa"
+                                        checked={formData.esta_activa}
+                                        onChange={e => setFormData({ ...formData, esta_activa: e.target.checked })}
                                         className="w-5 h-5 rounded-lg border-white/10 bg-black/40 text-purple-600 focus:ring-purple-500 accent-purple-500"
                                     />
-                                    <label htmlFor="isActive" className="text-sm font-bold text-gray-300 select-none cursor-pointer">
+                                    <label htmlFor="esta_activa" className="text-sm font-bold text-gray-300 select-none cursor-pointer">
                                         Clase Visible y Disponible para Reservas
                                     </label>
                                 </div>

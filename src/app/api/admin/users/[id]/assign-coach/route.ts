@@ -23,7 +23,7 @@ export async function PUT(
         const adminClient = createAdminClient();
 
         // PASO ATÓMICO: Primero eliminamos CUALQUIER relación previa de este alumno
-        // IMPORTANTE: Al usar usuario_id nos aseguramos de no borrar accidentalmente relaciones de otros alumnos.
+        // Ahora usamos usuario_id (confirmado en la base de datos)
         const { error: deleteError } = await (adminClient
             .from('relacion_alumno_coach') as any)
             .delete()
@@ -60,7 +60,7 @@ export async function PUT(
             }
 
             finalData = insertData;
-            console.log(`✅ [ASSIGN] Éxito Atómico. DB Insertó (Spanish Schema):`, JSON.stringify(insertData));
+            console.log(`✅ [ASSIGN] Éxito Global. DB Insertó (Esquema Español Real):`, JSON.stringify(insertData));
         } else {
             console.log(`ℹ️ [ASSIGN] El alumno ${userId} ha quedado sin coach (Atomic Delete Only).`);
         }

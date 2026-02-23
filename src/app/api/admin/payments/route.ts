@@ -20,16 +20,16 @@ export async function GET(request: Request) {
             .from('pagos')
             .select(`
                 *,
-                perfiles!user_id (
+                perfiles!usuario_id (
                     *
                 )
             `)
-            .order('created_at' as any, { ascending: false });
+            .order('creado_en' as any, { ascending: false });
 
         if (paymentsError) {
             console.error('❌ Error loading payments:', paymentsError);
             // Fallback sin join si el join falla
-            const fallback = await supabase.from('pagos').select('*').order('created_at' as any, { ascending: false });
+            const fallback = await supabase.from('pagos').select('*').order('creado_en' as any, { ascending: false });
             if (fallback.error) throw fallback.error;
             return NextResponse.json({ success: true, payments: fallback.data.map((p: any) => normalizePayment(p)) });
         }
@@ -59,7 +59,7 @@ function normalizePayment(payment: any) {
         created_at: payment.created_at || payment.creado_en,
         concept: payment.concepto,
         payment_method: payment.metodo_pago,
-        metadata: payment.metadata,
+        metadata: payment.metadatos,
         user_name: user.nombre_completo || `${user.nombre || ''} ${user.apellido || ''}`.trim() || 'Sin nombre',
         user_email: user.correo || user.email || ''
     };
@@ -91,8 +91,8 @@ export async function POST(request: Request) {
                 metodo_pago: payment_method || 'manual',
                 proveedor_pago: payment_provider || 'internal',
                 notas: notes,
-                metadata,
-                user_id: user_id || null // Expenses might not have a user_id
+                metadatos: metadata,
+                usuario_id: user_id || null // Expenses might not have a usuario_id
             })
             .select()
             .single();

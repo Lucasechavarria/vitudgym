@@ -35,7 +35,7 @@ export async function GET(request: Request) {
                     )
                 )
             `)
-            .order('created_at' as any, { ascending: false });
+            .order('creado_en' as any, { ascending: false });
 
         if (dbError) {
             console.error('❌ Error en DB query:', dbError);

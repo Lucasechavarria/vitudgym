@@ -36,22 +36,33 @@ export interface MedicalHistory {
 export interface SupabaseUserProfile {
     id: string;
     nombre_completo: string | null;
+    nombre?: string | null;
+    apellido?: string | null;
     correo: string;
     email?: string; // Legacy/Alias support
     rol: UserRole;
     url_avatar?: string | null;
     telefono?: string | null;
+    dni?: string | null;
+    direccion?: string | null;
+    ciudad?: string | null;
     fecha_nacimiento?: string | null;
-    genero?: string | null;
+    gender?: string | null;
     informacion_medica?: any | null;
     contacto_emergencia?: any | null;
     exencion_aceptada?: boolean;
     fecha_exencion?: string | null;
     estado_membresia?: 'active' | 'inactive' | 'pending' | 'expired';
+    fecha_inicio_membresia?: string | null;
     fecha_fin_membresia?: string | null;
+    observaciones_entrenador?: string | null;
+    restricciones_adicionales?: string | null;
+    modificaciones_recomendadas?: string | null;
+    onboarding_completado?: boolean;
+    onboarding_completado_en?: string | null;
     creado_en?: string;
     actualizado_en?: string;
-    [key: string]: any; // Allow extra fields
+    [key: string]: any;
 }
 
 export interface AdminUserListResponse extends SupabaseUserProfile {
