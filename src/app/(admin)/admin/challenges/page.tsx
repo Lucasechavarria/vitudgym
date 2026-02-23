@@ -128,12 +128,33 @@ export default function AdminChallengesPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">⚔️ Arbitraje de Desafíos</h1>
-                <button
-                    onClick={() => setShowCreate(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-bold transition-all"
-                >
-                    + Nuevo Desafío
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            const tId = toast.loading('Procesando vencidos...');
+                            try {
+                                const res = await fetch('/api/admin/challenges/process-expired', { method: 'POST' });
+                                if (res.ok) {
+                                    toast.success('Desafíos actualizados', { id: tId });
+                                    fetchChallenges();
+                                } else {
+                                    toast.error('Error al procesar', { id: tId });
+                                }
+                            } catch (e) {
+                                toast.error('Error de red', { id: tId });
+                            }
+                        }}
+                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-4 py-2 rounded-xl font-bold transition-all text-xs uppercase"
+                    >
+                        🔄 Vencidos
+                    </button>
+                    <button
+                        onClick={() => setShowCreate(true)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-bold transition-all"
+                    >
+                        + Nuevo Desafío
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -51,15 +51,21 @@ export async function POST(req: Request) {
         if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
         const body = await req.json();
-        const { title, description, type, points_prize, target_student_id, original_duration_days } = body;
+        const { title, description, type, points_prize, target_student_id, original_duration_days, endDate: manualEndDate } = body;
 
         // Validaciones básicas
         if (!title || !description) {
             return NextResponse.json({ error: 'Título y descripción son requeridos' }, { status: 400 });
         }
 
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + (original_duration_days || 7));
+        let fechaFinFormatted: string;
+        if (manualEndDate) {
+            fechaFinFormatted = new Date(manualEndDate).toISOString();
+        } else {
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + (original_duration_days || 7));
+            fechaFinFormatted = endDate.toISOString();
+        }
 
         const { data, error } = await supabase
             .from('desafios')
@@ -70,7 +76,7 @@ export async function POST(req: Request) {
                 puntos_recompensa: points_prize || 100,
                 creado_por: user.id,
                 estado: 'pending', // Requiere aprobación de coach/admin
-                fecha_fin: endDate.toISOString()
+                fecha_fin: fechaFinFormatted
             })
             .select()
             .single();

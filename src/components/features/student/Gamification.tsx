@@ -540,9 +540,9 @@ export function Gamification() {
                                         {challenge.type === 'open' ? '📡' : '🔥'}
                                     </div>
 
-                                    <div className="flex-1 text-center lg:text-left space-y-2">
-                                        <div className="flex items-center justify-center lg:justify-start gap-3">
-                                            <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">{challenge.title}</h4>
+                                    <div className="flex-1 text-center lg:text-left min-w-0">
+                                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-2">
+                                            <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-tight truncate">{challenge.title}</h4>
                                             {challenge.is_participant && (
                                                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase tracking-widest ${challenge.participant_status === 'pending_validation'
                                                     ? 'bg-blue-500/20 text-blue-400 border-blue-500/30 animate-pulse'
@@ -673,6 +673,7 @@ export function Gamification() {
                                                 description,
                                                 type: challengeType,
                                                 original_duration_days: duration,
+                                                endDate: formData.get('endDate'),
                                                 points_prize: points,
                                                 target_student_id: challengeType === 'individual' ? targetStudent : null
                                             })
@@ -746,21 +747,40 @@ export function Gamification() {
                                             name="description"
                                             required
                                             placeholder="Detallá los objetivos y las reglas del desafío..."
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 outline-none focus:border-purple-500/50 transition-all text-sm font-bold text-white shadow-inner h-28 resize-none placeholder:text-zinc-700"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 outline-none focus:border-purple-500/50 transition-all text-sm font-bold text-white shadow-inner h-24 resize-none placeholder:text-zinc-700"
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Ciclo (Días)</label>
-                                            <input name="duration" type="number" defaultValue={7} className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 outline-none focus:border-purple-500/50 text-sm font-bold text-white shadow-inner" />
+                                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Fecha Límite (Opcional)</label>
+                                            <input
+                                                name="endDate"
+                                                type="date"
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 outline-none focus:border-purple-500/50 transition-all text-sm font-bold text-white shadow-inner"
+                                            />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Recompensa (XP)</label>
-                                            <input name="points" type="number" defaultValue={500} className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 outline-none focus:border-purple-500/50 text-sm font-bold text-white shadow-inner" />
+                                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">O Duración (Días)</label>
+                                            <input
+                                                name="duration"
+                                                type="number"
+                                                defaultValue={7}
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 outline-none focus:border-purple-500/50 transition-all text-sm font-bold text-white shadow-inner"
+                                            />
                                         </div>
                                     </div>
 
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Recompensa (puntos)</label>
+                                        <input
+                                            name="points"
+                                            type="number"
+                                            defaultValue={100}
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 outline-none focus:border-purple-500/50 transition-all text-sm font-bold text-white shadow-inner"
+                                        />
+                                    </div>
                                     <div className="flex gap-4 pt-6">
                                         <button
                                             type="button"
