@@ -57,7 +57,6 @@ export async function GET(request: Request) {
 function normalizeUser(u: any) {
     const relations = u.relacion_alumno_coach || [];
 
-    // Buscar la relación primaria (aceptamos is_primary o es_principal)
     const primaryRelation = relations.find((r: any) =>
         r.is_primary === true ||
         r.es_principal === true ||
