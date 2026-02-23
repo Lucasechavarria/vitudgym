@@ -16,15 +16,15 @@ export async function POST(request: Request) {
         const { data, error: dbError } = await supabase!
             .from('desafios')
             .insert({
-                creator_id: user.id,
-                judge_id: user.id, // Admin creator is the default judge
-                title,
-                description,
-                rules: rules || 'Reglas estándar del gimnasio',
-                type,
-                points_prize: points_prize, // Correct Spanish column per schema
-                end_date,
-                status: 'active' // Set to active by default as requested
+                creado_por: user.id,   // antes: creator_id
+                juez_id: user.id,       // antes: judge_id
+                titulo: title,          // antes: title
+                descripcion: description, // antes: description
+                reglas: rules || 'Reglas estándar del gimnasio', // antes: rules
+                tipo: type,             // antes: type
+                puntos_recompensa: points_prize, // antes: points_prize / points_reward
+                fecha_fin: end_date,    // antes: end_date
+                estado: 'active'        // antes: status
             })
             .select()
             .single();
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * GET /api/admin/challenges/list
+ * GET /api/admin/challenges
  * Lista todos los desafíos para administración
  */
 export async function GET(request: Request) {
@@ -52,19 +52,36 @@ export async function GET(request: Request) {
             .from('desafios')
             .select(`
                 *,
-                creator:perfiles!challenges_creator_id_fkey(nombre_completo),
-                judge:perfiles!challenges_judge_id_fkey(nombre_completo),
-                participants:participantes_desafio(
-                    status,
-                    current_score,
-                    user:perfiles(nombre_completo)
+                creador:perfiles!desafios_creado_por_fkey(nombre_completo),
+                juez:perfiles!desafios_juez_id_fkey(nombre_completo),
+                participantes:participantes_desafio(
+                    estado,
+                    puntuacion_actual,
+                    usuario:perfiles(nombre_completo)
                 )
             `)
             .order('creado_en', { ascending: false });
 
         if (dbError) throw dbError;
 
-        return NextResponse.json({ challenges: data });
+        // Mapear al formato que espera el frontend
+        const challenges = (data || []).map((d: any) => ({
+            id: d.id,
+            title: d.titulo,
+            description: d.descripcion,
+            type: d.tipo,
+            status: d.estado,
+            points_reward: d.puntos_recompensa,
+            participants_count: d.participantes?.length ?? 0,
+            participants: (d.participantes || []).map((p: any) => ({
+                user_id: p.usuario_id,
+                full_name: p.usuario?.nombre_completo || 'Atleta Anónimo',
+                current_score: p.puntuacion_actual,
+                status: p.estado,
+            })),
+        }));
+
+        return NextResponse.json({ challenges });
     } catch (_error) {
         const err = _error as Error;
         console.error('Error fetching challenges:', err);

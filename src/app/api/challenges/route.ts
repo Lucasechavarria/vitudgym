@@ -55,7 +55,7 @@ export async function POST(req: Request) {
                 titulo: title,
                 descripcion: description,
                 tipo: type || 'open',
-                recompensa_puntos: points_prize || 100,
+                puntos_recompensa: points_prize || 100,
                 creado_por: user.id,
                 estado: 'pending', // Requiere aprobación de coach/admin
                 fecha_fin: endDate.toISOString()
