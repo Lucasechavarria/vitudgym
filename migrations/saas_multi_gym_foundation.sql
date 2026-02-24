@@ -72,20 +72,33 @@ ALTER TABLE public.sucursales ENABLE ROW LEVEL SECURITY;
 
 -- 6. Políticas RLS
 -- Superadmin puede hacer todo
+DROP POLICY IF EXISTS "Superadmins manejan todo" ON public.gimnasios;
 CREATE POLICY "Superadmins manejan todo" ON public.gimnasios
     FOR ALL TO authenticated USING (
         EXISTS (SELECT 1 FROM public.perfiles WHERE id = auth.uid() AND rol = 'superadmin')
     );
 
+DROP POLICY IF EXISTS "Superadmins manejan sucursales" ON public.sucursales;
 CREATE POLICY "Superadmins manejan sucursales" ON public.sucursales
     FOR ALL TO authenticated USING (
         EXISTS (SELECT 1 FROM public.perfiles WHERE id = auth.uid() AND rol = 'superadmin')
     );
 
 -- Usuarios pueden ver su propio gimnasio
+DROP POLICY IF EXISTS "Usuarios ven su gimnasio" ON public.gimnasios;
 CREATE POLICY "Usuarios ven su gimnasio" ON public.gimnasios
     FOR SELECT TO authenticated USING (
         id = (SELECT gimnasio_id FROM public.perfiles WHERE id = auth.uid())
     );
+
+-- 7. GRANTS EXPLÍCITOS (Para evitar "Permission Denied")
+GRANT ALL ON public.gimnasios TO authenticated;
+GRANT ALL ON public.sucursales TO authenticated;
+GRANT ALL ON public.gimnasios TO service_role;
+GRANT ALL ON public.sucursales TO service_role;
+
+-- Grant usage on sequences for id generation if any serials were used (not for UUIDs but good practice)
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
 COMMIT;

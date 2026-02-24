@@ -36,6 +36,16 @@ export default function GymsManagementPage() {
     const [gyms, setGyms] = useState<Gimnasio[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [creating, setCreating] = useState(false);
+
+    // Form state
+    const [formData, setFormData] = useState({
+        nombre: '',
+        slug: '',
+        sucursal_nombre: 'Casa Central',
+        direccion: '',
+        logo_url: ''
+    });
 
     useEffect(() => {
         fetchGyms();
@@ -58,6 +68,31 @@ export default function GymsManagementPage() {
         }
     };
 
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreating(true);
+        try {
+            const res = await fetch('/api/admin/gyms/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success('¡Gimnasio creado con éxito!');
+                setShowCreateModal(false);
+                setFormData({ nombre: '', slug: '', sucursal_nombre: 'Casa Central', direccion: '', logo_url: '' });
+                fetchGyms();
+            } else {
+                toast.error(data.error || 'Error al crear');
+            }
+        } catch (error) {
+            toast.error('Error de red');
+        } finally {
+            setCreating(false);
+        }
+    };
+
     return (
         <div className="space-y-8 p-4 md:p-8">
             {/* Header section with Stats */}
@@ -74,13 +109,98 @@ export default function GymsManagementPage() {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => toast.success('Módulo de creación en desarrollo para V2')}
+                    onClick={() => setShowCreateModal(true)}
                     className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-red-900/20 transition-all"
                 >
                     <Plus size={20} />
                     Sumar Nuevo Gimnasio
                 </motion.button>
             </div>
+
+            {/* Modal de Creación */}
+            <AnimatePresence>
+                {showCreateModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowCreateModal(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-[#1c1c1e] w-full max-w-lg rounded-[2.5rem] border border-white/10 p-8 relative z-10 shadow-2xl"
+                        >
+                            <h2 className="text-2xl font-black text-white italic mb-6 uppercase tracking-tight">Nueva Entidad Gym</h2>
+
+                            <form onSubmit={handleCreate} className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Nombre Comercial</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="Ej: PowerBox S.A."
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
+                                        value={formData.nombre}
+                                        onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Identificador (Slug)</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="ej: powerbox"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all font-mono text-sm"
+                                        value={formData.slug}
+                                        onChange={e => setFormData({ ...formData, slug: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Nombre Sede Inicial</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
+                                        value={formData.sucursal_nombre}
+                                        onChange={e => setFormData({ ...formData, sucursal_nombre: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Dirección</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Calle 123, Ciudad"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
+                                        value={formData.direccion}
+                                        onChange={e => setFormData({ ...formData, direccion: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="flex gap-4 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCreateModal(false)}
+                                        className="flex-1 px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={creating}
+                                        className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold shadow-lg shadow-red-900/40 disabled:opacity-50 transition-all border border-red-500/20"
+                                    >
+                                        {creating ? 'Creando...' : 'Confirmar Registro'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
