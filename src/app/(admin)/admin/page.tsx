@@ -1,11 +1,24 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import SuperAdminOverview from '@/components/features/admin/SuperAdminDashboard';
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    // Fetch real data
+    // Fetch profile to check role
+    const { data: profile } = await supabase
+        .from('perfiles')
+        .select('rol')
+        .eq('id', user?.id)
+        .single();
+
+    if (profile?.rol === 'superadmin') {
+        return <SuperAdminOverview />;
+    }
+
+    // Fetch real data for regular admin (gym-specific)
     const { data: perfiles } = await supabase
         .from('perfiles')
         .select('*');
