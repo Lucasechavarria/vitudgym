@@ -4,6 +4,7 @@ import { createServerClient } from '@supabase/ssr';
 import { redirect } from 'next/navigation';
 import { UniversalLayoutWrapper } from '@/components/layout/UniversalLayoutWrapper';
 import { Toaster } from 'react-hot-toast';
+import SaaSGuard from '@/components/auth/SaaSGuard';
 
 export default async function DashboardLayout({
     children,
@@ -44,7 +45,9 @@ export default async function DashboardLayout({
             <div className="aurora-bg" />
 
             <UniversalLayoutWrapper profileName={profile?.nombre_completo || 'Usuario'} profileRole={profile?.rol || 'member'}>
-                {children}
+                <SaaSGuard>
+                    {children}
+                </SaaSGuard>
             </UniversalLayoutWrapper>
 
             <Toaster position="top-center" toastOptions={{

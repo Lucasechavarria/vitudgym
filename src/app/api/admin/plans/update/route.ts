@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
         const { id, nombre, precio_mensual, limite_sucursales, limite_usuarios, caracteristicas } = await request.json();
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
         const { error } = await adminClient
             .from('planes_suscripcion')
@@ -29,7 +29,8 @@ export async function POST(request: Request) {
         if (error) throw error;
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

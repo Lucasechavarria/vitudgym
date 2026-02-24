@@ -13,7 +13,7 @@ export async function GET(request: Request) {
         const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
         const { data: gyms, error: dbError } = await adminClient
             .from('gimnasios')
@@ -31,9 +31,10 @@ export async function GET(request: Request) {
         if (dbError) throw dbError;
 
         return NextResponse.json({ gyms });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('Billing List Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
@@ -48,9 +49,9 @@ export async function POST(request: Request) {
 
         const { gymId, status, discount, nextBillingDate } = await request.json();
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
-        const updateData: any = {};
+        const updateData: Record<string, string | number> = {};
         if (status) updateData.estado_pago_saas = status;
         if (discount !== undefined) updateData.descuento_saas = discount;
         if (nextBillingDate) updateData.fecha_proximo_pago = nextBillingDate;
@@ -63,7 +64,8 @@ export async function POST(request: Request) {
         if (error) throw error;
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

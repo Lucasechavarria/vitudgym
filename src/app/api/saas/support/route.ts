@@ -11,9 +11,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
     try {
         const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
-        if (authError) return authError;
+        if (authError || !profile) return authError || NextResponse.json({ error: 'No profile' }, { status: 401 });
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
         let query = adminClient.from('tickets_soporte').select(`
             *,
             perfiles (nombre_completo),
@@ -29,15 +29,16 @@ export async function GET(request: Request) {
 
         if (error) throw error;
         return NextResponse.json({ tickets });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
     try {
         const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'coach']);
-        if (authError) return authError;
+        if (authError || !profile) return authError || NextResponse.json({ error: 'No profile' }, { status: 401 });
 
         const { asunto, prioridad, mensaje } = await request.json();
 
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Asunto y mensaje son obligatorios' }, { status: 400 });
         }
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
         // 1. Crear el Ticket
         const { data: ticket, error: ticketError } = await adminClient
@@ -74,7 +75,8 @@ export async function POST(request: Request) {
         if (msgError) throw msgError;
 
         return NextResponse.json({ success: true, ticketId: ticket.id });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

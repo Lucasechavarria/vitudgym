@@ -6,6 +6,7 @@ import { ROLES } from '@/lib/constants/app';
 import { UniversalLayoutWrapper } from '@/components/layout/UniversalLayoutWrapper';
 import { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
+import SaaSGuard from '@/components/auth/SaaSGuard';
 
 export default async function AdminLayout({
     children,
@@ -55,7 +56,9 @@ export default async function AdminLayout({
             <div className="aurora-bg" />
 
             <UniversalLayoutWrapper profileName={profile.nombre_completo} profileRole={profile.rol}>
-                {children}
+                <SaaSGuard>
+                    {children}
+                </SaaSGuard>
             </UniversalLayoutWrapper>
 
             <Toaster position="top-center" toastOptions={{

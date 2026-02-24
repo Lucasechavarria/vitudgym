@@ -3,12 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Gem,
     CheckCircle2,
-    ArrowRight,
-    Zap,
-    ShieldCheck,
-    CreditCard
+    Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -38,8 +34,8 @@ export default function SubscriptionPlansPage() {
             if (res.ok) {
                 setPlans(data.plans || []);
             }
-        } catch (error) {
-            console.error('Error fetching plans:', error);
+        } catch (_error) {
+            console.error('Error fetching plans:', _error);
         } finally {
             setLoading(false);
         }
@@ -62,7 +58,7 @@ export default function SubscriptionPlansPage() {
             } else {
                 toast.error('Error al actualizar plan');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error de red');
         } finally {
             setSaving(false);

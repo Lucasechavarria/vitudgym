@@ -12,20 +12,24 @@ const PLAN_FEATURES: Record<string, SaaSFeature[]> = {
  * Verifica si un gimnasio tiene acceso a una funcionalidad específica.
  */
 export async function checkFeatureAccess(gymId: string, feature: SaaSFeature): Promise<boolean> {
-    const adminClient = createAdminClient() as any;
+    const adminClient = createAdminClient();
 
     const { data: gym, error } = await adminClient
         .from('gimnasios')
         .select(`
             id,
-            planes_suscripcion (nombre, limite_sucursales, limite_usuarios)
+            planes_suscripcion (nombre)
         `)
         .eq('id', gymId)
         .single();
 
     if (error || !gym || !gym.planes_suscripcion) return false;
 
-    const planName = gym.planes_suscripcion.nombre;
+    // We assume planes_suscripcion is an object (from .single()) 
+    // but standard Supabase types might see it as an array if relationship is 1:N.
+    // However, here we cast or handle accordingly.
+    const planData = gym.planes_suscripcion as unknown as { nombre: string };
+    const planName = planData.nombre;
     const allowedFeatures = PLAN_FEATURES[planName] || [];
 
     return allowedFeatures.includes(feature);
@@ -35,7 +39,7 @@ export async function checkFeatureAccess(gymId: string, feature: SaaSFeature): P
  * Obtiene los límites de capacidad de un gimnasio.
  */
 export async function getGymLimits(gymId: string) {
-    const adminClient = createAdminClient() as any;
+    const adminClient = createAdminClient();
 
     const { data, error } = await adminClient
         .from('gimnasios')
@@ -45,10 +49,12 @@ export async function getGymLimits(gymId: string) {
         .eq('id', gymId)
         .single();
 
-    if (error || !data) return { branches: 1, users: 50 };
+    if (error || !data || !data.planes_suscripcion) return { branches: 1, users: 50 };
+
+    const planData = data.planes_suscripcion as unknown as { limite_sucursales: number, limite_usuarios: number };
 
     return {
-        branches: data.planes_suscripcion.limite_sucursales,
-        users: data.planes_suscripcion.limite_usuarios
+        branches: planData.limite_sucursales,
+        users: planData.limite_usuarios
     };
 }

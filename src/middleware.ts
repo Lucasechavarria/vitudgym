@@ -65,8 +65,8 @@ export async function middleware(request: NextRequest) {
 
                 console.log(`🔐 Middleware Check: User ${user.email} has role: ${userRole}`);
 
-            } catch (e) {
-                console.error('Error fetching role in middleware:', e);
+            } catch (_e) {
+                console.error('Error fetching role in middleware:', _e);
             }
         }
 
@@ -120,8 +120,8 @@ export async function middleware(request: NextRequest) {
 
         return response;
 
-    } catch (e) {
-        console.error('Middleware execution error:', e);
+    } catch (_e) {
+        console.error('Middleware execution error:', _e);
         return NextResponse.next({
             request: {
                 headers: request.headers,

@@ -14,9 +14,9 @@ export async function GET(
 ) {
     try {
         const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
-        if (authError) return authError;
+        if (authError || !profile) return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
         // Verificar acceso al ticket
         if (profile.rol !== 'superadmin') {
@@ -42,8 +42,9 @@ export async function GET(
 
         if (error) throw error;
         return NextResponse.json({ messages });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
@@ -53,10 +54,10 @@ export async function POST(
 ) {
     try {
         const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
-        if (authError) return authError;
+        if (authError || !profile) return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { mensaje } = await request.json();
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
         // Enviar mensaje
         const { error: msgError } = await adminClient
@@ -77,7 +78,8 @@ export async function POST(
             .eq('id', params.ticketId);
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

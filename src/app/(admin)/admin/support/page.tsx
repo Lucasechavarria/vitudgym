@@ -1,15 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Ticket,
     MessageSquare,
-    Clock,
-    User,
     Building2,
     Send,
-    CheckCircle2,
     Filter,
     ArrowLeft
 } from 'lucide-react';
@@ -51,7 +46,7 @@ export default function SuperAdminSupportPage() {
             const res = await fetch('/api/saas/support');
             const data = await res.json();
             if (res.ok) setTickets(data.tickets || []);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar tickets');
         } finally {
             setLoading(false);
@@ -63,7 +58,7 @@ export default function SuperAdminSupportPage() {
             const res = await fetch(`/api/saas/support/${ticketId}/messages`);
             const data = await res.json();
             if (res.ok) setMessages(data.messages || []);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar mensajes');
         }
     };
@@ -88,7 +83,7 @@ export default function SuperAdminSupportPage() {
                 setNewMessage('');
                 fetchMessages(selectedTicket.id);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al enviar mensaje');
         } finally {
             setSending(false);
@@ -122,8 +117,8 @@ export default function SuperAdminSupportPage() {
                                 key={ticket.id}
                                 onClick={() => handleSelectTicket(ticket)}
                                 className={`w-full text-left p-4 rounded-2xl border transition-all ${selectedTicket?.id === ticket.id
-                                        ? 'bg-red-600 border-red-500 shadow-lg shadow-red-900/20'
-                                        : 'bg-white/2 border-white/5 hover:bg-white/5'
+                                    ? 'bg-red-600 border-red-500 shadow-lg shadow-red-900/20'
+                                    : 'bg-white/2 border-white/5 hover:bg-white/5'
                                     }`}
                             >
                                 <div className="flex justify-between items-start mb-1">

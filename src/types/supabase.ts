@@ -443,33 +443,104 @@ export type Database = {
                     actualizado_en: string | null
                     configuracion: Json | null
                     creado_en: string | null
+                    descuento_saas: number | null
                     es_activo: boolean | null
+                    estado_pago_saas: string | null
+                    fecha_proximo_pago: string | null
                     id: string
                     logo_url: string | null
                     nombre: string
+                    plan_id: string | null
                     slug: string
                 }
                 Insert: {
                     actualizado_en?: string | null
                     configuracion?: Json | null
                     creado_en?: string | null
+                    descuento_saas?: number | null
                     es_activo?: boolean | null
+                    estado_pago_saas?: string | null
+                    fecha_proximo_pago?: string | null
                     id?: string
                     logo_url?: string | null
                     nombre: string
+                    plan_id?: string | null
                     slug: string
                 }
                 Update: {
                     actualizado_en?: string | null
                     configuracion?: Json | null
                     creado_en?: string | null
+                    descuento_saas?: number | null
                     es_activo?: boolean | null
+                    estado_pago_saas?: string | null
+                    fecha_proximo_pago?: string | null
                     id?: string
                     logo_url?: string | null
                     nombre?: string
+                    plan_id?: string | null
                     slug?: string
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "gimnasios_plan_id_fkey"
+                        columns: ["plan_id"]
+                        isOneToOne: false
+                        referencedRelation: "planes_suscripcion"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            auditoria_global: {
+                Row: {
+                    accion: string
+                    creado_en: string | null
+                    detalles: Json | null
+                    entidad_id: string | null
+                    entidad_tipo: string | null
+                    gimnasio_id: string | null
+                    id: string
+                    ip_address: string | null
+                    usuario_id: string | null
+                }
+                Insert: {
+                    accion: string
+                    creado_en?: string | null
+                    detalles?: Json | null
+                    entidad_id?: string | null
+                    entidad_tipo?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    ip_address?: string | null
+                    usuario_id?: string | null
+                }
+                Update: {
+                    accion?: string
+                    creado_en?: string | null
+                    detalles?: Json | null
+                    entidad_id?: string | null
+                    entidad_tipo?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    ip_address?: string | null
+                    usuario_id?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "auditoria_global_gimnasio_id_fkey"
+                        columns: ["gimnasio_id"]
+                        isOneToOne: false
+                        referencedRelation: "gimnasios"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "auditoria_global_usuario_id_fkey"
+                        columns: ["usuario_id"]
+                        isOneToOne: false
+                        referencedRelation: "perfiles"
+                        referencedColumns: ["id"]
+                    }
+                ]
             }
             historial_engagement: {
                 Row: {
@@ -650,6 +721,128 @@ export type Database = {
                         referencedColumns: ["id"]
                     },
                 ]
+            }
+            mensajes_soporte: {
+                Row: {
+                    creado_en: string | null
+                    es_del_staff_saas: boolean | null
+                    id: string
+                    mensaje: string
+                    remitente_id: string | null
+                    ticket_id: string | null
+                }
+                Insert: {
+                    creado_en?: string | null
+                    es_del_staff_saas?: boolean | null
+                    id?: string
+                    mensaje: string
+                    remitente_id?: string | null
+                    ticket_id?: string | null
+                }
+                Update: {
+                    creado_en?: string | null
+                    es_del_staff_saas?: boolean | null
+                    id?: string
+                    mensaje?: string
+                    remitente_id?: string | null
+                    ticket_id?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "mensajes_soporte_remitente_id_fkey"
+                        columns: ["remitente_id"]
+                        isOneToOne: false
+                        referencedRelation: "perfiles"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "mensajes_soporte_ticket_id_fkey"
+                        columns: ["ticket_id"]
+                        isOneToOne: false
+                        referencedRelation: "tickets_soporte"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            pagos_saas: {
+                Row: {
+                    creado_en: string | null
+                    descuento_aplicado: number | null
+                    estado: string | null
+                    fecha_pago: string | null
+                    gimnasio_id: string | null
+                    id: string
+                    metodo_pago: string | null
+                    monto: number
+                    monto_final: number
+                    periodo_fin: string | null
+                    periodo_inicio: string | null
+                }
+                Insert: {
+                    creado_en?: string | null
+                    descuento_aplicado?: number | null
+                    estado?: string | null
+                    fecha_pago?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    metodo_pago?: string | null
+                    monto: number
+                    monto_final: number
+                    periodo_fin?: string | null
+                    periodo_inicio?: string | null
+                }
+                Update: {
+                    creado_en?: string | null
+                    descuento_aplicado?: number | null
+                    estado?: string | null
+                    fecha_pago?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    metodo_pago?: string | null
+                    monto?: number
+                    monto_final?: number
+                    periodo_fin?: string | null
+                    periodo_inicio?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "pagos_saas_gimnasio_id_fkey"
+                        columns: ["gimnasio_id"]
+                        isOneToOne: false
+                        referencedRelation: "gimnasios"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            planes_suscripcion: {
+                Row: {
+                    caracteristicas: Json | null
+                    creado_en: string | null
+                    id: string
+                    limite_sucursales: number | null
+                    limite_usuarios: number | null
+                    nombre: string
+                    precio_mensual: number
+                }
+                Insert: {
+                    caracteristicas?: Json | null
+                    creado_en?: string | null
+                    id?: string
+                    limite_sucursales?: number | null
+                    limite_usuarios?: number | null
+                    nombre: string
+                    precio_mensual: number
+                }
+                Update: {
+                    caracteristicas?: Json | null
+                    creado_en?: string | null
+                    id?: string
+                    limite_sucursales?: number | null
+                    limite_usuarios?: number | null
+                    nombre?: string
+                    precio_mensual?: number
+                }
+                Relationships: []
             }
             objetivos_del_usuario: {
                 Row: {
@@ -1441,6 +1634,54 @@ export type Database = {
                         referencedRelation: "perfiles"
                         referencedColumns: ["id"]
                     },
+                ]
+            }
+            tickets_soporte: {
+                Row: {
+                    actualizado_en: string | null
+                    asunto: string
+                    creado_en: string | null
+                    estado: string | null
+                    gimnasio_id: string | null
+                    id: string
+                    prioridad: string | null
+                    usuario_id: string | null
+                }
+                Insert: {
+                    actualizado_en?: string | null
+                    asunto: string
+                    creado_en?: string | null
+                    estado?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    prioridad?: string | null
+                    usuario_id?: string | null
+                }
+                Update: {
+                    actualizado_en?: string | null
+                    asunto?: string
+                    creado_en?: string | null
+                    estado?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    prioridad?: string | null
+                    usuario_id?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "tickets_soporte_gimnasio_id_fkey"
+                        columns: ["gimnasio_id"]
+                        isOneToOne: false
+                        referencedRelation: "gimnasios"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "tickets_soporte_usuario_id_fkey"
+                        columns: ["usuario_id"]
+                        isOneToOne: false
+                        referencedRelation: "perfiles"
+                        referencedColumns: ["id"]
+                    }
                 ]
             }
         }

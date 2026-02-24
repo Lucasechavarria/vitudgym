@@ -15,15 +15,36 @@ export async function GET(request: Request) {
 
         const adminClient = createAdminClient() as any;
 
+        // 1. Obtener datos del gimnasio y su plan
         const { data: gym, error: dbError } = await adminClient
             .from('gimnasios')
-            .select('*')
+            .select(`
+                *,
+                planes_suscripcion (*)
+            `)
             .eq('id', profile.gimnasio_id)
             .single();
 
         if (dbError) throw dbError;
 
-        return NextResponse.json({ gym });
+        // 2. Obtener conteos actuales
+        const [
+            { count: studentsCount },
+            { count: branchesCount }
+        ] = await Promise.all([
+            adminClient.from('perfiles').select('*', { count: 'exact', head: true }).eq('gimnasio_id', profile.gimnasio_id).eq('rol', 'member'),
+            adminClient.from('sucursales').select('*', { count: 'exact', head: true }).eq('gimnasio_id', profile.gimnasio_id)
+        ]);
+
+        return NextResponse.json({
+            gym: {
+                ...gym,
+                stats: {
+                    students: studentsCount || 0,
+                    branches: branchesCount || 0
+                }
+            }
+        });
 
     } catch (error: any) {
         console.error('❌ Error fetching current gym:', error);

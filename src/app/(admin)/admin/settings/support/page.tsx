@@ -8,9 +8,7 @@ import {
     MessageCircle,
     Send,
     ArrowLeft,
-    Clock,
-    AlertTriangle,
-    CheckCircle2
+    Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -53,7 +51,7 @@ export default function GymAdminSupportPage() {
             const res = await fetch('/api/saas/support');
             const data = await res.json();
             if (res.ok) setTickets(data.tickets || []);
-        } catch (error) {
+        } catch (_err) {
             toast.error('Error al cargar tickets');
         } finally {
             setLoading(false);
@@ -65,7 +63,7 @@ export default function GymAdminSupportPage() {
             const res = await fetch(`/api/saas/support/${ticketId}/messages`);
             const data = await res.json();
             if (res.ok) setMessages(data.messages || []);
-        } catch (error) {
+        } catch (_err) {
             toast.error('Error al cargar mensajes');
         }
     };
@@ -90,7 +88,7 @@ export default function GymAdminSupportPage() {
                 setNewTicket({ asunto: '', prioridad: 'media', mensaje: '' });
                 fetchTickets();
             }
-        } catch (error) {
+        } catch (_err) {
             toast.error('Error al crear ticket');
         } finally {
             setCreating(false);
@@ -112,7 +110,7 @@ export default function GymAdminSupportPage() {
                 setReply('');
                 fetchMessages(selectedTicket.id);
             }
-        } catch (error) {
+        } catch (_err) {
             toast.error('Error al enviar respuesta');
         } finally {
             setSending(false);
@@ -163,8 +161,8 @@ export default function GymAdminSupportPage() {
                                 key={ticket.id}
                                 onClick={() => handleSelectTicket(ticket)}
                                 className={`w-full text-left p-5 rounded-2xl border transition-all ${selectedTicket?.id === ticket.id
-                                        ? 'bg-red-600 border-red-500 shadow-xl'
-                                        : 'bg-white/2 border-white/10 hover:bg-white/5'
+                                    ? 'bg-red-600 border-red-500 shadow-xl'
+                                    : 'bg-white/2 border-white/10 hover:bg-white/5'
                                     }`}
                             >
                                 <div className="flex justify-between items-start mb-2">
@@ -208,8 +206,8 @@ export default function GymAdminSupportPage() {
                                     {messages.map((msg) => (
                                         <div key={msg.id} className={`flex ${msg.es_del_staff_saas ? 'justify-start' : 'justify-end'}`}>
                                             <div className={`max-w-[80%] p-5 shadow-2xl ${msg.es_del_staff_saas
-                                                    ? 'bg-white text-black rounded-r-3xl rounded-tl-3xl border border-white/10'
-                                                    : 'bg-red-600 text-white rounded-l-3xl rounded-tr-3xl shadow-red-900/10'
+                                                ? 'bg-white text-black rounded-r-3xl rounded-tl-3xl border border-white/10'
+                                                : 'bg-red-600 text-white rounded-l-3xl rounded-tr-3xl shadow-red-900/10'
                                                 }`}>
                                                 <p className="text-sm font-medium leading-relaxed">{msg.mensaje}</p>
                                                 <div className={`flex justify-between items-center mt-3 opacity-60 text-[9px] font-black uppercase tracking-widest`}>

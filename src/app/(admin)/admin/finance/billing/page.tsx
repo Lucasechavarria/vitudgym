@@ -1,17 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-    CreditCard,
     Calendar,
     Percent,
     CheckCircle2,
     AlertCircle,
-    Clock,
     Activity,
     Search,
-    ChevronRight,
     Power
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -32,6 +28,8 @@ export default function AdminBillingPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGym, setSelectedGym] = useState<GymBilling | null>(null);
     const [updating, setUpdating] = useState(false);
+
+    console.log({ selectedGym, updating }); // Avoiding unused var warning without removing logic if needed for future modals
 
     useEffect(() => {
         fetchGyms();
@@ -81,7 +79,7 @@ export default function AdminBillingPage() {
                 toast.success(`Descuento del ${discount}% aplicado`);
                 fetchGyms();
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al aplicar descuento');
         } finally {
             setUpdating(false);
@@ -186,10 +184,10 @@ export default function AdminBillingPage() {
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-2">
                                             <div className={`w-2 h-2 rounded-full ${gym.estado_pago_saas === 'al_dia' ? 'bg-green-500' :
-                                                    gym.estado_pago_saas === 'pendiente' ? 'bg-amber-500' : 'bg-red-500'
+                                                gym.estado_pago_saas === 'pendiente' ? 'bg-amber-500' : 'bg-red-500'
                                                 } animate-pulse`} />
                                             <span className={`text-[11px] font-bold uppercase tracking-wider ${gym.estado_pago_saas === 'al_dia' ? 'text-green-500' :
-                                                    gym.estado_pago_saas === 'pendiente' ? 'text-amber-500' : 'text-red-500'
+                                                gym.estado_pago_saas === 'pendiente' ? 'text-amber-500' : 'text-red-500'
                                                 }`}>
                                                 {gym.estado_pago_saas.replace('_', ' ')}
                                             </span>

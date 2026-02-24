@@ -24,6 +24,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
         { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
         { href: '/admin/settings/branding', label: 'Personalización', icon: '🎨' },
+        { href: '/admin/settings/landing', label: 'Marketing', icon: '🚀' },
         { href: '/admin/settings/support', label: 'Soporte Técnico', icon: '🎧' },
         { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
     ],

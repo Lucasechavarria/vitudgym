@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
     Palette,
     Image as ImageIcon,
-    Layers,
     Save,
     RefreshCcw,
     Layout
@@ -13,7 +11,6 @@ import {
 import toast from 'react-hot-toast';
 
 export default function BrandingSettingsPage() {
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [config, setConfig] = useState({
         nombre: '',
@@ -43,10 +40,8 @@ export default function BrandingSettingsPage() {
                     config_visual: data.gym.config_visual || { dark_mode: true, border_radius: '1rem' }
                 });
             }
-        } catch (error) {
-            console.error('Error fetching branding:', error);
-        } finally {
-            setLoading(false);
+        } catch (_error) {
+            console.error('Error fetching branding:', _error);
         }
     };
 
@@ -61,11 +56,11 @@ export default function BrandingSettingsPage() {
             });
             if (res.ok) {
                 toast.success('¡Identidad visual actualizada!');
-                window.location.reload(); // Reload to apply CSS variables if implemented
+                window.location.reload();
             } else {
                 toast.error('Error al guardar cambios');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error de red');
         } finally {
             setSaving(false);
