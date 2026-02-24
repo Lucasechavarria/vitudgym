@@ -31,11 +31,23 @@ export default function UsersPage() {
     const [coaches, setCoaches] = useState<Coach[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [limits, setLimits] = useState<any>(null);
 
     useEffect(() => {
         fetchUsers();
         fetchCoaches();
+        fetchLimits();
     }, []);
+
+    const fetchLimits = async () => {
+        try {
+            const res = await fetch('/api/admin/gym/info');
+            const data = await res.json();
+            if (res.ok) setLimits(data.limits);
+        } catch (error) {
+            console.error('Error fetching limits:', error);
+        }
+    };
 
     const fetchCoaches = async () => {
         try {
@@ -237,6 +249,30 @@ export default function UsersPage() {
                     </select>
                 </div>
             </div>
+
+            {limits && (
+                <div className={`p-4 rounded-2xl flex items-center justify-between border ${!limits.canAddUser ? 'bg-red-500/10 border-red-500/20' : 'bg-purple-500/5 border-purple-500/10'}`}>
+                    <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${!limits.canAddUser ? 'bg-red-500/20' : 'bg-purple-500/20'}`}>
+                            {!limits.canAddUser ? '⚠️' : '📊'}
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-white uppercase tracking-tight">Capacidad de Socios</p>
+                            <p className="text-[10px] text-gray-500">
+                                Has registrado <span className="text-white font-bold">{limits.currentUsers}</span> de <span className="text-white font-bold">{limits.limitUsers}</span> alumnos permitidos en tu plan.
+                            </p>
+                        </div>
+                    </div>
+                    {!limits.canAddUser && (
+                        <button
+                            onClick={() => window.location.href = '/admin/settings'}
+                            className="px-4 py-2 bg-red-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-red-700 transition-all"
+                        >
+                            Subir de Plan
+                        </button>
+                    )}
+                </div>
+            )}
 
             <div className="bg-[#2c2c2e] rounded-2xl border border-[#3a3a3c] overflow-hidden">
                 <div className="overflow-x-auto">

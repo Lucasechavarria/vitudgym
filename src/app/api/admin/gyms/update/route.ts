@@ -7,7 +7,7 @@ export async function POST(request: Request) {
         const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
-        const { id, nombre, slug, es_activo, logo_url } = await request.json();
+        const { id, nombre, slug, es_activo, logo_url, plan_id, estado_pago_saas } = await request.json();
 
         if (!id) {
             return NextResponse.json({ error: 'ID de gimnasio requerido' }, { status: 400 });
@@ -21,7 +21,9 @@ export async function POST(request: Request) {
                 nombre,
                 slug,
                 es_activo,
-                logo_url
+                logo_url,
+                plan_id,
+                estado_pago_saas
             })
             .eq('id', id)
             .select()

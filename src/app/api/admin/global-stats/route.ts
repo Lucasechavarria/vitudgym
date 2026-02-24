@@ -60,6 +60,13 @@ export async function GET(request: Request) {
             .neq('estado_pago_saas', 'active')
             .limit(3);
 
+        // 6. Obtener métricas de Churn (Histórico últimos 6 meses)
+        const { data: churnData } = await adminClient
+            .from('saas_metrics')
+            .select('fecha, churn_gyms_mes')
+            .order('fecha', { ascending: true })
+            .limit(6);
+
         return NextResponse.json({
             stats: {
                 gyms: totalGyms || 0,
@@ -83,7 +90,8 @@ export async function GET(request: Request) {
                     message: `Gimnasio "${g.nombre}" tiene estado: ${g.estado_pago_saas}`,
                     link: `/admin/finance/metrics`
                 }))
-            ].slice(0, 5)
+            ].slice(0, 5),
+            churnHistory: churnData || []
         });
 
     } catch (error: any) {

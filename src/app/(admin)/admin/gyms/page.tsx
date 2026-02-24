@@ -28,6 +28,8 @@ interface Gimnasio {
     es_activo: boolean;
     sucursales: Sucursal[];
     creado_en: string;
+    plan_id?: string;
+    estado_pago_saas?: string;
 }
 
 export default function GymsManagementPage() {
@@ -58,12 +60,27 @@ export default function GymsManagementPage() {
         nombre: '',
         slug: '',
         es_activo: true,
-        logo_url: ''
+        logo_url: '',
+        plan_id: '',
+        estado_pago_saas: ''
     });
+
+    const [plans, setPlans] = useState<any[]>([]);
 
     useEffect(() => {
         fetchGyms();
+        fetchPlans();
     }, []);
+
+    const fetchPlans = async () => {
+        try {
+            const res = await fetch('/api/admin/plans/list');
+            const data = await res.json();
+            if (res.ok) setPlans(data.plans || []);
+        } catch (error) {
+            console.error('Error fetching plans:', error);
+        }
+    };
 
     const fetchGyms = async () => {
         try {
@@ -164,7 +181,9 @@ export default function GymsManagementPage() {
             nombre: gym.nombre,
             slug: gym.slug,
             es_activo: gym.es_activo,
-            logo_url: gym.logo_url || ''
+            logo_url: gym.logo_url || '',
+            plan_id: gym.plan_id || '',
+            estado_pago_saas: gym.estado_pago_saas || 'active'
         });
         setShowConfigModal(true);
     };
@@ -231,16 +250,46 @@ export default function GymsManagementPage() {
 
                 {/* Modal de Configuración Global */}
                 {showConfigModal && (
-                    <Modal onClose={() => setShowConfigModal(false)} title="Configuración Global">
+                    <Modal onClose={() => setShowConfigModal(false)} title="Configuración SaaS">
                         <form onSubmit={handleUpdateGym} className="space-y-4">
                             <Input label="Nombre Comercial" value={configData.nombre} onChange={v => setConfigData({ ...configData, nombre: v })} />
                             <Input label="Slug" value={configData.slug} onChange={v => setConfigData({ ...configData, slug: v })} />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Plan Suscripción</label>
+                                    <select
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
+                                        value={configData.plan_id}
+                                        onChange={e => setConfigData({ ...configData, plan_id: e.target.value })}
+                                    >
+                                        <option value="" className="bg-[#1c1c1e]">Sin Plan</option>
+                                        {plans.map(p => (
+                                            <option key={p.id} value={p.id} className="bg-[#1c1c1e]">{p.nombre} (${p.precio_mensual})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Estado Cobro</label>
+                                    <select
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
+                                        value={configData.estado_pago_saas}
+                                        onChange={e => setConfigData({ ...configData, estado_pago_saas: e.target.value })}
+                                    >
+                                        <option value="active" className="bg-[#1c1c1e] text-green-500">Activo (Al día)</option>
+                                        <option value="past_due" className="bg-[#1c1c1e] text-amber-500">Deuda (Past Due)</option>
+                                        <option value="unpaid" className="bg-[#1c1c1e] text-red-500">Impago (Bloqueando)</option>
+                                        <option value="trialing" className="bg-[#1c1c1e] text-blue-500">Periodo de Prueba</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <Input label="Logo URL" value={configData.logo_url} onChange={v => setConfigData({ ...configData, logo_url: v })} />
 
                             <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
                                 <div className="flex-1">
                                     <p className="text-xs font-black uppercase text-white">Estado del Gimnasio</p>
-                                    <p className="text-[10px] text-gray-500 italic">Si se desactiva, ningún usuario podrá acceder a este tenant.</p>
+                                    <p className="text-[10px] text-gray-500 italic">Si se desactiva, ningún usuario podrá acceder.</p>
                                 </div>
                                 <button
                                     type="button"
@@ -250,6 +299,33 @@ export default function GymsManagementPage() {
                                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${configData.es_activo ? 'right-1' : 'left-1'}`} />
                                 </button>
                             </div>
+
+                            {/* Zona Peligrosa / Acciones Rápidas */}
+                            {configData.estado_pago_saas !== 'active' && (
+                                <div className="p-4 bg-red-600/10 border border-red-500/20 rounded-2xl">
+                                    <p className="text-[10px] font-black text-red-500 uppercase mb-2">Acción de Emergencia</p>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!selectedGym) return;
+                                            const res = await fetch('/api/admin/gyms/notify-urgent', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    gymId: selectedGym.id,
+                                                    titulo: 'Problema con tu suscripción',
+                                                    mensaje: 'Tu cuenta presenta un problema de cobro. Por favor regulariza tu situación para evitar la suspensión del servicio.'
+                                                })
+                                            });
+                                            if (res.ok) toast.success('Notificación enviada');
+                                            else toast.error('Error al enviar');
+                                        }}
+                                        className="w-full py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition-all"
+                                    >
+                                        ⚠️ Enviar Notificación de Urgencia
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="flex gap-4 pt-4">
                                 <ModalButton type="button" onClick={() => setShowConfigModal(false)} variant="secondary">Cerrar</ModalButton>

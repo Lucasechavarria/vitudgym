@@ -42,6 +42,7 @@ export default function SuperAdminOverview() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [activities, setActivities] = useState<Activity[]>([]);
     const [alerts, setAlerts] = useState<Alert[]>([]);
+    const [churnData, setChurnData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -56,6 +57,7 @@ export default function SuperAdminOverview() {
                 setStats(data.stats);
                 setActivities(data.recentActivity);
                 setAlerts(data.alerts || []);
+                setChurnData(data.churnHistory || []);
             }
         } catch (error) {
             console.error('Error fetching global stats:', error);
@@ -148,6 +150,40 @@ export default function SuperAdminOverview() {
 
                 {/* SaaS Performance & Status */}
                 <div className="space-y-6">
+                    <div className="bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
+                        <h3 className="text-lg font-black text-white italic uppercase mb-6 tracking-tight flex items-center gap-2">
+                            <TrendingUp size={18} className="text-purple-500" /> Churn Global
+                        </h3>
+                        <div className="flex items-end gap-3 h-32 mb-4">
+                            {churnData.length === 0 ? (
+                                <p className="text-gray-600 text-xs italic w-full text-center pb-10">Sin datos históricos</p>
+                            ) : (
+                                churnData.map((d, i) => (
+                                    <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                                        <div className="w-full bg-white/5 rounded-t-lg relative overflow-hidden h-full flex items-end">
+                                            <motion.div
+                                                initial={{ height: 0 }}
+                                                animate={{ height: `${(d.churn_gyms_mes || 0) * 10}%` }}
+                                                className="w-full bg-purple-500/40 group-hover:bg-purple-500 transition-all rounded-t-sm"
+                                            />
+                                            {d.churn_gyms_mes > 0 && (
+                                                <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {d.churn_gyms_mes}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="text-[8px] font-black text-gray-600 uppercase">
+                                            {new Date(d.fecha).toLocaleDateString('es-AR', { month: 'short' })}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        <p className="text-[10px] text-gray-500 leading-tight">
+                            Total de gimnasios que se dieron de baja en los últimos 6 meses.
+                        </p>
+                    </div>
+
                     <div className="bg-gradient-to-br from-red-600/10 to-transparent border border-red-500/20 rounded-[2.5rem] p-8">
                         <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight">Rendimiento Red</h3>
                         <div className="space-y-6">
