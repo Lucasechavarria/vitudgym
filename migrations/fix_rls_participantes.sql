@@ -1,6 +1,7 @@
 -- ============================================
--- SCRIPT: FIX RLS PARTICIPANTES_DESAFIO
+-- SCRIPT: FIX RLS PARTICIPANTES_DESAFIO (Versión Corregida)
 -- Descripción: Asegura que los alumnos puedan unirse y ver su estado
+--              Usa la columna 'rol' en lugar de 'role'
 -- Fecha: 2026-02-23
 -- ============================================
 
@@ -15,6 +16,9 @@ DROP POLICY IF EXISTS "Usuarios pueden unirse a desafíos" ON public.participant
 DROP POLICY IF EXISTS "Usuarios pueden actualizar sus participaciones" ON public.participantes_desafio;
 DROP POLICY IF EXISTS "Admins pueden ver todas las participaciones" ON public.participantes_desafio;
 DROP POLICY IF EXISTS "Admins pueden actualizar todas las participaciones" ON public.participantes_desafio;
+DROP POLICY IF EXISTS "participantes_select_policy" ON public.participantes_desafio;
+DROP POLICY IF EXISTS "participantes_insert_policy" ON public.participantes_desafio;
+DROP POLICY IF EXISTS "participantes_update_policy" ON public.participantes_desafio;
 
 -- 3. Crear nuevas políticas
 
@@ -25,7 +29,7 @@ USING (
   usuario_id = auth.uid()
   OR EXISTS (
     SELECT 1 FROM public.perfiles
-    WHERE id = auth.uid() AND role IN ('admin', 'superadmin', 'coach')
+    WHERE id = auth.uid() AND rol IN ('admin', 'superadmin', 'coach')
   )
 );
 
@@ -43,14 +47,14 @@ USING (
   usuario_id = auth.uid()
   OR EXISTS (
     SELECT 1 FROM public.perfiles
-    WHERE id = auth.uid() AND role IN ('admin', 'superadmin', 'coach')
+    WHERE id = auth.uid() AND rol IN ('admin', 'superadmin', 'coach')
   )
 )
 WITH CHECK (
   usuario_id = auth.uid()
   OR EXISTS (
     SELECT 1 FROM public.perfiles
-    WHERE id = auth.uid() AND role IN ('admin', 'superadmin', 'coach')
+    WHERE id = auth.uid() AND rol IN ('admin', 'superadmin', 'coach')
   )
 );
 

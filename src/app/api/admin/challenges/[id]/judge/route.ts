@@ -14,14 +14,17 @@ export async function PUT(
         if (error) return error;
 
         const { id: challengeId } = await params;
-        const { winnerId, status } = await request.json();
+        const { winnerId, status, endDate } = await request.json();
 
         // 1. Actualizar estado del desafío (columnas en español)
         const updateData: any = { estado: status || 'finished' };
 
-        // Si estamos reiniciando, limpiamos el ganador
+        // Si estamos reiniciando, limpiamos el ganador y actualizamos fecha si viene
         if (status === 'active') {
             updateData.ganador_id = null;
+            if (endDate) {
+                updateData.fecha_fin = new Date(endDate).toISOString();
+            }
         }
 
         const { error: challengeError } = await supabase!

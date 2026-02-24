@@ -18,6 +18,7 @@ interface Challenge {
     type: string;
     status: string;
     points_reward: number; // Updated name
+    fecha_fin?: string;
     participants_count?: number;
     participants?: Participant[];
 }
@@ -97,18 +98,24 @@ export default function AdminChallengesPage() {
         }
     };
 
-    const handleJudge = async (challengeId: string, winnerId: string, status: string = 'finished') => {
+    const handleJudge = async (challengeId: string, winnerId: string, status: string = 'finished', endDate?: string) => {
         const confirmMsg = status === 'active'
             ? '¿Quieres reiniciar este desafío? El ganador actual será borrado y todos los participantes podrán competir de nuevo.'
             : (winnerId ? '¿Confirmar ganador y otorgar puntos?' : '¿Finalizar este desafío sin un ganador?');
 
         if (!confirm(confirmMsg)) return;
 
+        let finalEndDate = endDate;
+        if (status === 'active') {
+            const newDate = prompt('Ingresa la nueva fecha de finalización (AAAA-MM-DD):', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+            if (newDate) finalEndDate = newDate;
+        }
+
         try {
             const res = await fetch(`/api/admin/challenges/${challengeId}/judge`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ winnerId, status })
+                body: JSON.stringify({ winnerId, status, endDate: finalEndDate })
             });
 
             if (res.ok) {
@@ -207,6 +214,9 @@ export default function AdminChallengesPage() {
                                 <h2 className="text-2xl font-bold text-white">
                                     {selectedChallenge.status === 'finished' ? 'Resultados del Desafío' : 'Mesa de Arbitraje'}: {selectedChallenge.title}
                                 </h2>
+                                <div className="text-right">
+                                    <p className="text-[10px] text-gray-500 font-mono">FIN: {selectedChallenge.fecha_fin ? new Date(selectedChallenge.fecha_fin).toLocaleDateString() : 'SIN FECHA'}</p>
+                                </div>
                                 {selectedChallenge.status === 'finished' && (
                                     <span className="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-black uppercase">Finalizado</span>
                                 )}

@@ -72,6 +72,7 @@ export async function GET(request: Request) {
             type: d.tipo,
             status: d.estado,
             points_reward: d.puntos_recompensa,
+            fecha_fin: d.fecha_fin,
             participants_count: d.participantes?.length ?? 0,
             participants: (d.participantes || []).map((p: any) => ({
                 user_id: p.usuario_id,
