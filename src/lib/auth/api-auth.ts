@@ -113,7 +113,8 @@ export async function requireRole(
         const roleMapping: Record<string, string> = {
             'profesor': 'coach',
             'miembro': 'member',
-            'administrador': 'admin'
+            'administrador': 'admin',
+            'dueño': 'superadmin'
         };
 
         const rawRole = (role || '').toLowerCase();

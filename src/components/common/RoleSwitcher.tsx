@@ -17,11 +17,12 @@ export default function RoleSwitcher({ currentRole, profileRole }: { currentRole
 
     // If profileRole is admin/coach/superadmin, can always switch
     const effectiveRole = profileRole || currentRole;
-    const canSwitchRoles = ['admin', 'coach'].includes(effectiveRole);
+    const canSwitchRoles = ['admin', 'coach', 'superadmin'].includes(effectiveRole);
 
     if (!canSwitchRoles) return null;
 
     const roles: Role[] = [
+        { id: 'superadmin', name: 'Super Admin', icon: '⚡', path: '/admin' },
         { id: 'admin', name: 'Admin', icon: '⚙️', path: '/admin' },
         { id: 'coach', name: 'Profesor', icon: '🏋️', path: '/coach' },
         { id: 'member', name: 'Alumno', icon: '🎯', path: '/dashboard' },

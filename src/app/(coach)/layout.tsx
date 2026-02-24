@@ -38,7 +38,7 @@ export default async function CoachLayout({
         .eq('id', user.id)
         .single();
 
-    const allowedRoles = [ROLES.COACH, ROLES.ADMIN];
+    const allowedRoles = [ROLES.COACH, ROLES.ADMIN, ROLES.SUPERADMIN];
     if (!profile || !allowedRoles.includes(profile.rol as any)) {
         return (
             <div className="min-h-screen bg-black text-white p-10 flex flex-col items-center justify-center">

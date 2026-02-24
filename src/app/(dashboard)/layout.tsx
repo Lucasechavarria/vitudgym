@@ -32,7 +32,7 @@ export default async function DashboardLayout({
 
     const { data: profile } = await supabase
         .from('perfiles')
-        .select('role, full_name')
+        .select('rol, nombre_completo')
         .eq('id', user.id)
         .single();
 
@@ -43,7 +43,7 @@ export default async function DashboardLayout({
         <div className="min-h-screen bg-[#0a0a0a] text-white flex relative overflow-hidden">
             <div className="aurora-bg" />
 
-            <UniversalLayoutWrapper profileName={profile?.full_name || 'Usuario'} profileRole={profile?.role || 'user'}>
+            <UniversalLayoutWrapper profileName={profile?.nombre_completo || 'Usuario'} profileRole={profile?.rol || 'member'}>
                 {children}
             </UniversalLayoutWrapper>
 

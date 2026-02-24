@@ -89,8 +89,9 @@ export function useAuth() {
         loading,
         signOut,
         isAuthenticated: !!user,
-        isAdmin: userRole === 'admin',
-        isCoach: userRole === 'coach' || userRole === 'admin',
+        isSuperAdmin: userRole === 'superadmin',
+        isAdmin: userRole === 'admin' || userRole === 'superadmin',
+        isCoach: userRole === 'coach' || userRole === 'admin' || userRole === 'superadmin',
         userRole,
     };
 }

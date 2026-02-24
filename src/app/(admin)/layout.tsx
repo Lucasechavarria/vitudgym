@@ -38,7 +38,7 @@ export default async function AdminLayout({
         .eq('id', user.id)
         .single();
 
-    if (!profile || ![ROLES.ADMIN].includes(profile.rol as any)) {
+    if (!profile || ![ROLES.ADMIN, ROLES.SUPERADMIN].includes(profile.rol as any)) {
         return (
             <div className="min-h-screen bg-black text-white p-10 flex flex-col items-center justify-center">
                 <h1 className="text-3xl font-bold text-red-500 mb-4">Acceso Denegado</h1>

@@ -16,7 +16,8 @@ export const ROUTES = {
 export const ROLES = {
     MEMBER: 'member',
     COACH: 'coach',
-    ADMIN: 'admin'
+    ADMIN: 'admin',
+    SUPERADMIN: 'superadmin'
 } as const;
 
 export const PAYMENT_STATUS = {

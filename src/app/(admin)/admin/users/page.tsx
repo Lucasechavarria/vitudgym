@@ -229,9 +229,10 @@ export default function UsersPage() {
                         className="px-4 py-2 bg-[#1c1c1e] border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                     >
                         <option value="all">Todos los roles</option>
-                        <option value="user">Usuarios</option>
+                        <option value="member">Miembros</option>
                         <option value="coach">Profesores</option>
                         <option value="admin">Admins</option>
+                        <option value="superadmin">Super Admins</option>
                     </select>
                 </div>
             </div>
@@ -272,10 +273,11 @@ export default function UsersPage() {
                                             <option value="member">Miembro</option>
                                             <option value="coach">Profesor</option>
                                             <option value="admin">Admin</option>
+                                            <option value="superadmin">Super Admin</option>
                                         </select>
                                     </td>
                                     <td className="px-6 py-4">
-                                        {['admin', 'coach'].includes(user.role?.toLowerCase()) ? (
+                                        {['admin', 'coach', 'superadmin'].includes(user.role?.toLowerCase()) ? (
                                             <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30">
                                                 🛡️ Staff
                                             </span>
@@ -295,7 +297,7 @@ export default function UsersPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {!['admin', 'coach'].includes(user.role?.toLowerCase()) ? (
+                                        {!['admin', 'coach', 'superadmin'].includes(user.role?.toLowerCase()) ? (
                                             <select
                                                 className="bg-[#1c1c1e] border border-[#3a3a3c] rounded px-3 py-1.5 text-xs text-gray-400 focus:border-purple-500 outline-none hover:bg-[#2c2c2e] transition-colors max-w-[150px]"
                                                 value={user.assigned_coach_id || ""}
@@ -324,7 +326,7 @@ export default function UsersPage() {
                                             </button>
 
                                             {/* Acciones para miembros del staff */}
-                                            {['admin', 'coach'].includes(user.role?.toLowerCase()) && (
+                                            {['admin', 'coach', 'superadmin'].includes(user.role?.toLowerCase()) && (
                                                 <button
                                                     onClick={() => handleRemoveFromStaff(user.id)}
                                                     className="px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg text-xs font-bold border border-red-600/30 transition-all"

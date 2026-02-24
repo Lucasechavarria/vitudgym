@@ -25,6 +25,18 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
         { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
     ],
+    superadmin: [
+        { href: '/admin', label: 'Super Control', icon: '⚡' },
+        { href: '/admin/users', label: 'Usuarios Globales', icon: '👥' },
+        { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
+        { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
+        { href: '/admin/equipment', label: 'Equipamiento', icon: '🔧' },
+        { href: '/coach/routines', label: 'Rutinas', icon: '💪' },
+        { href: '/admin/nutrition', label: 'Nutrición', icon: '🥗' },
+        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
+        { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
+        { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
+    ],
     coach: [
         { href: '/coach', label: 'Dashboard', icon: '🏠' },
         { href: '/coach/messages', label: 'Mensajes', icon: '💬' },
@@ -51,6 +63,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
 };
 
 const ROLE_COLORS: Record<string, string> = {
+    superadmin: 'red',
     admin: 'purple',
     coach: 'orange',
     member: 'blue',
