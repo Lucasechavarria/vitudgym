@@ -10,7 +10,7 @@ interface ProfileData {
     email: string;
     telefono: string;
     fecha_nacimiento: string;
-    gender: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+    genero: 'male' | 'female' | 'other' | 'prefer_not_to_say';
     contacto_emergencia_nombre: string;
     contacto_emergencia_telefono: string;
 }
@@ -26,7 +26,7 @@ export default function StudentProfilePage() {
         email: '',
         telefono: '',
         fecha_nacimiento: '',
-        gender: 'prefer_not_to_say',
+        genero: 'prefer_not_to_say',
         contacto_emergencia_nombre: '',
         contacto_emergencia_telefono: ''
     });
@@ -53,7 +53,7 @@ export default function StudentProfilePage() {
                 email: user?.email || '',
                 telefono: profile.telefono || '',
                 fecha_nacimiento: profile.fecha_nacimiento || '',
-                gender: (profile.gender as any) || 'prefer_not_to_say',
+                genero: (profile.genero as any) || 'prefer_not_to_say',
                 contacto_emergencia_nombre: emergency.nombre_completo || '',
                 contacto_emergencia_telefono: emergency.telefono || ''
             });
@@ -76,7 +76,7 @@ export default function StudentProfilePage() {
                 nombre_completo: profileData.nombre_completo,
                 telefono: profileData.telefono,
                 fecha_nacimiento: profileData.fecha_nacimiento,
-                gender: profileData.gender,
+                genero: profileData.genero,
                 contacto_emergencia: {
                     nombre_completo: profileData.contacto_emergencia_nombre,
                     telefono: profileData.contacto_emergencia_telefono
@@ -226,8 +226,8 @@ export default function StudentProfilePage() {
                                         Género
                                     </label>
                                     <select
-                                        value={profileData.gender}
-                                        onChange={(e) => setProfileData({ ...profileData, gender: e.target.value as any })}
+                                        value={profileData.genero}
+                                        onChange={(e) => setProfileData({ ...profileData, genero: e.target.value as any })}
                                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="male">Masculino</option>

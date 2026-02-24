@@ -32,7 +32,7 @@ type MedicalInfo = {
 type RegistrationFormData = {
     // Personal
     dni: string;
-    gender: "male" | "female" | "other" | "prefer_not_to_say";
+    genero: "male" | "female" | "other" | "prefer_not_to_say";
     phone: string;
     address: string;
     city: string;
@@ -82,7 +82,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 .from('perfiles') as any)
                 .update({
                     dni: data.dni,
-                    gender: data.gender,
+                    genero: data.genero,
                     telefono: data.phone, // phone -> telefono
                     direccion: data.address, // address -> direccion
                     ciudad: data.city, // city -> ciudad
@@ -132,7 +132,7 @@ export default function RegistrationForm({ userId, onComplete }: { userId: strin
                 <div>
                     <label className="block text-sm text-gray-400 mb-1">Género</label>
                     <select
-                        {...register('gender', { required: 'Seleccione una opción' })}
+                        {...register('genero', { required: 'Seleccione una opción' })}
                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-orange-500 outline-none"
                     >
                         <option value="" className="bg-gray-800">Seleccionar...</option>

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { checkGymLimits } from '@/lib/saas/limits';
 
 export async function POST(request: Request) {
     try {
-        const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
+        const { error: authError, user } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
         if (authError) return authError;
 
         const { gymId, nombre, direccion } = await request.json();
@@ -14,6 +15,16 @@ export async function POST(request: Request) {
         }
 
         const supabase = createAdminClient();
+
+        // 1. Verificar límites del plan
+        const limits = await checkGymLimits(gymId);
+        if (!limits.canAddBranch) {
+            return NextResponse.json({
+                error: 'Límite de sedes alcanzado',
+                details: `Tu plan actual permite hasta ${limits.limitBranches} sedes. Por favor, mejora tu plan en Configuración > Facturación.`,
+                reason: limits.reason
+            }, { status: 403 });
+        }
 
         const { data: sucursal, error: sucursalError } = await supabase
             .from('sucursales')

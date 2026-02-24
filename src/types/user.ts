@@ -47,7 +47,7 @@ export interface SupabaseUserProfile {
     direccion?: string | null;
     ciudad?: string | null;
     fecha_nacimiento?: string | null;
-    gender?: string | null;
+    genero?: string | null;
     informacion_medica?: any | null;
     contacto_emergencia?: any | null;
     exencion_aceptada?: boolean;

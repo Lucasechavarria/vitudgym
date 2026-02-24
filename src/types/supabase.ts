@@ -1085,7 +1085,7 @@ export type Database = {
                     fecha_fin_membresia: string | null
                     fecha_inicio_membresia: string | null
                     fecha_nacimiento: string | null
-                    gender: string | null
+                    genero: string | null
                     gimnasio_id: string | null
                     id: string
                     informacion_medica: Json | null
@@ -1118,7 +1118,7 @@ export type Database = {
                     fecha_fin_membresia?: string | null
                     fecha_inicio_membresia?: string | null
                     fecha_nacimiento?: string | null
-                    gender?: string | null
+                    genero?: string | null
                     gimnasio_id?: string | null
                     id: string
                     informacion_medica?: Json | null
@@ -1151,7 +1151,7 @@ export type Database = {
                     fecha_fin_membresia?: string | null
                     fecha_inicio_membresia?: string | null
                     fecha_nacimiento?: string | null
-                    gender?: string | null
+                    genero?: string | null
                     gimnasio_id?: string | null
                     id?: string
                     informacion_medica?: Json | null

@@ -82,13 +82,39 @@ export async function POST(request: Request) {
             if (historyError) console.error('Error registrando historial SaaS:', historyError);
 
             // C. Auditoría
-            await supabase.from('auditoria_global').insert({
-                accion: 'pago_saas_aprobado',
-                entidad_tipo: 'gimnasio',
-                entidad_id: gymId,
-                gimnasio_id: gymId,
-                detalles: { paymentId, amount: payment.transaction_amount }
-            });
+            // D. Actualizar Métricas SaaS (MRR e Ingresos)
+            const hoy = new Date().toISOString().split('T')[0];
+            try {
+                // @ts-ignore - RPC might not be in types yet
+                await (supabase.rpc as any)('update_saas_metrics_on_payment', {
+                    p_amount: payment.transaction_amount,
+                    p_fecha: hoy
+                });
+            } catch (e) {
+                console.warn('RPC update_saas_metrics_on_payment no disponible, usando fallback manual');
+            }
+
+            // Fallback (UPSERT manual)
+            const { data: currentMetrics } = await supabase
+                .from('saas_metrics')
+                .select('ingresos_totales_mes')
+                .eq('fecha', hoy)
+                .maybeSingle();
+
+            if (!currentMetrics) {
+                await supabase.from('saas_metrics').insert({
+                    fecha: hoy,
+                    ingresos_totales_mes: payment.transaction_amount,
+                    mrr: payment.transaction_amount
+                });
+            } else {
+                await supabase
+                    .from('saas_metrics')
+                    .update({
+                        ingresos_totales_mes: (currentMetrics.ingresos_totales_mes || 0) + payment.transaction_amount
+                    })
+                    .eq('fecha', hoy);
+            }
 
         } else if (payment.status === 'rejected' || payment.status === 'cancelled') {
             // Opcional: Notificar al admin del gimnasio o marcar como deuda si ya venció

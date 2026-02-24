@@ -76,7 +76,7 @@ export async function GET() {
         // 5. Fetch Profile Status
         const { data: profile } = await supabase
             .from('perfiles')
-            .select('exencion_aceptada, nombre_completo, url_avatar, fecha_fin_membresia, gender, informacion_medica')
+            .select('exencion_aceptada, nombre_completo, url_avatar, fecha_fin_membresia, genero, informacion_medica')
             .eq('id', user.id)
             .single();
 

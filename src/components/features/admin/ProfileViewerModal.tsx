@@ -97,7 +97,7 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Género</p>
                                             <p className="text-white font-medium capitalize">
-                                                {user.gender === 'male' ? 'Masculino' : user.gender === 'female' ? 'Femenino' : user.gender === 'other' ? 'Otro' : user.gender === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
+                                                {user.genero === 'male' ? 'Masculino' : user.genero === 'female' ? 'Femenino' : user.genero === 'other' ? 'Otro' : user.genero === 'prefer_not_to_say' ? 'Prefiero no decir' : '--'}
                                             </p>
                                         </div>
                                         <div>
