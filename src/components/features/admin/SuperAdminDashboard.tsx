@@ -11,8 +11,16 @@ import {
     CreditCard,
     Zap,
     ChevronRight,
-    Search
+    Search,
+    PlusCircle,
+    LayoutDashboard,
+    Ticket,
+    Settings,
+    Gem,
+    ArrowUpRight
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Stats {
     gyms: number;
@@ -44,6 +52,7 @@ export default function SuperAdminOverview() {
     const [alerts, setAlerts] = useState<Alert[]>([]);
     const [churnData, setChurnData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         fetchGlobalData();
@@ -77,10 +86,17 @@ export default function SuperAdminOverview() {
     }
 
     const cards = [
-        { title: 'Gimnasios en Red', value: stats?.gyms || 0, icon: <Building2 />, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-        { title: 'Usuarios Totales', value: stats?.users || 0, icon: <Users />, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-        { title: 'Sedes Activas', value: stats?.branches || 0, icon: <Zap />, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-        { title: 'Ingresos Netos', value: `$${stats?.revenue.toLocaleString('es-AR')}`, icon: <TrendingUp />, color: 'text-green-500', bg: 'bg-green-500/10' },
+        { title: 'Gimnasios en Red', value: stats?.gyms || 0, icon: <Building2 />, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/50', href: '/admin/gyms' },
+        { title: 'Usuarios Totales', value: stats?.users || 0, icon: <Users />, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/50', href: '/admin/users' },
+        { title: 'Sedes Activas', value: stats?.branches || 0, icon: <Zap />, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'hover:border-amber-500/50', href: '/admin/gyms' },
+        { title: 'Ingresos Netos', value: `$${stats?.revenue.toLocaleString('es-AR')}`, icon: <TrendingUp />, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/50', href: '/admin/finance' },
+    ];
+
+    const quickActions = [
+        { label: 'Nuevo Gimnasio', icon: <PlusCircle size={20} />, href: '/admin/gyms?action=new', color: 'from-blue-600 to-cyan-500' },
+        { label: 'Planes SaaS', icon: <Gem size={20} />, href: '/admin/plans', color: 'from-purple-600 to-pink-500' },
+        { label: 'Soporte Global', icon: <Ticket size={20} />, href: '/admin/reports/tickets', color: 'from-orange-600 to-red-500' },
+        { label: 'Configuración', icon: <Settings size={20} />, href: '/admin/settings', color: 'from-gray-600 to-slate-500' },
     ];
 
     return (
@@ -93,15 +109,52 @@ export default function SuperAdminOverview() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="bg-[#1c1c1e] p-6 rounded-[2rem] border border-white/5 group hover:border-red-500/30 transition-all cursor-default"
+                        onClick={() => router.push(card.href)}
+                        className={`bg-[#1c1c1e] p-6 rounded-[2rem] border border-white/5 group ${card.border} transition-all cursor-pointer relative overflow-hidden`}
                     >
+                        <div className="absolute top-4 right-6 text-white/0 group-hover:text-white/20 transition-all transform translate-x-4 group-hover:translate-x-0">
+                            <ArrowUpRight size={24} />
+                        </div>
                         <div className={`w-12 h-12 ${card.bg} ${card.color} rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
                             {card.icon}
                         </div>
-                        <h3 className="text-gray-500 text-xs font-black uppercase tracking-widest">{card.title}</h3>
+                        <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-widest">{card.title}</h3>
                         <p className="text-3xl font-black text-white mt-1 italic tracking-tighter">{card.value}</p>
+
+                        <div className="mt-4 flex items-center gap-1 text-[10px] font-bold text-gray-500 group-hover:text-white transition-colors">
+                            <span>Gestionar</span>
+                            <ChevronRight size={10} />
+                        </div>
                     </motion.div>
                 ))}
+            </div>
+
+            {/* Quick Actions Globales */}
+            <div className="bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
+                <div className="flex items-center gap-3 mb-8">
+                    <Zap size={20} className="text-red-500 fill-red-500" />
+                    <h3 className="text-xl font-black text-white italic uppercase tracking-tight">Centro de Operaciones</h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {quickActions.map((action, i) => (
+                        <Link
+                            key={i}
+                            href={action.href}
+                            className="group relative h-24 overflow-hidden rounded-2xl"
+                        >
+                            <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
+                            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                            <div className="relative h-full flex flex-col items-center justify-center gap-2 border border-white/5 group-hover:border-white/20 transition-all rounded-2xl">
+                                <div className="p-2 bg-white/5 rounded-xl text-white group-hover:scale-110 transition-transform">
+                                    {action.icon}
+                                </div>
+                                <span className="text-[10px] font-black text-gray-400 group-hover:text-white uppercase tracking-widest transition-colors">
+                                    {action.label}
+                                </span>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -139,7 +192,8 @@ export default function SuperAdminOverview() {
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-[10px] text-gray-600 font-mono">
+                                    <span className="text-[10px] text-gray-600 font-mono flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500/40" />
                                         {new Date(act.creado_en).toLocaleString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 </div>
