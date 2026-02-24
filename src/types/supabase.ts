@@ -814,6 +814,107 @@ export type Database = {
                     }
                 ]
             }
+            saas_metrics: {
+                Row: {
+                    alumnos_activos_hoy: number | null
+                    churn_gyms_mes: number | null
+                    creado_en: string | null
+                    fecha: string
+                    gyms_activos: number | null
+                    gyms_suspendidos: number | null
+                    id: string
+                    ingresos_totales_mes: number | null
+                    mrr: number | null
+                    nuevos_gyms_hoy: number | null
+                    rutinas_ia_hoy: number | null
+                    total_alumnos: number | null
+                    videos_procesados_hoy: number | null
+                }
+                Insert: {
+                    alumnos_activos_hoy?: number | null
+                    churn_gyms_mes?: number | null
+                    creado_en?: string | null
+                    fecha: string
+                    gyms_activos?: number | null
+                    gyms_suspendidos?: number | null
+                    id?: string
+                    ingresos_totales_mes?: number | null
+                    mrr?: number | null
+                    nuevos_gyms_hoy?: number | null
+                    rutinas_ia_hoy?: number | null
+                    total_alumnos?: number | null
+                    videos_processed_hoy?: number | null
+                }
+                Update: {
+                    alumnos_activos_hoy?: number | null
+                    churn_gyms_mes?: number | null
+                    creado_en?: string | null
+                    fecha?: string
+                    gyms_activos?: number | null
+                    gyms_suspendidos?: number | null
+                    id?: string
+                    ingresos_totales_mes?: number | null
+                    mrr?: number | null
+                    nuevos_gyms_hoy?: number | null
+                    rutinas_ia_hoy?: number | null
+                    total_alumnos?: number | null
+                    videos_processed_hoy?: number | null
+                }
+                Relationships: []
+            }
+            saas_pagos_historial: {
+                Row: {
+                    creado_en: string | null
+                    estado: string | null
+                    fecha_pago: string | null
+                    gimnasio_id: string | null
+                    id: string
+                    metadata: Json | null
+                    moneda: string | null
+                    monto: number
+                    periodo_fin: string | null
+                    periodo_inicio: string | null
+                    referencia_externa: string | null
+                    tipo_pago: string | null
+                }
+                Insert: {
+                    creado_en?: string | null
+                    estado?: string | null
+                    fecha_pago?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    metadata?: Json | null
+                    moneda?: string | null
+                    monto: number
+                    periodo_fin?: string | null
+                    periodo_inicio?: string | null
+                    referencia_externa?: string | null
+                    tipo_pago?: string | null
+                }
+                Update: {
+                    creado_en?: string | null
+                    estado?: string | null
+                    fecha_pago?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    metadata?: Json | null
+                    moneda?: string | null
+                    monto?: number
+                    periodo_fin?: string | null
+                    periodo_inicio?: string | null
+                    referencia_externa?: string | null
+                    tipo_pago?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "saas_pagos_historial_gimnasio_id_fkey"
+                        columns: ["gimnasio_id"]
+                        isOneToOne: false
+                        referencedRelation: "gimnasios"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
             planes_suscripcion: {
                 Row: {
                     caracteristicas: Json | null
@@ -1762,6 +1863,13 @@ export type Database = {
                     },
                 ]
             }
+            saas_mrr_actual: {
+                Row: {
+                    mrr_estimado: number | null
+                    total_gyms_pagando: number | null
+                }
+                Relationships: []
+            }
         }
         Functions: {
             increment_points: {
@@ -1775,7 +1883,7 @@ export type Database = {
             estado_pago: "pendiente" | "aprobado" | "rechazado" | "reembolsado"
             membership_status_enum: "active" | "inactive" | "suspended" | "expired"
             metodo_pago: "efectivo" | "tarjeta" | "transferencia" | "mercadopago"
-            user_role: "admin" | "coach" | "member" | "superadmin"
+            user_role: "admin" | "coach" | "member" | "superadmin" | "alumno"
         }
     }
 }
