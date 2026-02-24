@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Gem,
     CheckCircle2,
@@ -24,6 +24,8 @@ interface Plan {
 export default function SubscriptionPlansPage() {
     const [plans, setPlans] = useState<Plan[]>([]);
     const [loading, setLoading] = useState(true);
+    const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         fetchPlans();
@@ -40,6 +42,30 @@ export default function SubscriptionPlansPage() {
             console.error('Error fetching plans:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingPlan) return;
+        setSaving(true);
+        try {
+            const res = await fetch('/api/admin/plans/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editingPlan)
+            });
+            if (res.ok) {
+                toast.success('Plan actualizado con éxito');
+                setEditingPlan(null);
+                fetchPlans();
+            } else {
+                toast.error('Error al actualizar plan');
+            }
+        } catch (error) {
+            toast.error('Error de red');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -93,7 +119,7 @@ export default function SubscriptionPlansPage() {
                                 </div>
 
                                 <ul className="space-y-4">
-                                    {plan.caracteristicas?.map((feat, i) => (
+                                    {(Array.isArray(plan.caracteristicas) ? plan.caracteristicas : []).map((feat, i) => (
                                         <li key={i} className="flex items-center gap-3 text-sm text-gray-400">
                                             <CheckCircle2 size={16} className="text-red-500 shrink-0" />
                                             <span className="font-medium">{feat}</span>
@@ -103,7 +129,7 @@ export default function SubscriptionPlansPage() {
                             </div>
 
                             <button
-                                onClick={() => toast.success('Edición de planes disponible próximamente')}
+                                onClick={() => setEditingPlan(plan)}
                                 className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${plan.nombre === 'Pro' ? 'bg-red-600 text-white hover:bg-red-700 shadow-xl' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
                             >
                                 Editar Beneficios
@@ -112,6 +138,53 @@ export default function SubscriptionPlansPage() {
                     ))
                 )}
             </div>
+
+            {/* Modal de Edición */}
+            <AnimatePresence>
+                {editingPlan && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingPlan(null)} className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-[#1c1c1e] w-full max-w-lg rounded-[2.5rem] border border-white/10 p-10 relative z-10 shadow-2xl overflow-y-auto max-h-[90vh]">
+                            <h2 className="text-3xl font-black text-white italic mb-8 uppercase tracking-tight">Editar Tier {editingPlan.nombre}</h2>
+
+                            <form onSubmit={handleUpdate} className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Precio Mensual ($)</label>
+                                        <input required type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-red-500 outline-none" value={editingPlan.precio_mensual} onChange={e => setEditingPlan({ ...editingPlan, precio_mensual: parseInt(e.target.value) })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Límite Sedes</label>
+                                        <input required type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-red-500 outline-none" value={editingPlan.limite_sucursales} onChange={e => setEditingPlan({ ...editingPlan, limite_sucursales: parseInt(e.target.value) })} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Límite de Alumnos</label>
+                                    <input required type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-red-500 outline-none" value={editingPlan.limite_usuarios} onChange={e => setEditingPlan({ ...editingPlan, limite_usuarios: parseInt(e.target.value) })} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Características (Separado por comas)</label>
+                                    <textarea
+                                        rows={4}
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-red-500 outline-none resize-none"
+                                        value={(editingPlan.caracteristicas || []).join(', ')}
+                                        onChange={e => setEditingPlan({ ...editingPlan, caracteristicas: e.target.value.split(',').map(s => s.trim()).filter(s => s !== '') })}
+                                    />
+                                </div>
+
+                                <div className="flex gap-4 pt-4">
+                                    <button type="button" onClick={() => setEditingPlan(null)} className="flex-1 px-8 py-5 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Cancelar</button>
+                                    <button type="submit" disabled={saving} className="flex-1 px-8 py-5 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-50 flex items-center justify-center">
+                                        {saving ? 'Guardando...' : 'Aplicar Cambios'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* SaaS Tip */}
             <div className="bg-gradient-to-r from-[#1c1c1e] to-transparent p-10 rounded-[3rem] border border-white/5">
@@ -123,8 +196,7 @@ export default function SubscriptionPlansPage() {
                         <h4 className="text-xl font-black text-white italic uppercase mb-2 tracking-tight">Estrategia Commercial</h4>
                         <p className="text-gray-400 text-sm leading-relaxed max-w-2xl">
                             Los planes afectan directamente los límites técnicos de cada tenant.
-                            Cuando un gimnasio alcance su límite de {plans[0]?.limite_usuarios || 50} alumnos,
-                            el sistema le sugerirá automáticamente subir al plan Pro.
+                            Cuando un gimnasio alcance su límite de alumnos, el sistema le sugerirá automáticamente subir de nivel.
                         </p>
                     </div>
                 </div>
@@ -132,3 +204,4 @@ export default function SubscriptionPlansPage() {
         </div>
     );
 }
+
