@@ -30,9 +30,18 @@ interface Activity {
     gimnasios?: { nombre: string };
 }
 
+interface Alert {
+    id: string;
+    type: 'ticket' | 'payment';
+    priority: string;
+    message: string;
+    link: string;
+}
+
 export default function SuperAdminOverview() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [alerts, setAlerts] = useState<Alert[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -46,6 +55,7 @@ export default function SuperAdminOverview() {
             if (res.ok) {
                 setStats(data.stats);
                 setActivities(data.recentActivity);
+                setAlerts(data.alerts || []);
             }
         } catch (error) {
             console.error('Error fetching global stats:', error);
@@ -100,7 +110,10 @@ export default function SuperAdminOverview() {
                             <History size={20} className="text-red-500" />
                             <h3 className="text-xl font-black text-white italic uppercase tracking-tight">Registro de Auditoría</h3>
                         </div>
-                        <button className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">
+                        <button
+                            onClick={() => window.location.href = '/admin/security'}
+                            className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors"
+                        >
                             Ver historial completo
                         </button>
                     </div>
@@ -112,14 +125,14 @@ export default function SuperAdminOverview() {
                             activities.map((act) => (
                                 <div key={act.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-red-600/10 text-red-500 rounded-xl flex items-center justify-center font-bold text-xs uppercase">
+                                        <div className="w-10 h-10 bg-red-600/10 text-red-500 rounded-xl flex items-center justify-center font-bold text-xs uppercase text-center p-1 leading-none">
                                             {act.entidad_tipo?.substring(0, 3)}
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-200 font-bold">
-                                                {act.accion.replace('_', ' ')}
+                                                {act.accion.replace(/_/g, ' ')}
                                             </p>
-                                            <p className="text-[10px] text-gray-500 font-medium">
+                                            <p className="text-[10px] text-gray-500 font-medium lowercase">
                                                 {act.perfiles?.nombre_completo || 'Sistema'} @ {act.gimnasios?.nombre || 'General'}
                                             </p>
                                         </div>
@@ -140,33 +153,58 @@ export default function SuperAdminOverview() {
                         <div className="space-y-6">
                             <div>
                                 <div className="flex justify-between text-[10px] font-black uppercase text-gray-500 mb-2">
-                                    <span>Uso de Almacenamiento</span>
-                                    <span>65%</span>
+                                    <span>Salud de la Base</span>
+                                    <span>Óptima</span>
                                 </div>
                                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                    <div className="h-full bg-red-500 w-[65%]" />
+                                    <div className="h-full bg-green-500 w-[100%]" />
                                 </div>
                             </div>
                             <div>
                                 <div className="flex justify-between text-[10px] font-black uppercase text-gray-500 mb-2">
-                                    <span>Salud del Servidor</span>
-                                    <span>99.9%</span>
+                                    <span>Tasa de Disponibilidad</span>
+                                    <span>99.99%</span>
                                 </div>
                                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                    <div className="h-full bg-green-500 w-[99.9%]" />
+                                    <div className="h-full bg-blue-500 w-[99.99%]" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
-                        <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight">Soporte Critico</h3>
-                        <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3">
-                            <ShieldAlert size={20} className="text-amber-500" />
-                            <div>
-                                <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Alerta Pendiente</p>
-                                <p className="text-xs text-amber-200/80 font-medium leading-tight">Gimnasio "Virtud" reportó falla en pagos.</p>
-                            </div>
+                        <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight">Alertas Críticas</h3>
+
+                        <div className="space-y-3">
+                            {alerts.length === 0 ? (
+                                <div className="p-4 bg-green-500/5 border border-green-500/10 rounded-2xl flex items-center gap-3">
+                                    <Zap size={20} className="text-green-500" />
+                                    <p className="text-[10px] font-black text-green-500 uppercase">Sin Alertas Críticas</p>
+                                </div>
+                            ) : (
+                                alerts.map((alert) => (
+                                    <motion.div
+                                        key={alert.id}
+                                        whileHover={{ x: 5 }}
+                                        onClick={() => window.location.href = alert.link}
+                                        className={`p-4 rounded-2xl flex items-center gap-3 border cursor-pointer transition-all ${alert.type === 'payment'
+                                            ? 'bg-red-500/10 border-red-500/20'
+                                            : 'bg-amber-500/10 border-amber-500/20'
+                                            }`}
+                                    >
+                                        <ShieldAlert size={20} className={alert.type === 'payment' ? 'text-red-500' : 'text-amber-500'} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-[10px] font-black uppercase tracking-widest ${alert.type === 'payment' ? 'text-red-500' : 'text-amber-500'}`}>
+                                                {alert.type === 'payment' ? 'Falla en Cobro' : 'Soporte Vital'}
+                                            </p>
+                                            <p className="text-xs text-white/80 font-medium leading-tight truncate">
+                                                {alert.message}
+                                            </p>
+                                        </div>
+                                        <ChevronRight size={14} className="text-gray-600" />
+                                    </motion.div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
