@@ -28,7 +28,7 @@ export function UniversalLayoutWrapper({
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const btnColor = profileRole === 'coach' ? 'orange' : 'purple';
+    const btnColor = profileRole === 'superadmin' ? 'red' : (profileRole === 'coach' ? 'orange' : 'purple');
 
     return (
         <div className="flex w-full min-h-screen">

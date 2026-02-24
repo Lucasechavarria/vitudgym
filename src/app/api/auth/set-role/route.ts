@@ -32,9 +32,11 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing uid or role' }, { status: 400 });
         }
 
-        const validRoles = ['member', 'coach', 'admin'];
+        const isSuperAdmin = requesterProfile.rol === 'superadmin';
+        const validRoles = isSuperAdmin ? ['member', 'coach', 'admin', 'superadmin'] : ['member', 'coach', 'admin'];
+
         if (!validRoles.includes(role)) {
-            return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+            return NextResponse.json({ error: 'Invalid role or insufficient permissions' }, { status: 400 });
         }
 
         // 4. Obtener estado actual para el log

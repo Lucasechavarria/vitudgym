@@ -14,6 +14,7 @@ interface User extends SupabaseUserProfile {
     membershipStatus: string;
     membershipEnds: string | null;
     assigned_coach_id?: string | null;
+    gym?: string;
     items?: unknown[]; // For older types compatibility if needed
 }
 
@@ -242,8 +243,8 @@ export default function UsersPage() {
                     <table className="w-full text-left">
                         <thead className="bg-[#1c1c1e] text-gray-400 text-sm uppercase tracking-wider">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Usuario</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Rol</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Gimnasio</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Membresía</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Coach Asignado</th>
                                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Acciones</th>
@@ -275,6 +276,11 @@ export default function UsersPage() {
                                             <option value="admin">Admin</option>
                                             <option value="superadmin">Super Admin</option>
                                         </select>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-xs text-gray-400 font-medium">
+                                            {user.gym || 'Virtud Gym'}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         {['admin', 'coach', 'superadmin'].includes(user.role?.toLowerCase()) ? (

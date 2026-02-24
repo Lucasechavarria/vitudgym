@@ -27,13 +27,15 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     ],
     superadmin: [
         { href: '/admin', label: 'Super Control', icon: '⚡' },
+        { href: '/admin/gyms', label: 'Gimnasios', icon: '🏢' },
         { href: '/admin/users', label: 'Usuarios Globales', icon: '👥' },
         { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
+        { href: '/coach', label: 'Vista Profesor', icon: '🏋️' },
+        { href: '/dashboard', label: 'Vista Alumno', icon: '🎯' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
         { href: '/admin/equipment', label: 'Equipamiento', icon: '🔧' },
         { href: '/coach/routines', label: 'Rutinas', icon: '💪' },
         { href: '/admin/nutrition', label: 'Nutrición', icon: '🥗' },
-        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
         { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
         { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
     ],
@@ -123,8 +125,11 @@ export function UniversalSidebar({
     // Determine nav items based on path first, then fallback to role
     let viewRole = role;
 
-    if (role === 'admin') {
-        viewRole = role;
+    // Special handling for superadmin persona: Always show superadmin nav
+    if (role === 'superadmin') {
+        viewRole = 'superadmin';
+    } else if (role === 'admin') {
+        viewRole = 'admin';
     } else {
         if (pathname.startsWith('/coach')) viewRole = 'coach';
         else if (pathname.startsWith('/dashboard')) viewRole = 'member';

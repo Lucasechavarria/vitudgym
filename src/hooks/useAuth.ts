@@ -93,5 +93,7 @@ export function useAuth() {
         isAdmin: userRole === 'admin' || userRole === 'superadmin',
         isCoach: userRole === 'coach' || userRole === 'admin' || userRole === 'superadmin',
         userRole,
+        gymId: (profile as any)?.gimnasio_id,
+        branchId: (profile as any)?.sucursal_id,
     };
 }

@@ -14,17 +14,23 @@ export const revalidate = 0;
  */
 export async function GET(request: Request) {
     try {
-        const { error: authError } = await authenticateAndRequireRole(request, ['admin', 'coach']);
+        const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'coach', 'superadmin']);
         if (authError) return authError;
 
-        // Usamos el cliente administrativo para asegurar que las relaciones sean visibles 
-        // independientemente de las RLS sobre la tabla 'relacion_alumno_coach'
         const adminClient = createAdminClient();
 
-        const { data: users, error: dbError } = await adminClient
-            .from('perfiles')
+        // Obtener el contexto actual del que hace la petición
+        const { data: requester } = await (adminClient
+            .from('perfiles') as any)
+            .select('rol, gimnasio_id')
+            .eq('id', profile.id)
+            .single();
+
+        let query = (adminClient
+            .from('perfiles') as any)
             .select(`
                 *,
+                gimnasios (nombre),
                 relacion_alumno_coach!usuario_id (
                     es_principal,
                     entrenador_id,
@@ -34,7 +40,15 @@ export async function GET(request: Request) {
                         correo
                     )
                 )
-            `)
+            `);
+
+        // Si es Admin o Coach, solo puede ver usuarios de su gimnasio
+        // Si es Superadmin, ve los del gimnasio que tenga seleccionado actualmente
+        if (requester?.gimnasio_id) {
+            query = query.eq('gimnasio_id', requester.gimnasio_id);
+        }
+
+        const { data: users, error: dbError } = await (query as any)
             .order('creado_en' as any, { ascending: false });
 
         if (dbError) {
@@ -92,6 +106,7 @@ function normalizeUser(u: any) {
         role: normalizedRole,
         membershipStatus: u.estado_membresia || 'inactive',
         membershipEnds: u.fecha_fin_membresia,
-        assigned_coach_id: assignedCoachId
+        assigned_coach_id: assignedCoachId,
+        gym: u.gimnasios?.nombre
     };
 }

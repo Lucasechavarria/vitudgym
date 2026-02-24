@@ -121,7 +121,7 @@ export async function requireRole(
         const normalizedUserRole = roleMapping[rawRole] || rawRole;
         const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
-        if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
+        if (!normalizedAllowedRoles.includes(normalizedUserRole) && normalizedUserRole !== 'superadmin') {
             console.warn(`requireRole: Acceso denegado para ${userId}. Rol: ${role}, Requeridos: ${allowedRoles}`);
             return {
                 error: NextResponse.json(

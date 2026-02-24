@@ -438,6 +438,39 @@ export type Database = {
                     },
                 ]
             }
+            gimnasios: {
+                Row: {
+                    actualizado_en: string | null
+                    configuracion: Json | null
+                    creado_en: string | null
+                    es_activo: boolean | null
+                    id: string
+                    logo_url: string | null
+                    nombre: string
+                    slug: string
+                }
+                Insert: {
+                    actualizado_en?: string | null
+                    configuracion?: Json | null
+                    creado_en?: string | null
+                    es_activo?: boolean | null
+                    id?: string
+                    logo_url?: string | null
+                    nombre: string
+                    slug: string
+                }
+                Update: {
+                    actualizado_en?: string | null
+                    configuracion?: Json | null
+                    creado_en?: string | null
+                    es_activo?: boolean | null
+                    id?: string
+                    logo_url?: string | null
+                    nombre?: string
+                    slug?: string
+                }
+                Relationships: []
+            }
             historial_engagement: {
                 Row: {
                     fecha_evento: string | null
@@ -759,6 +792,7 @@ export type Database = {
                     fecha_inicio_membresia: string | null
                     fecha_nacimiento: string | null
                     gender: string | null
+                    gimnasio_id: string | null
                     id: string
                     informacion_medica: Json | null
                     modificaciones_recomendadas: string | null
@@ -769,6 +803,7 @@ export type Database = {
                     onboarding_completado_en: string | null
                     restricciones_adicionales: string | null
                     rol: Database["public"]["Enums"]["user_role"]
+                    sucursal_id: string | null
                     telefono: string | null
                     url_avatar: string | null
                 }
@@ -790,6 +825,7 @@ export type Database = {
                     fecha_inicio_membresia?: string | null
                     fecha_nacimiento?: string | null
                     gender?: string | null
+                    gimnasio_id?: string | null
                     id: string
                     informacion_medica?: Json | null
                     modificaciones_recomendadas?: string | null
@@ -800,6 +836,7 @@ export type Database = {
                     onboarding_completado_en?: string | null
                     restricciones_adicionales?: string | null
                     rol?: Database["public"]["Enums"]["user_role"]
+                    sucursal_id?: string | null
                     telefono?: string | null
                     url_avatar?: string | null
                 }
@@ -821,6 +858,7 @@ export type Database = {
                     fecha_inicio_membresia?: string | null
                     fecha_nacimiento?: string | null
                     gender?: string | null
+                    gimnasio_id?: string | null
                     id?: string
                     informacion_medica?: Json | null
                     modificaciones_recomendadas?: string | null
@@ -831,10 +869,26 @@ export type Database = {
                     onboarding_completado_en?: string | null
                     restricciones_adicionales?: string | null
                     rol?: Database["public"]["Enums"]["user_role"]
+                    sucursal_id?: string | null
                     telefono?: string | null
                     url_avatar?: string | null
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "perfiles_gimnasio_id_fkey"
+                        columns: ["gimnasio_id"]
+                        isOneToOne: false
+                        referencedRelation: "gimnasios"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "perfiles_sucursal_id_fkey"
+                        columns: ["sucursal_id"]
+                        isOneToOne: false
+                        referencedRelation: "sucursales"
+                        referencedColumns: ["id"]
+                    }
+                ]
             }
             planes_nutricionales: {
                 Row: {
@@ -1209,6 +1263,47 @@ export type Database = {
                     },
                 ]
             }
+            sucursales: {
+                Row: {
+                    actualizado_en: string | null
+                    configuracion: Json | null
+                    creado_en: string | null
+                    direccion: string | null
+                    gimnasio_id: string | null
+                    id: string
+                    nombre: string
+                    telefono: string | null
+                }
+                Insert: {
+                    actualizado_en?: string | null
+                    configuracion?: Json | null
+                    creado_en?: string | null
+                    direccion?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    nombre: string
+                    telefono?: string | null
+                }
+                Update: {
+                    actualizado_en?: string | null
+                    configuracion?: Json | null
+                    creado_en?: string | null
+                    direccion?: string | null
+                    gimnasio_id?: string | null
+                    id?: string
+                    nombre?: string
+                    telefono?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "sucursales_gimnasio_id_fkey"
+                        columns: ["gimnasio_id"]
+                        isOneToOne: false
+                        referencedRelation: "gimnasios"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
             sesiones_de_entrenamiento: {
                 Row: {
                     creado_en: string | null
@@ -1439,7 +1534,7 @@ export type Database = {
             estado_pago: "pendiente" | "aprobado" | "rechazado" | "reembolsado"
             membership_status_enum: "active" | "inactive" | "suspended" | "expired"
             metodo_pago: "efectivo" | "tarjeta" | "transferencia" | "mercadopago"
-            user_role: "admin" | "coach" | "member"
+            user_role: "admin" | "coach" | "member" | "superadmin"
         }
     }
 }
