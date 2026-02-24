@@ -8,12 +8,10 @@ import {
     Plus,
     MapPin,
     Users,
-    ChevronRight,
-    Settings,
-    MoreVertical,
     CheckCircle2,
     XCircle
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface Sucursal {
     id: string;
@@ -60,8 +58,8 @@ export default function GymsManagementPage() {
             } else {
                 toast.error(data.error || 'Error al cargar gimnasios');
             }
-        } catch (error) {
-            console.error(error);
+        } catch (_error) {
+            console.error(_error);
             toast.error('Error de conexión');
         } finally {
             setLoading(false);
@@ -86,7 +84,7 @@ export default function GymsManagementPage() {
             } else {
                 toast.error(data.error || 'Error al crear');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error de red');
         } finally {
             setCreating(false);
@@ -257,9 +255,9 @@ export default function GymsManagementPage() {
                         >
                             <div className="p-8 flex flex-col lg:flex-row gap-8 items-start lg:items-center">
                                 {/* Gym Logo/Icon */}
-                                <div className="w-20 h-20 bg-gradient-to-br from-[#2c2c2e] to-[#1c1c1e] rounded-[2rem] border border-white/10 flex items-center justify-center text-3xl shadow-2xl group-hover:rotate-6 transition-transform">
+                                <div className="w-20 h-20 bg-gradient-to-br from-[#2c2c2e] to-[#1c1c1e] rounded-[2rem] border border-white/10 flex items-center justify-center text-3xl shadow-2xl group-hover:rotate-6 transition-transform relative overflow-hidden">
                                     {gym.logo_url ? (
-                                        <img src={gym.logo_url} alt={gym.nombre} className="w-12 h-12 object-contain" />
+                                        <Image src={gym.logo_url} alt={gym.nombre} fill className="object-contain p-4" />
                                     ) : (
                                         "🏢"
                                     )}

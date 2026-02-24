@@ -34,7 +34,13 @@ export async function calculateGymMonthlyBill(gymId: string): Promise<BillingSum
         throw new Error('Gym or plan not found');
     }
 
-    const plan: any = gym.planes_suscripcion;
+    interface PlanData {
+        precio_mensual: number;
+        limite_usuarios: number;
+        precio_alumno_extra: number;
+    }
+
+    const plan = gym.planes_suscripcion as unknown as PlanData;
 
     // 2. Contar alumnos actuales
     const { count: studentCount } = await supabase

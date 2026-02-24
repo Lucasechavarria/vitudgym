@@ -18,7 +18,6 @@ export async function GET(request: Request) {
         // 1. Calcular MRR Estimado (basado en gimnasios activos y sus planes)
         const { data: mrrData } = await supabase.from('saas_mrr_actual').select('*').single();
         const mrr = mrrData?.mrr_estimado || 0;
-        const totalGymsPaying = mrrData?.total_gyms_pagando || 0;
 
         // 2. Contar gimnasios por estado
         const { count: activeGyms } = await supabase.from('gimnasios').select('id', { count: 'exact', head: true }).eq('estado_pago_saas', 'active');
@@ -49,8 +48,9 @@ export async function GET(request: Request) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('Metrics Update Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

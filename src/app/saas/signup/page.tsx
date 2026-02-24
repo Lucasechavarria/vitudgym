@@ -3,24 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Building2,
-    User,
-    CreditCard,
-    CheckCircle2,
     ArrowRight,
     Zap,
-    ShieldCheck,
-    Globe,
-    Calendar
+    ShieldCheck
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
+
+interface Plan {
+    id: string;
+    nombre: string;
+    precio_mensual: number;
+    limite_usuarios: number;
+    limite_sucursales: number;
+}
 
 export default function SaaSOnboardingPage() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
-    const [plans, setPlans] = useState<any[]>([]);
+    const [plans, setPlans] = useState<Plan[]>([]);
 
     const [formData, setFormData] = useState({
         email: '',
@@ -64,7 +65,7 @@ export default function SaaSOnboardingPage() {
             } else {
                 toast.error(data.error || 'Error al completar registro');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error de conexión');
         } finally {
             setLoading(false);
@@ -100,11 +101,11 @@ export default function SaaSOnboardingPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Input label="Nombre" value={formData.firstName} onChange={v => setFormData({ ...formData, firstName: v })} placeholder="Ej: Juan" />
-                                <Input label="Apellido" value={formData.lastName} onChange={v => setFormData({ ...formData, lastName: v })} placeholder="Ej: Pérez" />
+                                <Input label="Nombre" value={formData.firstName} onChange={(v: string) => setFormData({ ...formData, firstName: v })} placeholder="Ej: Juan" />
+                                <Input label="Apellido" value={formData.lastName} onChange={(v: string) => setFormData({ ...formData, lastName: v })} placeholder="Ej: Pérez" />
                             </div>
-                            <Input label="Email Corporativo" type="email" value={formData.email} onChange={v => setFormData({ ...formData, email: v })} placeholder="admin@tugimnasio.com" />
-                            <Input label="Contraseña" type="password" value={formData.password} onChange={v => setFormData({ ...formData, password: v })} placeholder="Mínimo 8 caracteres" />
+                            <Input label="Email Corporativo" type="email" value={formData.email} onChange={(v: string) => setFormData({ ...formData, email: v })} placeholder="admin@tugimnasio.com" />
+                            <Input label="Contraseña" type="password" value={formData.password} onChange={(v: string) => setFormData({ ...formData, password: v })} placeholder="Mínimo 8 caracteres" />
 
                             <button
                                 onClick={nextStep}
@@ -204,7 +205,15 @@ export default function SaaSOnboardingPage() {
     );
 }
 
-function Input({ label, type = "text", value, onChange, placeholder }: any) {
+interface InputProps {
+    label: string;
+    type?: string;
+    value: string;
+    onChange: (val: string) => void;
+    placeholder: string;
+}
+
+function Input({ label, type = "text", value, onChange, placeholder }: InputProps) {
     return (
         <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{label}</label>
@@ -219,7 +228,13 @@ function Input({ label, type = "text", value, onChange, placeholder }: any) {
     );
 }
 
-function PlanCard({ plan, selected, onSelect }: any) {
+interface PlanCardProps {
+    plan: Plan;
+    selected: boolean;
+    onSelect: () => void;
+}
+
+function PlanCard({ plan, selected, onSelect }: PlanCardProps) {
     return (
         <button
             onClick={onSelect}

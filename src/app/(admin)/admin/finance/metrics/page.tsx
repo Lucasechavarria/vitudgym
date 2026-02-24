@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    TrendingUp,
     ArrowUpRight,
     ArrowDownRight,
     Users,
     Building2,
-    Activity,
     DollarSign,
     RefreshCcw,
     TrendingDown,
@@ -16,8 +14,6 @@ import {
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
-    LineChart,
-    Line,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -27,9 +23,22 @@ import {
     Area
 } from 'recharts';
 
+interface SaaSMetric {
+    mrr: number;
+    gyms_activos: number;
+    gyms_suspendidos: number;
+    total_alumnos: number;
+    videos_procesados?: number;
+    rutinas_ia?: number;
+}
+
+interface MetricHistory extends SaaSMetric {
+    fecha: string;
+}
+
 export default function SaaSMetricsPage() {
-    const [metrics, setMetrics] = useState<any>(null);
-    const [history, setHistory] = useState<any[]>([]);
+    const [metrics, setMetrics] = useState<SaaSMetric | null>(null);
+    const [history, setHistory] = useState<MetricHistory[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -49,7 +58,7 @@ export default function SaaSMetricsPage() {
 
             setMetrics(data.latest);
             setHistory(data.history || []);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar métricas');
         } finally {
             setLoading(false);
@@ -181,7 +190,14 @@ export default function SaaSMetricsPage() {
     );
 }
 
-function MetricCard({ title, value, change, icon }: any) {
+interface MetricCardProps {
+    title: string;
+    value: string | number;
+    change: string;
+    icon: React.ReactNode;
+}
+
+function MetricCard({ title, value, change, icon }: MetricCardProps) {
     const isPositive = change.startsWith('+');
     return (
         <motion.div
@@ -205,7 +221,13 @@ function MetricCard({ title, value, change, icon }: any) {
     );
 }
 
-function UsageBar({ label, current, limit }: any) {
+interface UsageBarProps {
+    label: string;
+    current: number;
+    limit: number;
+}
+
+function UsageBar({ label, current, limit }: UsageBarProps) {
     const percent = Math.min(100, (current / limit) * 100);
     return (
         <div className="space-y-2">

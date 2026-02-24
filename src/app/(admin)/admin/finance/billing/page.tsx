@@ -40,7 +40,7 @@ export default function AdminBillingPage() {
             const res = await fetch('/api/admin/billing');
             const data = await res.json();
             if (res.ok) setGyms(data.gyms || []);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al cargar datos financieros');
         } finally {
             setLoading(false);
@@ -60,7 +60,7 @@ export default function AdminBillingPage() {
                 fetchGyms();
                 setSelectedGym(null);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al actualizar');
         } finally {
             setUpdating(false);
