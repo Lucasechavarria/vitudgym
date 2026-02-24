@@ -34,14 +34,30 @@ export default function GymsManagementPage() {
     const [gyms, setGyms] = useState<Gimnasio[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [creating, setCreating] = useState(false);
+    const [showBranchModal, setShowBranchModal] = useState(false);
+    const [showConfigModal, setShowConfigModal] = useState(false);
 
-    // Form state
+    const [creating, setCreating] = useState(false);
+    const [selectedGym, setSelectedGym] = useState<Gimnasio | null>(null);
+
+    // Form states
     const [formData, setFormData] = useState({
         nombre: '',
         slug: '',
         sucursal_nombre: 'Casa Central',
         direccion: '',
+        logo_url: ''
+    });
+
+    const [branchData, setBranchData] = useState({
+        nombre: '',
+        direccion: ''
+    });
+
+    const [configData, setConfigData] = useState({
+        nombre: '',
+        slug: '',
+        es_activo: true,
         logo_url: ''
     });
 
@@ -91,6 +107,73 @@ export default function GymsManagementPage() {
         }
     };
 
+    const handleCreateBranch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedGym) return;
+        setCreating(true);
+        try {
+            const res = await fetch('/api/admin/gyms/branch/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...branchData, gymId: selectedGym.id })
+            });
+            if (res.ok) {
+                toast.success('Sede añadida correctamente');
+                setShowBranchModal(false);
+                setBranchData({ nombre: '', direccion: '' });
+                fetchGyms();
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Error al crear sede');
+            }
+        } catch (_error) {
+            toast.error('Error de red');
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const handleUpdateGym = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedGym) return;
+        setCreating(true);
+        try {
+            const res = await fetch('/api/admin/gyms/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...configData, id: selectedGym.id })
+            });
+            if (res.ok) {
+                toast.success('Configuración actualizada');
+                setShowConfigModal(false);
+                fetchGyms();
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Error al actualizar');
+            }
+        } catch (_error) {
+            toast.error('Error de red');
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const openConfig = (gym: Gimnasio) => {
+        setSelectedGym(gym);
+        setConfigData({
+            nombre: gym.nombre,
+            slug: gym.slug,
+            es_activo: gym.es_activo,
+            logo_url: gym.logo_url || ''
+        });
+        setShowConfigModal(true);
+    };
+
+    const openBranchModal = (gym: Gimnasio) => {
+        setSelectedGym(gym);
+        setShowBranchModal(true);
+    };
+
     return (
         <div className="space-y-8 p-4 md:p-8">
             {/* Header section with Stats */}
@@ -115,88 +198,65 @@ export default function GymsManagementPage() {
                 </motion.button>
             </div>
 
-            {/* Modal de Creación */}
+            {/* Modal de Creación de Gimnasio */}
             <AnimatePresence>
                 {showCreateModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowCreateModal(false)}
-                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                        />
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-[#1c1c1e] w-full max-w-lg rounded-[2.5rem] border border-white/10 p-8 relative z-10 shadow-2xl"
-                        >
-                            <h2 className="text-2xl font-black text-white italic mb-6 uppercase tracking-tight">Nueva Entidad Gym</h2>
+                    <Modal onClose={() => setShowCreateModal(false)} title="Nueva Entidad Gym">
+                        <form onSubmit={handleCreate} className="space-y-4">
+                            <Input label="Nombre Comercial" value={formData.nombre} onChange={v => setFormData({ ...formData, nombre: v })} placeholder="Ej: PowerBox S.A." />
+                            <Input label="Identificador (Slug)" value={formData.slug} onChange={v => setFormData({ ...formData, slug: v })} placeholder="ej: powerbox" className="font-mono text-sm" />
+                            <Input label="Nombre Sede Inicial" value={formData.sucursal_nombre} onChange={v => setFormData({ ...formData, sucursal_nombre: v })} />
+                            <Input label="Dirección" value={formData.direccion} onChange={v => setFormData({ ...formData, direccion: v })} placeholder="Calle 123, Ciudad" />
+                            <div className="flex gap-4 pt-4">
+                                <ModalButton type="button" onClick={() => setShowCreateModal(false)} variant="secondary">Cancelar</ModalButton>
+                                <ModalButton type="submit" disabled={creating}>{creating ? 'Creando...' : 'Confirmar Registro'}</ModalButton>
+                            </div>
+                        </form>
+                    </Modal>
+                )}
 
-                            <form onSubmit={handleCreate} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Nombre Comercial</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        placeholder="Ej: PowerBox S.A."
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
-                                        value={formData.nombre}
-                                        onChange={e => setFormData({ ...formData, nombre: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Identificador (Slug)</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        placeholder="ej: powerbox"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all font-mono text-sm"
-                                        value={formData.slug}
-                                        onChange={e => setFormData({ ...formData, slug: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Nombre Sede Inicial</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
-                                        value={formData.sucursal_nombre}
-                                        onChange={e => setFormData({ ...formData, sucursal_nombre: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Dirección</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Calle 123, Ciudad"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all"
-                                        value={formData.direccion}
-                                        onChange={e => setFormData({ ...formData, direccion: e.target.value })}
-                                    />
-                                </div>
+                {/* Modal de Nueva Sede */}
+                {showBranchModal && (
+                    <Modal onClose={() => setShowBranchModal(false)} title={`Añadir Sede a ${selectedGym?.nombre}`}>
+                        <form onSubmit={handleCreateBranch} className="space-y-4">
+                            <Input label="Nombre de la Sede" value={branchData.nombre} onChange={v => setBranchData({ ...branchData, nombre: v })} placeholder="Ej: Sucursal Norte" />
+                            <Input label="Dirección" value={branchData.direccion} onChange={v => setBranchData({ ...branchData, direccion: v })} placeholder="Avenida Siempre Viva 742" />
+                            <div className="flex gap-4 pt-4">
+                                <ModalButton type="button" onClick={() => setShowBranchModal(false)} variant="secondary">Cancelar</ModalButton>
+                                <ModalButton type="submit" disabled={creating}>{creating ? 'Guardando...' : 'Crear Sede'}</ModalButton>
+                            </div>
+                        </form>
+                    </Modal>
+                )}
 
-                                <div className="flex gap-4 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCreateModal(false)}
-                                        className="flex-1 px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-all"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={creating}
-                                        className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold shadow-lg shadow-red-900/40 disabled:opacity-50 transition-all border border-red-500/20"
-                                    >
-                                        {creating ? 'Creando...' : 'Confirmar Registro'}
-                                    </button>
+                {/* Modal de Configuración Global */}
+                {showConfigModal && (
+                    <Modal onClose={() => setShowConfigModal(false)} title="Configuración Global">
+                        <form onSubmit={handleUpdateGym} className="space-y-4">
+                            <Input label="Nombre Comercial" value={configData.nombre} onChange={v => setConfigData({ ...configData, nombre: v })} />
+                            <Input label="Slug" value={configData.slug} onChange={v => setConfigData({ ...configData, slug: v })} />
+                            <Input label="Logo URL" value={configData.logo_url} onChange={v => setConfigData({ ...configData, logo_url: v })} />
+
+                            <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
+                                <div className="flex-1">
+                                    <p className="text-xs font-black uppercase text-white">Estado del Gimnasio</p>
+                                    <p className="text-[10px] text-gray-500 italic">Si se desactiva, ningún usuario podrá acceder a este tenant.</p>
                                 </div>
-                            </form>
-                        </motion.div>
-                    </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setConfigData({ ...configData, es_activo: !configData.es_activo })}
+                                    className={`w-12 h-6 rounded-full transition-all relative ${configData.es_activo ? 'bg-green-500' : 'bg-gray-600'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${configData.es_activo ? 'right-1' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <ModalButton type="button" onClick={() => setShowConfigModal(false)} variant="secondary">Cerrar</ModalButton>
+                                <ModalButton type="submit" disabled={creating}>{creating ? 'Actualizando...' : 'Guardar Cambios'}</ModalButton>
+                            </div>
+                        </form>
+                    </Modal>
                 )}
             </AnimatePresence>
 
@@ -211,7 +271,7 @@ export default function GymsManagementPage() {
                         <p className="text-2xl font-black text-white">{gyms.length}</p>
                     </div>
                 </div>
-                <div className="bg-[#1c1c1e] p-6 rounded-[2rem] border border-white/5 flex items-center gap-4">
+                <div className="bg-[#1c1c1e] p-6 rounded-[2rem] border border-white/5 flex items-center gap-4 shadow-lg shadow-green-900/5 transition-all hover:border-green-500/20">
                     <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-500">
                         <MapPin size={24} />
                     </div>
@@ -257,7 +317,7 @@ export default function GymsManagementPage() {
                                 {/* Gym Logo/Icon */}
                                 <div className="w-20 h-20 bg-gradient-to-br from-[#2c2c2e] to-[#1c1c1e] rounded-[2rem] border border-white/10 flex items-center justify-center text-3xl shadow-2xl group-hover:rotate-6 transition-transform relative overflow-hidden">
                                     {gym.logo_url ? (
-                                        <Image src={gym.logo_url} alt={gym.nombre} fill className="object-contain p-4" />
+                                        <Image src={gym.logo_url} alt={gym.nombre} fill className="object-contain p-4" unoptimized />
                                     ) : (
                                         "🏢"
                                     )}
@@ -281,12 +341,15 @@ export default function GymsManagementPage() {
 
                                     {/* Sucursales Mini-List */}
                                     <div className="flex flex-wrap gap-2 mt-4">
-                                        {gym.sucursales?.map(s => (
+                                        {(gym.sucursales || []).map(s => (
                                             <div key={s.id} className="bg-white/5 px-4 py-2 rounded-xl border border-white/5 text-xs text-gray-400 flex items-center gap-2 hover:bg-white/10 transition-colors pointer-events-none">
                                                 <MapPin size={12} className="text-red-500" /> {s.nombre}
                                             </div>
                                         ))}
-                                        <button className="px-3 py-2 rounded-xl border border-dashed border-white/10 text-[10px] font-bold text-gray-500 hover:border-red-500/50 hover:text-red-400 transition-all">
+                                        <button
+                                            onClick={() => openBranchModal(gym)}
+                                            className="px-3 py-2 rounded-xl border border-dashed border-white/10 text-[10px] font-bold text-gray-500 hover:border-red-500/50 hover:text-red-400 transition-all"
+                                        >
                                             + Agregar Sucursal
                                         </button>
                                     </div>
@@ -294,10 +357,16 @@ export default function GymsManagementPage() {
 
                                 {/* Actions */}
                                 <div className="flex flex-col gap-3 w-full lg:w-auto">
-                                    <button className="px-8 py-3 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl active:scale-95">
+                                    <button
+                                        onClick={() => openConfig(gym)}
+                                        className="px-8 py-3 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl active:scale-95"
+                                    >
                                         Configuración Global
                                     </button>
-                                    <button className="px-8 py-3 bg-white/5 text-gray-400 rounded-2xl font-black text-xs uppercase tracking-widest border border-white/10 hover:bg-white/10 transition-all">
+                                    <button
+                                        onClick={() => window.location.href = '/admin/finance/metrics'}
+                                        className="px-8 py-3 bg-white/5 text-gray-400 rounded-2xl font-black text-xs uppercase tracking-widest border border-white/10 hover:bg-white/10 transition-all"
+                                    >
                                         Ver Estadísticas
                                     </button>
                                 </div>
@@ -319,5 +388,61 @@ export default function GymsManagementPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+// Reusable Components
+function Modal({ children, onClose, title }: { children: React.ReactNode, onClose: () => void, title: string }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="bg-[#1c1c1e] w-full max-w-lg rounded-[2.5rem] border border-white/10 p-8 relative z-10 shadow-2xl"
+            >
+                <h2 className="text-2xl font-black text-white italic mb-6 uppercase tracking-tight">{title}</h2>
+                {children}
+            </motion.div>
+        </div>
+    );
+}
+
+function Input({ label, value, onChange, placeholder, className = "" }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string, className?: string }) {
+    return (
+        <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">{label}</label>
+            <input
+                type="text"
+                placeholder={placeholder}
+                className={`w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all ${className}`}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+            />
+        </div>
+    );
+}
+
+function ModalButton({ children, onClick, type = "button", disabled = false, variant = "primary" }: { children: React.ReactNode, onClick?: () => void, type?: "button" | "submit", disabled?: boolean, variant?: "primary" | "secondary" }) {
+    const styles = variant === "primary"
+        ? "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-900/40 border-red-500/20"
+        : "bg-white/5 hover:bg-white/10 text-white";
+
+    return (
+        <button
+            type={type}
+            disabled={disabled}
+            onClick={onClick}
+            className={`flex-1 px-6 py-4 rounded-2xl font-bold transition-all border ${styles} disabled:opacity-50`}
+        >
+            {children}
+        </button>
     );
 }
