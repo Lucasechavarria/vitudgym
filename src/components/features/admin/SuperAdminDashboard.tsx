@@ -23,7 +23,10 @@ import {
     Activity,
     Eye,
     TrendingDown,
-    Brain
+    Brain,
+    Mail,
+    Check,
+    DollarSign
 } from 'lucide-react';
 import {
     ResponsiveContainer,
@@ -80,6 +83,8 @@ interface Announcement {
     tipo: string;
     destino: string;
     creado_en: string;
+    enviado_newsletter?: boolean;
+    fecha_envio_newsletter?: string;
 }
 
 interface ChurnData {
@@ -101,7 +106,7 @@ export default function SuperAdminOverview() {
     const [historyMetrics, setHistoryMetrics] = useState<any[]>([]);
 
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
-    const [newAnnouncement, setNewAnnouncement] = useState({ titulo: '', contenido: '', tipo: 'info', destino: 'todos' });
+    const [newAnnouncement, setNewAnnouncement] = useState({ titulo: '', contenido: '', tipo: 'info', destino: 'todos', sendEmail: false });
 
     const tabs = [
         { id: 'gyms', label: 'Gestión de Red', icon: <Building2 size={16} /> },
@@ -121,6 +126,7 @@ export default function SuperAdminOverview() {
     const globalCards = [
         { title: 'Usuarios Totales', value: stats?.users || 0, icon: <Users />, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/50', href: '/admin/users' },
         { title: 'Logs de Auditoría', value: '24h', icon: <History />, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'hover:border-amber-500/50', href: '/admin/audit-logs' },
+        { title: 'MercadoPago Hub', value: 'Network', icon: <DollarSign />, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'hover:border-emerald-500/50', href: '/admin/finance' },
     ];
 
     const quickActions = {
@@ -130,12 +136,12 @@ export default function SuperAdminOverview() {
         ],
         saas: [
             { label: 'Planes SaaS', icon: <Gem size={20} />, href: '/admin/plans', color: 'from-purple-600 to-pink-500' },
-            { label: 'Métricas de Pago', icon: <CreditCard size={20} />, href: '/admin/finance/metrics', color: 'from-green-600 to-emerald-500' },
+            { label: 'Ingresos (Hub)', icon: <DollarSign size={20} />, href: '/admin/finance', color: 'from-green-600 to-emerald-500' },
         ],
         global: [
             { label: 'Centro de Auditoría', icon: <History size={20} />, href: '/admin/audit-logs', color: 'from-amber-600 to-orange-500' },
-            { label: 'Soporte Global', icon: <Ticket size={20} />, href: '/admin/reports/tickets', color: 'from-orange-600 to-red-500' },
-            { label: 'Configuración', icon: <Settings size={20} />, href: '/admin/settings', color: 'from-gray-600 to-slate-500' },
+            { label: 'MercadoPago Hub', icon: <DollarSign size={20} />, href: '/admin/finance', color: 'from-emerald-600 to-teal-500' },
+            { label: 'Broadcast Center', icon: <Megaphone size={20} />, href: '#', onClick: () => { setActiveTab('global'); setShowBroadcastModal(true); }, color: 'from-pink-600 to-rose-500' },
         ],
     };
 
@@ -209,7 +215,7 @@ export default function SuperAdminOverview() {
             if (res.ok) {
                 toast.success('Anuncio enviado exitosamente');
                 setShowBroadcastModal(false);
-                setNewAnnouncement({ titulo: '', contenido: '', tipo: 'info', destino: 'todos' });
+                setNewAnnouncement({ titulo: '', contenido: '', tipo: 'info', destino: 'todos', sendEmail: false });
                 fetchGlobalData();
             } else {
                 const d = await res.json();
@@ -486,6 +492,11 @@ export default function SuperAdminOverview() {
                                                     <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 text-gray-400">
                                                         Destino: {ann.destino === 'coaches' ? 'Profesores' : ann.destino === 'admin_gym' ? 'Admins Gym' : ann.destino}
                                                     </span>
+                                                    {ann.enviado_newsletter && (
+                                                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 flex items-center gap-1">
+                                                            <Mail size={8} /> Newsletter Enviado
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <span className="text-[10px] text-gray-600 font-mono italic">{new Date(ann.creado_en).toLocaleDateString('es-AR')}</span>
                                             </div>
@@ -593,6 +604,20 @@ export default function SuperAdminOverview() {
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 transition-all resize-none"
                                     required
                                 />
+                            </div>
+
+                            <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5 group hover:border-red-500/30 transition-all cursor-pointer"
+                                onClick={() => setNewAnnouncement({ ...newAnnouncement, sendEmail: !newAnnouncement.sendEmail })}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${newAnnouncement.sendEmail ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-600'}`}>
+                                    <Mail size={20} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] font-black text-white uppercase italic">Enviar vía Newsletter (Email)</p>
+                                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-widest">Se enviará un correo masivo via Resend</p>
+                                </div>
+                                <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${newAnnouncement.sendEmail ? 'bg-red-600 border-red-600' : 'border-white/20'}`}>
+                                    {newAnnouncement.sendEmail && <Check size={12} className="text-white" />}
+                                </div>
                             </div>
 
                             <div className="flex gap-4 pt-4">

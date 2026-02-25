@@ -10,7 +10,8 @@ export type EmailTemplate =
     | 'payment-rejected'
     | 'security-alert'
     | 'routine-approved'
-    | 'routine-rejected';
+    | 'routine-rejected'
+    | 'newsletter';
 
 interface EmailOptions {
     to: string | string[];
@@ -218,6 +219,31 @@ function generateEmailHTML(template: EmailTemplate, data: Record<string, any>): 
                 </div>
             `;
 
+        case 'newsletter':
+            return `
+                ${baseStyle}
+                <div class="container">
+                    <div class="header">
+                        <h1>${data.title} 📢</h1>
+                    </div>
+                    <div class="content">
+                        <div style="font-size: 16px; color: #333; line-height: 1.8;">
+                            ${data.content}
+                        </div>
+                        ${data.actionUrl ? `
+                            <div style="text-align: center;">
+                                <a href="${data.actionUrl}" class="button">${data.actionText || 'Ver más detalles'}</a>
+                            </div>
+                        ` : ''}
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                        <p style="font-size: 12px; color: #999;">Esta es una comunicación oficial de Virtud Gym para todos sus miembros.</p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 Virtud Gym. Todos los derechos reservados.</p>
+                    </div>
+                </div>
+            `;
+
         default:
             return '<p>Email template not found</p>';
     }
@@ -289,5 +315,13 @@ export const emails = {
             subject: 'Tu rutina requiere cambios - Virtud Gym',
             template: 'routine-rejected',
             data: { name, coachName, comments, routineUrl }
+        }),
+
+    newsletter: (to: string[], title: string, content: string, actionUrl?: string, actionText?: string) =>
+        sendEmail({
+            to,
+            subject: title,
+            template: 'newsletter',
+            data: { title, content, actionUrl, actionText }
         })
 };

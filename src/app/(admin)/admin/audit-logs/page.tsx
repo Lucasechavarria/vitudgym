@@ -13,7 +13,9 @@ import {
     Database,
     Zap,
     ArrowUpRight,
-    Eye
+    Eye,
+    Download,
+    Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -46,16 +48,23 @@ export default function AuditLogsPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'system' | 'impersonation'>('system');
     const [searchTerm, setSearchTerm] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const router = useRouter();
 
     useEffect(() => {
         fetchLogs();
-    }, [activeTab]);
+    }, [activeTab, startDate, endDate]);
 
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/admin/audit-logs?type=${activeTab}`);
+            const params = new URLSearchParams({
+                type: activeTab,
+                ...(startDate && { startDate }),
+                ...(endDate && { endDate })
+            });
+            const res = await fetch(`/api/admin/audit-logs?${params.toString()}`);
             const data = await res.json();
             if (res.ok) {
                 if (activeTab === 'system') setSystemLogs(data.systemLogs || []);
@@ -66,6 +75,37 @@ export default function AuditLogsPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const exportToCSV = () => {
+        const logs = activeTab === 'system' ? systemLogs : impersonationLogs;
+        if (logs.length === 0) return;
+
+        const headers = activeTab === 'system'
+            ? ['ID', 'Fecha', 'Operación', 'Tabla', 'Usuario', 'Email']
+            : ['ID', 'Fecha', 'Administrador', 'Gimnasio', 'Motivo', 'Duración (min)'];
+
+        const rows = logs.map(log => {
+            if (activeTab === 'system') {
+                const sLog = log as SystemLog;
+                return [sLog.id, sLog.creado_en, sLog.operacion, sLog.tabla, sLog.perfiles?.nombre_completo, sLog.perfiles?.email];
+            } else {
+                const iLog = log as ImpersonationLog;
+                return [iLog.id, iLog.creado_en, iLog.admin_profile?.nombre_completo, iLog.gimnasio?.nombre, iLog.motivo, iLog.duracion_minutos];
+            }
+        });
+
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + headers.join(",") + "\n"
+            + rows.map(e => e.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `audit_log_${activeTab}_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
@@ -93,28 +133,37 @@ export default function AuditLogsPage() {
                     </div>
                 </div>
 
-                <div className="flex bg-[#1c1c1e] p-1.5 rounded-2xl border border-white/5">
-                    {[
-                        { id: 'system', label: 'Sistema', icon: <Database size={14} /> },
-                        { id: 'impersonation', label: 'Accesos Remotos', icon: <ShieldAlert size={14} /> }
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id
+                <div className="flex gap-3">
+                    <button
+                        onClick={exportToCSV}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                        <Download size={14} />
+                        Exportar CSV
+                    </button>
+                    <div className="flex bg-[#1c1c1e] p-1.5 rounded-2xl border border-white/5">
+                        {[
+                            { id: 'system', label: 'Sistema', icon: <Database size={14} /> },
+                            { id: 'impersonation', label: 'Accesos Remotos', icon: <ShieldAlert size={14} /> }
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id
                                     ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20'
                                     : 'text-gray-500 hover:text-gray-300'
-                                }`}
-                        >
-                            {tab.icon}
-                            {tab.label}
-                        </button>
-                    ))}
+                                    }`}
+                            >
+                                {tab.icon}
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* Filter Bar */}
-            <div className="flex gap-4">
+            <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1 relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-amber-500 transition-colors" size={18} />
                     <input
@@ -125,9 +174,41 @@ export default function AuditLogsPage() {
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <button className="px-6 py-4 bg-[#1c1c1e] border border-white/5 rounded-2xl text-gray-400 hover:text-white transition-all">
-                    <Filter size={20} />
-                </button>
+
+                <div className="flex gap-4">
+                    <div className="relative flex items-center bg-[#1c1c1e] border border-white/5 rounded-2xl px-4 py-2">
+                        <Calendar size={14} className="text-amber-500 mr-2" />
+                        <div className="flex flex-col">
+                            <span className="text-[7px] font-black text-gray-500 uppercase">Desde</span>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={e => setStartDate(e.target.value)}
+                                className="bg-transparent text-[10px] font-bold text-white uppercase focus:outline-none"
+                            />
+                        </div>
+                    </div>
+                    <div className="relative flex items-center bg-[#1c1c1e] border border-white/5 rounded-2xl px-4 py-2">
+                        <Calendar size={14} className="text-amber-500 mr-2" />
+                        <div className="flex flex-col">
+                            <span className="text-[7px] font-black text-gray-500 uppercase">Hasta</span>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={e => setEndDate(e.target.value)}
+                                className="bg-transparent text-[10px] font-bold text-white uppercase focus:outline-none"
+                            />
+                        </div>
+                    </div>
+                    {(startDate || endDate) && (
+                        <button
+                            onClick={() => { setStartDate(''); setEndDate(''); }}
+                            className="px-4 text-[8px] font-black uppercase text-amber-500 hover:text-white transition-colors"
+                        >
+                            Limpiar
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Content Table/List */}
@@ -189,8 +270,8 @@ function SystemLogCard({ log, index }: { log: SystemLog, index: number }) {
         >
             <div className="flex items-center gap-6">
                 <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center border font-black text-[10px] uppercase leading-none text-center p-2 ${log.operacion === 'INSERT' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                        log.operacion === 'DELETE' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                            'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                    log.operacion === 'DELETE' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                        'bg-blue-500/10 text-blue-500 border-blue-500/20'
                     }`}>
                     <span>{log.operacion}</span>
                 </div>

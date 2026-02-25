@@ -6,15 +6,17 @@ export async function GET(request: Request) {
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
-    const type = searchParams.get('type') || 'all'; // 'all', 'system', 'impersonation'
+    const type = searchParams.get('type') || 'all';
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
     try {
         let results: any = {};
 
         if (type === 'all' || type === 'system') {
-            const { data: systemLogs, error: sysError } = await supabase
+            let query = supabase
                 .from('audit_logs')
                 .select(`
                     *,
@@ -23,23 +25,29 @@ export async function GET(request: Request) {
                 .order('creado_en', { ascending: false })
                 .range(offset, offset + limit - 1);
 
+            if (startDate) query = query.gte('creado_en', startDate);
+            if (endDate) query = query.lte('creado_en', endDate);
+
+            const { data: systemLogs, error: sysError } = await query;
             if (sysError) throw sysError;
             results.systemLogs = systemLogs;
         }
 
         if (type === 'all' || type === 'impersonation') {
-            const { data: impersonationLogs, error: impError } = await supabase
+            let query = supabase
                 .from('logs_acceso_remoto')
                 .select(`
                     *,
-                    admin:admin_id (nombre_completo, email),
-                    admin_profile:admin_id (id, nombre_completo, email),
+                    admin_profile:superadmin_id (id, nombre_completo, email),
                     gimnasio:gimnasio_id (nombre)
                 `)
-                .order('creado_en', { ascending: false })
+                .order('fecha', { ascending: false })
                 .range(offset, offset + limit - 1);
 
-            if (impError) throw impError;
+            if (startDate) query = query.gte('fecha', startDate);
+            if (endDate) query = query.lte('fecha', endDate);
+
+            const { data: impersonationLogs, error: impError } = await query;
             results.impersonationLogs = impersonationLogs;
         }
 
