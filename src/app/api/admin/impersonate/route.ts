@@ -37,8 +37,9 @@ export async function POST(request: Request) {
             redirectUrl: `/admin/gyms/${gymId}/dashboard` // This would be the dashboard for that gym
         });
 
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Impersonation Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

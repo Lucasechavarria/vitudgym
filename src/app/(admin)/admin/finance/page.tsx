@@ -7,16 +7,12 @@ import {
     TrendingUp,
     Building2,
     Calendar,
-    Search,
     Download,
     CreditCard,
     CheckCircle2,
     Clock,
     XCircle,
     ChevronLeft,
-    Filter,
-    ArrowUpRight,
-    ArrowDownRight,
     Wallet
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -48,7 +44,7 @@ export default function FinanceHubPage() {
     const [saasPayments, setSaaSPayments] = useState<SaaSPayment[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeView, setActiveView] = useState<'members' | 'saas'>('members');
-    const [gyms, setGyms] = useState<any[]>([]);
+    const [gyms, setGyms] = useState<{ id: string; nombre: string }[]>([]);
     const [selectedGym, setSelectedGym] = useState('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -126,7 +122,7 @@ export default function FinanceHubPage() {
                     ].map(tab => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveView(tab.id as any)}
+                            onClick={() => setActiveView(tab.id as 'members' | 'saas')}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeView === tab.id
                                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
                                 : 'text-gray-500 hover:text-gray-300'
@@ -267,8 +263,8 @@ function MemberPaymentRow({ payment, index }: { payment: Payment, index: number 
         >
             <div className="flex items-center gap-6">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${payment.estado === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                        payment.estado === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                            'bg-red-500/10 text-red-500 border-red-500/20'
+                    payment.estado === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                        'bg-red-500/10 text-red-500 border-red-500/20'
                     }`}>
                     {payment.estado === 'approved' ? <CheckCircle2 size={24} /> : payment.estado === 'pending' ? <Clock size={24} /> : <XCircle size={24} />}
                 </div>

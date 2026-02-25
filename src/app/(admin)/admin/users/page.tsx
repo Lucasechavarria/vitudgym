@@ -24,6 +24,12 @@ interface Coach {
     email: string;
 }
 
+interface GymLimits {
+    canAddUser: boolean;
+    currentUsers: number;
+    limitUsers: number;
+}
+
 export default function UsersPage() {
     const supabase = createClient();
     const [loading, setLoading] = useState(false);
@@ -31,7 +37,7 @@ export default function UsersPage() {
     const [coaches, setCoaches] = useState<Coach[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [limits, setLimits] = useState<any>(null);
+    const [limits, setLimits] = useState<GymLimits | null>(null);
 
     useEffect(() => {
         fetchUsers();
@@ -83,7 +89,7 @@ export default function UsersPage() {
 
             console.log('✅ [DEBUG] Usuarios recibidos:', data.users?.length);
             // Verificar si algún usuario tiene coach asignado para debugear
-            const assignedCount = data.users?.filter((u: any) => u.assigned_coach_id).length;
+            const assignedCount = (data.users || []).filter((u: User) => u.assigned_coach_id).length;
             console.log('📊 [DEBUG] Usuarios con coach asignado:', assignedCount);
 
             setUsers(data.users || []);

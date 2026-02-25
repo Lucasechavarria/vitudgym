@@ -23,7 +23,7 @@ export default function GymOnboardingPage() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [plans, setPlans] = useState<any[]>([]);
+    const [plans, setPlans] = useState<{ id: string; nombre: string; precio_mensual: number }[]>([]);
     const router = useRouter();
 
     const [formData, setFormData] = useState({
@@ -75,6 +75,7 @@ export default function GymOnboardingPage() {
                 toast.error(data.error || 'Error en el alta');
             }
         } catch (error) {
+            console.error('Onboarding Error:', error);
             toast.error('Error de red');
         } finally {
             setLoading(false);

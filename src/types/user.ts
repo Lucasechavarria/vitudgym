@@ -31,6 +31,25 @@ export interface MedicalHistory {
     restricciones?: string;
 }
 
+export interface UserMedicalInfo {
+    grupo_sanguineo?: string;
+    presion_arterial?: string;
+    peso?: number;
+    fuma?: boolean;
+    lesiones?: string;
+    alergias?: string;
+    enfermedades_cronicas?: string;
+    patologias?: string;
+    antecedentes?: string;
+}
+
+export interface UserEmergencyContact {
+    nombre_completo?: string;
+    relacion?: string;
+    telefono?: string;
+    direccion?: string;
+}
+
 // --- Supabase & Admin Types ---
 
 export interface SupabaseUserProfile {
@@ -48,8 +67,8 @@ export interface SupabaseUserProfile {
     ciudad?: string | null;
     fecha_nacimiento?: string | null;
     genero?: string | null;
-    informacion_medica?: any | null;
-    contacto_emergencia?: any | null;
+    informacion_medica?: UserMedicalInfo | null;
+    contacto_emergencia?: UserEmergencyContact | null;
     exencion_aceptada?: boolean;
     fecha_exencion?: string | null;
     estado_membresia?: 'active' | 'inactive' | 'pending' | 'expired';
@@ -62,7 +81,7 @@ export interface SupabaseUserProfile {
     onboarding_completado_en?: string | null;
     creado_en?: string;
     actualizado_en?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface AdminUserListResponse extends SupabaseUserProfile {

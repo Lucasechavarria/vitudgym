@@ -2,15 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SupabaseUserProfile, UserMedicalInfo, UserEmergencyContact } from '@/types/user';
+
+interface UserHistoryLog {
+    id: string;
+    field_changed: string;
+    old_value: string;
+    new_value: string;
+    created_at: string;
+    reason?: string;
+    autor?: {
+        nombre_completo?: string;
+        correo?: string;
+    };
+}
 
 interface ProfileViewerModalProps {
     isOpen: boolean;
     onClose: () => void;
-    user: any | null; // Usar any para soportar campos dinámicos de la API
+    user: (SupabaseUserProfile & { name?: string; email?: string }) | null;
 }
 
 export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileViewerModalProps) {
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<UserHistoryLog[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
 
     useEffect(() => {
@@ -39,8 +53,8 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
     if (!isOpen || !user) return null;
 
     // Helper to safely access JSON fields
-    const medical = user.informacion_medica || {};
-    const emergency = user.contacto_emergencia || {};
+    const medical: UserMedicalInfo = user.informacion_medica || {};
+    const emergency: UserEmergencyContact = user.contacto_emergencia || {};
 
     return (
         <AnimatePresence>
@@ -112,7 +126,7 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase">Email</p>
-                                            <p className="text-white font-medium">{user.correo || user.email}</p>
+                                            <p className="text-white font-medium">{(user as any).correo || user.email}</p>
                                         </div>
                                         <div className="md:col-span-2">
                                             <p className="text-xs text-gray-500 uppercase">Dirección</p>
@@ -212,7 +226,7 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                             <div className="p-8 text-center text-gray-500">No hay registros de cambios recientes.</div>
                                         ) : (
                                             <div className="divide-y divide-white/5">
-                                                {history.map((log: any) => (
+                                                {history.map((log: UserHistoryLog) => (
                                                     <div key={log.id} className="p-4 hover:bg-white/5 transition-colors">
                                                         <div className="flex justify-between items-start mb-1">
                                                             <span className="text-xs font-black text-purple-400 uppercase tracking-wider">
@@ -252,7 +266,7 @@ export default function ProfileViewerModal({ isOpen, onClose, user }: ProfileVie
                                             <p className={`font-bold ${user.exencion_aceptada ? 'text-green-400' : 'text-red-400'}`}>
                                                 {user.exencion_aceptada ? '✓ Deslinde Firmado y Aceptado' : '⚠ Pendiente de Firma'}
                                             </p>
-                                            {user.exencion_aceptada && (
+                                            {user.exencion_aceptada && user.fecha_exencion && (
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     Firmado digitalmente el: {new Date(user.fecha_exencion).toLocaleString()}
                                                 </p>

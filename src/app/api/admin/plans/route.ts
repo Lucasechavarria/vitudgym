@@ -14,8 +14,9 @@ export async function GET(request: Request) {
         if (plansError) throw plansError;
 
         return NextResponse.json({ plans });
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
@@ -40,7 +41,8 @@ export async function POST(request: Request) {
         if (insertError) throw insertError;
 
         return NextResponse.json({ plan: data });
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

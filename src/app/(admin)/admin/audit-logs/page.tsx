@@ -7,7 +7,6 @@ import {
     UserCheck,
     History,
     Search,
-    Filter,
     ChevronLeft,
     Clock,
     Database,
@@ -25,8 +24,8 @@ interface SystemLog {
     tabla: string;
     operacion: string;
     registro_id: string;
-    datos_anteriores: any;
-    datos_nuevos: any;
+    datos_anteriores: unknown;
+    datos_nuevos: unknown;
     creado_en: string;
     perfiles?: { nombre_completo: string; email: string };
 }
@@ -148,7 +147,7 @@ export default function AuditLogsPage() {
                         ].map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
+                                onClick={() => setActiveTab(tab.id as 'system' | 'impersonation')}
                                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id
                                     ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20'
                                     : 'text-gray-500 hover:text-gray-300'

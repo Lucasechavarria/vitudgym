@@ -5,7 +5,7 @@ import { checkGymLimits } from '@/lib/saas/limits';
 
 export async function POST(request: Request) {
     try {
-        const { error: authError, user } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
+        const { error: authError } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
         if (authError) return authError;
 
         const { gymId, nombre, direccion } = await request.json();

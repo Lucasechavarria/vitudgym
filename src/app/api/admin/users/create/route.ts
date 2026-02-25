@@ -54,6 +54,10 @@ export async function POST(request: Request) {
 
         if (createError) throw createError;
 
+        if (!authData.user) {
+            throw new Error('No se pudo crear el usuario en la base de datos de autenticación');
+        }
+
         // 4. Crear perfil vinculado al gimnasio
         const { error: profileError } = await adminClient
             .from('perfiles')
@@ -61,7 +65,7 @@ export async function POST(request: Request) {
                 id: authData.user.id,
                 correo: email,
                 nombre_completo: fullName,
-                rol: rol as any,
+                rol: rol,
                 gimnasio_id: gymId
             });
 

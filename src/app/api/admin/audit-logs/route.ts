@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     const endDate = searchParams.get('endDate');
 
     try {
-        let results: any = {};
+        const results: { systemLogs?: any[]; impersonationLogs?: any[] } = {};
 
         if (type === 'all' || type === 'system') {
             let query = supabase
@@ -47,13 +47,14 @@ export async function GET(request: Request) {
             if (startDate) query = query.gte('fecha', startDate);
             if (endDate) query = query.lte('fecha', endDate);
 
-            const { data: impersonationLogs, error: impError } = await query;
+            const { data: impersonationLogs } = await query;
             results.impersonationLogs = impersonationLogs;
         }
 
         return NextResponse.json(results);
-    } catch (err: any) {
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
         console.error('Audit Log API Error:', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

@@ -10,13 +10,23 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: Request) {
     try {
-        const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
-        if (authError || !profile) return authError || NextResponse.json({ error: 'No profile' }, { status: 401 });
+        const { error: authError, user } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
+        if (authError || !user) return authError || NextResponse.json({ error: 'No user authenticated' }, { status: 401 });
 
         const adminClient = createAdminClient();
-        let query = adminClient.from('tickets_soporte').select(`
+
+        // Obtener perfil del solicitante
+        const { data: profile } = await adminClient
+            .from('perfiles')
+            .select('rol, gimnasio_id')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+
+        let query = adminClient.from('tickets_soporte_saas').select(`
             *,
-            perfiles (nombre_completo),
+            perfiles!usuario_id (nombre_completo),
             gimnasios (nombre)
         `);
 
@@ -29,7 +39,7 @@ export async function GET(request: Request) {
 
         if (error) throw error;
         return NextResponse.json({ tickets });
-    } catch (error: unknown) {
+    } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json({ error: message }, { status: 500 });
     }
@@ -37,8 +47,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'coach']);
-        if (authError || !profile) return authError || NextResponse.json({ error: 'No profile' }, { status: 401 });
+        const { error: authError, user } = await authenticateAndRequireRole(request, ['admin', 'coach']);
+        if (authError || !user) return authError || NextResponse.json({ error: 'No user authenticated' }, { status: 401 });
 
         const { asunto, prioridad, mensaje } = await request.json();
 
@@ -48,9 +58,18 @@ export async function POST(request: Request) {
 
         const adminClient = createAdminClient();
 
+        // Obtener perfil del solicitante
+        const { data: profile } = await adminClient
+            .from('perfiles')
+            .select('id, gimnasio_id')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+
         // 1. Crear el Ticket
         const { data: ticket, error: ticketError } = await adminClient
-            .from('tickets_soporte')
+            .from('tickets_soporte_saas')
             .insert({
                 gimnasio_id: profile.gimnasio_id,
                 usuario_id: profile.id,
@@ -75,7 +94,7 @@ export async function POST(request: Request) {
         if (msgError) throw msgError;
 
         return NextResponse.json({ success: true, ticketId: ticket.id });
-    } catch (error: unknown) {
+    } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json({ error: message }, { status: 500 });
     }

@@ -45,8 +45,9 @@ export async function GET(request: Request) {
             saasPayments: saasPayments || []
         });
 
-    } catch (err: any) {
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
         console.error('Finance API Error:', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

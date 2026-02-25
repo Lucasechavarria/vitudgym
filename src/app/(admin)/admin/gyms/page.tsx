@@ -65,7 +65,7 @@ export default function GymsManagementPage() {
         estado_pago_saas: ''
     });
 
-    const [plans, setPlans] = useState<any[]>([]);
+    const [plans, setPlans] = useState<{ id: string; nombre: string; precio_mensual: number }[]>([]);
 
     useEffect(() => {
         fetchGyms();
@@ -91,8 +91,8 @@ export default function GymsManagementPage() {
             } else {
                 toast.error(data.error || 'Error al cargar gimnasios');
             }
-        } catch (_error) {
-            console.error(_error);
+        } catch (err) {
+            console.error(err);
             toast.error('Error de conexión');
         } finally {
             setLoading(false);
@@ -117,7 +117,8 @@ export default function GymsManagementPage() {
             } else {
                 toast.error(data.error || 'Error al crear');
             }
-        } catch (_error) {
+        } catch (err) {
+            console.error('Create gym error:', err);
             toast.error('Error de red');
         } finally {
             setCreating(false);
@@ -143,7 +144,8 @@ export default function GymsManagementPage() {
                 const data = await res.json();
                 toast.error(data.error || 'Error al crear sede');
             }
-        } catch (_error) {
+        } catch (err) {
+            console.error('Create branch error:', err);
             toast.error('Error de red');
         } finally {
             setCreating(false);
@@ -168,7 +170,8 @@ export default function GymsManagementPage() {
                 const data = await res.json();
                 toast.error(data.error || 'Error al actualizar');
             }
-        } catch (_error) {
+        } catch (err) {
+            console.error('Update gym error:', err);
             toast.error('Error de red');
         } finally {
             setCreating(false);

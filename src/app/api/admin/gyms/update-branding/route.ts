@@ -8,12 +8,23 @@ import { createAdminClient } from '@/lib/supabase/admin';
  */
 export async function POST(request: Request) {
     try {
-        const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
-        if (authError) return authError;
+        const { error: authError, user } = await authenticateAndRequireRole(request, ['admin', 'superadmin']);
+        if (authError || !user) return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { color_primario, color_secundario, logo_url, config_visual } = await request.json();
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
+
+        // Obtener el gimnasio_id del perfil del usuario
+        const { data: profileData, error: profileError } = await adminClient
+            .from('perfiles')
+            .select('gimnasio_id')
+            .eq('id', user.id)
+            .single();
+
+        if (profileError || !profileData?.gimnasio_id) {
+            return NextResponse.json({ error: 'No se encontró el gimnasio asociado' }, { status: 404 });
+        }
 
         const { error } = await adminClient
             .from('gimnasios')
@@ -24,14 +35,15 @@ export async function POST(request: Request) {
                 config_visual,
                 actualizado_en: new Date().toISOString()
             })
-            .eq('id', profile.gimnasio_id);
+            .eq('id', profileData.gimnasio_id);
 
         if (error) throw error;
 
         return NextResponse.json({ success: true });
 
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Error updating branding:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

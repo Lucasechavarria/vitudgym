@@ -16,20 +16,18 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Gym ID is required' }, { status: 400 });
         }
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
         // Fetch gym-specific stats
         const [
             { count: activeMembers },
             { count: totalUsers },
-            { data: revenueData },
             { count: classesToday },
             { data: recentProfiles },
             { data: expiringMemberships }
         ] = await Promise.all([
             adminClient.from('perfiles').select('*', { count: 'exact', head: true }).eq('gimnasio_id', gymId).eq('estado_membresia', 'active'),
             adminClient.from('perfiles').select('*', { count: 'exact', head: true }).eq('gimnasio_id', gymId).not('rol', 'in', '("admin","superadmin")'),
-            adminClient.from('pagos').select('monto').eq('estado', 'aprobado'), // We need a way to link payments to gyms. Usually via user -> gym.
             adminClient.from('horarios_de_clase').select('*', { count: 'exact', head: true }).eq('esta_activa', true).eq('dia_de_la_semana', new Date().getDay()),
             adminClient.from('perfiles').select('nombre_completo, creado_en').eq('gimnasio_id', gymId).order('creado_en', { ascending: false }).limit(5),
             adminClient.from('perfiles')
@@ -45,7 +43,7 @@ export async function GET(request: Request) {
         // We'd need a join or a subquery if we don't have gimnasio_id in payments.
         // For now, let's assume we filter payments by users of this gym.
         const { data: usersInGym } = await adminClient.from('perfiles').select('id').eq('gimnasio_id', gymId);
-        const gymUserIds = usersInGym?.map((u: any) => u.id) || [];
+        const gymUserIds = usersInGym?.map(u => u.id) || [];
 
         const { data: gymRevenueData } = await adminClient
             .from('pagos')
@@ -53,14 +51,14 @@ export async function GET(request: Request) {
             .eq('estado', 'aprobado')
             .in('usuario_id', gymUserIds);
 
-        const totalRevenue = gymRevenueData?.reduce((acc: any, curr: any) => acc + Number(curr.monto), 0) || 0;
+        const totalRevenue = (gymRevenueData as { monto: number }[] | null)?.reduce((acc, curr) => acc + Number(curr.monto), 0) || 0;
 
         return NextResponse.json({
             activeMembers: activeMembers || 0,
             totalUsers: totalUsers || 0,
             classesToday: classesToday || 0,
             revenue: totalRevenue,
-            recentActivity: (recentProfiles || []).map((p: any) => ({
+            recentActivity: (recentProfiles || []).map(p => ({
                 description: 'Nuevo registro de socio',
                 user: { nombre_completo: p.nombre_completo },
                 date: p.creado_en
@@ -68,8 +66,9 @@ export async function GET(request: Request) {
             membershipExpiring: expiringMemberships || []
         });
 
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Error in gym-stats API:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

@@ -22,7 +22,7 @@ export async function checkGymLimits(gymId: string) {
         throw new Error('No se pudo verificar el gimnasio');
     }
 
-    const plan = (gym.planes_suscripcion as any);
+    const plan = gym.planes_suscripcion;
     const estadoPago = gym.estado_pago_saas;
 
     // Si el pago está impago, bloqueamos todo

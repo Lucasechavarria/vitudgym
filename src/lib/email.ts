@@ -17,7 +17,7 @@ interface EmailOptions {
     to: string | string[];
     subject: string;
     template: EmailTemplate;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
 }
 
 /**
@@ -44,7 +44,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
 /**
  * Generar HTML del email según template
  */
-function generateEmailHTML(template: EmailTemplate, data: Record<string, any>): string {
+function generateEmailHTML(template: EmailTemplate, data: Record<string, unknown>): string {
     const baseStyle = `
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
@@ -128,7 +128,7 @@ function generateEmailHTML(template: EmailTemplate, data: Record<string, any>): 
                         <p>Hola <strong>${data.name}</strong>,</p>
                         <p>Tu pago de <strong>$${data.amount}</strong> ha sido aprobado exitosamente.</p>
                         <p><strong>ID de Transacción:</strong> ${data.transactionId}</p>
-                        <p><strong>Fecha:</strong> ${new Date(data.date).toLocaleDateString('es-AR')}</p>
+                        <p><strong>Fecha:</strong> ${new Date(data.date as string).toLocaleDateString('es-AR')}</p>
                         <p>Gracias por tu pago. Tu membresía está activa.</p>
                         <a href="${data.dashboardUrl}" class="button">Ver Dashboard</a>
                     </div>
@@ -170,7 +170,7 @@ function generateEmailHTML(template: EmailTemplate, data: Record<string, any>): 
                         <p>Detectamos actividad inusual en tu cuenta:</p>
                         <p><strong>${data.alertTitle}</strong></p>
                         <p>${data.alertMessage}</p>
-                        <p><strong>Fecha:</strong> ${new Date(data.date).toLocaleString('es-AR')}</p>
+                        <p><strong>Fecha:</strong> ${new Date(data.date as string).toLocaleString('es-AR')}</p>
                         <p>Si no reconoces esta actividad, cambia tu contraseña inmediatamente.</p>
                         <a href="${data.securityUrl}" class="button">Revisar Seguridad</a>
                     </div>

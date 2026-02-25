@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { SupabaseUserProfile } from '@/types/user.ts';
+import type { SupabaseUserProfile } from '@/types/user';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -48,8 +48,8 @@ export async function GET(request: Request) {
             query = query.eq('gimnasio_id', requester.gimnasio_id);
         }
 
-        const { data: users, error: dbError } = await (query as any)
-            .order('creado_en' as any, { ascending: false });
+        const { data: users, error: dbError } = await query
+            .order('creado_en', { ascending: false });
 
         if (dbError) {
             console.error('❌ Error en DB query:', dbError);
@@ -62,14 +62,15 @@ export async function GET(request: Request) {
         const formattedUsers = (users as any[]).map(u => normalizeUser(u));
         return NextResponse.json({ users: formattedUsers });
 
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Error fetching users:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
 function normalizeUser(u: any) {
-    const relations = u.relacion_alumno_coach || [];
+    const relations = (u.relacion_alumno_coach as any[]) || [];
 
     const primaryRelation = relations.find((r: any) =>
         r.is_primary === true ||
@@ -95,15 +96,16 @@ function normalizeUser(u: any) {
 
     // Normalizar el rol
     const rawRole = (u.rol || '').toLowerCase();
-    const normalizedRole = ['coach', 'profesor'].includes(rawRole) ? 'coach' :
-        (['admin', 'administrador'].includes(rawRole) ? 'admin' : 'member');
+    const normalizedRole = ['coach', 'profesor', 'entrenador'].includes(rawRole) ? 'coach' :
+        (['admin', 'administrador'].includes(rawRole) ? 'admin' :
+            (['superadmin'].includes(rawRole) ? 'superadmin' : 'member'));
 
     return {
         ...u,
         id: u.id,
         name: userName,
         email: userEmail,
-        role: normalizedRole,
+        role: normalizedRole as SupabaseUserProfile['role'],
         membershipStatus: u.estado_membresia || 'inactive',
         membershipEnds: u.fecha_fin_membresia,
         assigned_coach_id: assignedCoachId,

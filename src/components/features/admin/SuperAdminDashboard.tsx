@@ -11,18 +11,14 @@ import {
     CreditCard,
     Zap,
     ChevronRight,
-    Search,
     PlusCircle,
     LayoutDashboard,
-    Ticket,
-    Settings,
     Gem,
     ArrowUpRight,
     Megaphone,
     ToggleLeft,
     Activity,
     Eye,
-    TrendingDown,
     Brain,
     Mail,
     Check,
@@ -38,8 +34,6 @@ import {
     Tooltip,
     BarChart,
     Bar,
-    LineChart,
-    Line
 } from 'recharts';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -103,7 +97,7 @@ export default function SuperAdminOverview() {
     const [activeTab, setActiveTab] = useState<'gyms' | 'saas' | 'global'>('gyms');
     const [gymsHealth, setGymsHealth] = useState<GymHealth[]>([]);
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [historyMetrics, setHistoryMetrics] = useState<any[]>([]);
+    const [historyMetrics, setHistoryMetrics] = useState<{ mes: string; mrr: number; churn: number }[]>([]);
 
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
     const [newAnnouncement, setNewAnnouncement] = useState({ titulo: '', contenido: '', tipo: 'info', destino: 'todos', sendEmail: false });
@@ -645,23 +639,6 @@ export default function SuperAdminOverview() {
 
 // -- Sub-componentes para mantener el orden --
 
-function StatusRow({ label, value, color, progress }: { label: string; value: string | number; color: string; progress: number }) {
-    return (
-        <div>
-            <div className="flex justify-between text-[10px] font-black uppercase text-gray-500 mb-2">
-                <span>{label}</span>
-                <span>{value}</span>
-            </div>
-            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    className={`h-full ${color}`}
-                />
-            </div>
-        </div>
-    );
-}
 
 function SystemRow({ label, status, color }: { label: string; status: string; color: string }) {
     return (

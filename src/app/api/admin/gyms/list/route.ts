@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
     try {
         // Solo superadmin puede ver la lista global de gimnasios
-        const { error: authError, profile } = await authenticateAndRequireRole(request, ['superadmin']);
+        const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
         const adminClient = createAdminClient();
@@ -27,8 +27,9 @@ export async function GET(request: Request) {
         if (dbError) throw dbError;
 
         return NextResponse.json({ gyms });
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Error fetching gyms:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

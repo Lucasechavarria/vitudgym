@@ -37,8 +37,8 @@ export function RoleManagement() {
             if (data.users) {
                 setUsers(data.users);
             }
-        } catch (_error) {
-            console.error('Error fetching users:', _error);
+        } catch (err) {
+            console.error('Error fetching users:', err);
             toast.error('Error al cargar usuarios');
             // Mock data fallback
             setUsers([
@@ -64,14 +64,14 @@ export function RoleManagement() {
 
             // Simular cambio
             setUsers(users.map(u =>
-                u.id === selectedUser.id ? { ...u, role: newRole } : u
+                u.id === selectedUser.id ? { ...u, rol: newRole } : u
             ));
 
             toast.success(`Rol cambiado a ${AVAILABLE_ROLES.find(r => r.id === newRole)?.label}`);
             setShowRoleModal(false);
             setSelectedUser(null);
-        } catch (_error) {
-            console.error('Error:', _error);
+        } catch (err) {
+            console.error('Error changing role:', err);
             toast.error('Error al cambiar rol');
         }
     };

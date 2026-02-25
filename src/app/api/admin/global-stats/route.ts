@@ -13,7 +13,7 @@ export async function GET(request: Request) {
         const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
 
         // 1. Conteo de Entidades Globales
         const [
@@ -25,26 +25,40 @@ export async function GET(request: Request) {
             adminClient.from('gimnasios').select('*', { count: 'exact', head: true }),
             adminClient.from('perfiles').select('*', { count: 'exact', head: true }),
             adminClient.from('sucursales').select('*', { count: 'exact', head: true }),
-            adminClient.from('payments').select('amount').eq('status', 'approved')
+            adminClient.from('pagos').select('monto').eq('estado', 'aprobado')
         ]);
 
         // 2. Calcular Ganancias Totales de la Red
-        const totalRevenue = revenueData?.reduce((acc: any, curr: any) => acc + Number(curr.amount), 0) || 0;
+        const totalRevenue = (revenueData as { monto: number }[] | null)?.reduce((acc, curr) => acc + Number(curr.monto), 0) || 0;
 
         // 3. Obtener Actividad Reciente Cruzada (Auditoría)
-        const { data: recentActivity } = await adminClient
-            .from('auditoria_global')
+        const { data: auditData } = await adminClient
+            .from('audit_logs')
             .select(`
-                *,
-                perfiles (nombre_completo),
-                gimnasios (nombre)
+                id,
+                operacion,
+                tabla,
+                creado_en,
+                perfiles:usuario_id (
+                    nombre_completo,
+                    gimnasios:gimnasio_id (nombre)
+                )
             `)
             .order('creado_en', { ascending: false })
             .limit(10);
 
+        const recentActivity = (auditData as any[])?.map(log => ({
+            id: log.id,
+            accion: log.operacion,
+            entidad_tipo: log.tabla,
+            creado_en: log.creado_en,
+            perfiles: { nombre_completo: log.perfiles?.nombre_completo },
+            gimnasios: { nombre: log.perfiles?.gimnasios?.nombre || 'SaaS Core' }
+        }));
+
         // 4. Obtener Alertas Críticas (Tickets abiertos de alta prioridad)
         const { data: criticalTickets } = await adminClient
-            .from('tickets_soporte')
+            .from('tickets_soporte_saas')
             .select(`
                 *,
                 gimnasios (nombre)
@@ -111,8 +125,9 @@ export async function GET(request: Request) {
             announcements: announcements || []
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Error in global-stats API:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

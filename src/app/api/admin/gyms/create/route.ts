@@ -16,8 +16,8 @@ export async function POST(request: Request) {
         const adminClient = createAdminClient();
 
         // 1. Crear el gimnasio
-        const { data: gym, error: gymError } = await (adminClient
-            .from('gimnasios') as any)
+        const { data: gym, error: gymError } = await adminClient
+            .from('gimnasios')
             .insert({
                 nombre,
                 slug: slug.toLowerCase(),
@@ -32,8 +32,8 @@ export async function POST(request: Request) {
         }
 
         // 2. Crear la sucursal inicial
-        const { error: branchError } = await (adminClient
-            .from('sucursales') as any)
+        const { error: branchError } = await adminClient
+            .from('sucursales')
             .insert({
                 gimnasio_id: gym.id,
                 nombre: sucursal_nombre,
@@ -44,8 +44,9 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, gym });
 
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Error creating gym:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

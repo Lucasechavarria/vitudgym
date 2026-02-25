@@ -25,8 +25,20 @@ interface GymStats {
     totalUsers: number;
     classesToday: number;
     revenue: number;
-    membershipExpiring: any[];
-    recentActivity: any[];
+    membershipExpiring: Array<{
+        id: string;
+        nombre_completo: string;
+        fecha_fin_membresia: string;
+    }>;
+    recentActivity: Array<{
+        id: string;
+        description: string;
+        date: string;
+        user: {
+            nombre?: string;
+            nombre_completo: string;
+        };
+    }>;
 }
 
 export default function GymAdminDashboard({ gymId }: { gymId: string }) {

@@ -7,12 +7,33 @@ import { Plus } from 'lucide-react';
 import Image from 'next/image';
 import { RoleManagement } from '@/components/features/admin/RoleManagement';
 
+interface GymInfo {
+    nombre: string;
+    direccion: string;
+    telefono: string;
+    email: string;
+    horarios: string;
+    timezone: string;
+    estado_pago_saas: string;
+    fecha_proximo_pago: string | null;
+    planes_suscripcion?: {
+        nombre: string;
+    };
+}
+
+interface GymLimits {
+    currentUsers: number;
+    limitUsers: number | '∞';
+    currentBranches: number;
+    limitBranches: number | '∞';
+}
+
 export default function SettingsPage() {
     const [activeSection, setActiveSection] = useState<'gym' | 'integrations' | 'users' | 'branding' | 'equipment' | 'billing'>('gym');
     const [loading, setLoading] = useState(false);
 
-    const [gymInfo, setGymInfo] = useState<Record<string, any> | null>(null);
-    const [limits, setLimits] = useState<Record<string, any> | null>(null);
+    const [gymInfo, setGymInfo] = useState<GymInfo | null>(null);
+    const [limits, setLimits] = useState<GymLimits | null>(null);
 
     const [gymSettings, setGymSettings] = useState({
         name: '',
@@ -33,8 +54,8 @@ export default function SettingsPage() {
             const res = await fetch('/api/admin/gym/info');
             const data = await res.json();
             if (res.ok) {
-                setGymInfo(data.gym);
-                setLimits(data.limits);
+                setGymInfo(data.gym as GymInfo);
+                setLimits(data.limits as GymLimits);
                 setGymSettings({
                     name: data.gym.nombre || '',
                     address: data.gym.direccion || '',
@@ -61,8 +82,9 @@ export default function SettingsPage() {
             } else {
                 throw new Error(data.error || 'Error al procesar el pago');
             }
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Error desconocido';
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -192,7 +214,7 @@ export default function SettingsPage() {
                                             <div className="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden">
                                                 <motion.div
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: `${Math.min((limits.currentUsers / (limits.limitUsers === '∞' ? 1000 : limits.limitUsers)) * 100, 100)}%` }}
+                                                    animate={{ width: `${Math.min(((limits.currentUsers || 0) / (limits.limitUsers === '∞' ? 1000 : (limits.limitUsers as number) || 1)) * 100, 100)}%` }}
                                                     className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
                                                 />
                                             </div>
@@ -207,7 +229,7 @@ export default function SettingsPage() {
                                             <div className="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden">
                                                 <motion.div
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: `${Math.min((limits.currentBranches / (limits.limitBranches === '∞' ? 10 : limits.limitBranches)) * 100, 100)}%` }}
+                                                    animate={{ width: `${Math.min(((limits.currentBranches || 0) / (limits.limitBranches === '∞' ? 10 : (limits.limitBranches as number) || 1)) * 100, 100)}%` }}
                                                     className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
                                                 />
                                             </div>

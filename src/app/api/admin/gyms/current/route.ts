@@ -10,10 +10,23 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: Request) {
     try {
-        const { error: authError, profile } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
-        if (authError) return authError;
+        const { error: authError, user } = await authenticateAndRequireRole(request, ['admin', 'superadmin', 'coach']);
+        if (authError || !user) return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const adminClient = createAdminClient() as any;
+        const adminClient = createAdminClient();
+
+        // Obtener el gimnasio_id del perfil del usuario
+        const { data: profileData, error: profileError } = await adminClient
+            .from('perfiles')
+            .select('gimnasio_id')
+            .eq('id', user.id)
+            .single();
+
+        if (profileError || !profileData?.gimnasio_id) {
+            return NextResponse.json({ error: 'No se encontró el gimnasio asociado' }, { status: 404 });
+        }
+
+        const gymId = profileData.gimnasio_id;
 
         // 1. Obtener datos del gimnasio y su plan
         const { data: gym, error: dbError } = await adminClient
@@ -22,7 +35,7 @@ export async function GET(request: Request) {
                 *,
                 planes_suscripcion (*)
             `)
-            .eq('id', profile.gimnasio_id)
+            .eq('id', gymId)
             .single();
 
         if (dbError) throw dbError;
@@ -32,8 +45,8 @@ export async function GET(request: Request) {
             { count: studentsCount },
             { count: branchesCount }
         ] = await Promise.all([
-            adminClient.from('perfiles').select('*', { count: 'exact', head: true }).eq('gimnasio_id', profile.gimnasio_id).eq('rol', 'member'),
-            adminClient.from('sucursales').select('*', { count: 'exact', head: true }).eq('gimnasio_id', profile.gimnasio_id)
+            adminClient.from('perfiles').select('*', { count: 'exact', head: true }).eq('gimnasio_id', gymId).eq('rol', 'member'),
+            adminClient.from('sucursales').select('*', { count: 'exact', head: true }).eq('gimnasio_id', gymId)
         ]);
 
         return NextResponse.json({
@@ -46,8 +59,9 @@ export async function GET(request: Request) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Error fetching current gym:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

@@ -7,7 +7,7 @@ export async function POST(
     request: Request,
     { params }: { params: { id: string } }
 ) {
-    const { supabase: userSupabase, error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
+    const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
     if (authError) return authError;
 
     const adminSupabase = createAdminClient();
@@ -26,12 +26,12 @@ export async function POST(
         let query = adminSupabase.from('perfiles').select('correo');
 
         if (announcement.destino === 'admin_gym') {
-            query = query.eq('rol', 'admin' as any);
+            query = query.eq('rol', 'admin' as "admin" | "coach" | "member" | "superadmin" | "alumno");
         } else if (announcement.destino === 'todos') {
             // No filter, but avoid superadmins for clutter
-            query = query.neq('rol', 'superadmin' as any);
+            query = query.neq('rol', 'superadmin' as "admin" | "coach" | "member" | "superadmin" | "alumno");
         } else {
-            query = query.eq('rol', announcement.destino as any);
+            query = query.eq('rol', announcement.destino as "admin" | "coach" | "member" | "superadmin" | "alumno");
         }
 
         const { data: users, error: usersError } = await query;
@@ -60,7 +60,7 @@ export async function POST(
             .update({
                 enviado_newsletter: true,
                 fecha_envio_newsletter: new Date().toISOString()
-            } as any)
+            })
             .eq('id', params.id);
 
         return NextResponse.json({
@@ -68,8 +68,9 @@ export async function POST(
             recipients: emailList.length
         });
 
-    } catch (err: any) {
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
         console.error('Newsletter Error:', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
