@@ -5,11 +5,18 @@ if (!process.env.GEMINI_API_KEY) {
     console.warn('⚠️ GEMINI_API_KEY not found in environment variables');
 }
 
-// Inicializar el cliente SDK estándar
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Inicialización perezosa del cliente SDK estándar
+let genAIInstance: GoogleGenerativeAI | null = null;
 
-// Exportar el cliente para uso general (aunque el servicio usará getGenerativeModel)
-export const aiClient = genAI;
+export const getGemini = () => {
+    if (!genAIInstance) {
+        genAIInstance = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key_for_build');
+    }
+    return genAIInstance;
+};
+
+// Exportar el cliente para uso general (aunque se recomienda usar getGemini)
+export const aiClient = getGemini();
 
 // Modelo principal para interacciones rápidas (Gemini 3 Flash Preview)
 export const DEFAULT_MODEL = "gemini-3-flash-preview";

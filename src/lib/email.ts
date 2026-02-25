@@ -1,6 +1,21 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// La inicialización de Resend debe ser perezosa para evitar errores durante la compilación
+// si la variable de entorno RESEND_API_KEY no está presente.
+let resendInstance: Resend | null = null;
+
+const getResend = () => {
+    if (!resendInstance) {
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey && process.env.NODE_ENV === 'production') {
+            console.warn('⚠️ RESEND_API_KEY no detectada. Los correos no se enviarán.');
+            // Retornamos un stub o lanzamos error solo al intentar usarlo
+            return new Resend('re_vacio_si_no_hay_key');
+        }
+        resendInstance = new Resend(apiKey || 're_vacio');
+    }
+    return resendInstance;
+};
 
 export type EmailTemplate =
     | 'welcome'
@@ -27,6 +42,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
     try {
         const html = generateEmailHTML(options.template, options.data);
 
+        const resend = getResend();
         await resend.emails.send({
             from: 'Virtud Gym <onboarding@resend.dev>',
             to: options.to,

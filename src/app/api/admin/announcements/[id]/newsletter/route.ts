@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { emails } from '@/lib/email';
 import { createAdminClient } from '@/lib/supabase/admin';

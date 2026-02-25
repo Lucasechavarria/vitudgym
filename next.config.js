@@ -85,6 +85,7 @@ const nextConfig = {
   // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
+    serverComponentsExternalPackages: ['ioredis', 'bullmq'],
   },
 
   // Bundle Analyzer
