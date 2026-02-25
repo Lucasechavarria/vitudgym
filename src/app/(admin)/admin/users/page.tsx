@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
 import ProfileViewerModal from '@/components/features/admin/ProfileViewerModal';
-import { SupabaseUserProfile } from '@/types/user';
+import { SupabaseUserProfile, UserRole } from '@/types/user';
 
 // Extend the shared type to include any frontend-specific fields if needed, 
 // or just use it directly. The API returns 'name' as a convenience alias for 'full_name'.
@@ -14,6 +14,7 @@ interface User extends SupabaseUserProfile {
     membershipStatus: string;
     membershipEnds: string | null;
     assigned_coach_id?: string | null;
+    role: UserRole; // Make it explicit and non-unknown
     gym?: string;
     items?: unknown[]; // For older types compatibility if needed
 }

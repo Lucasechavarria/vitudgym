@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: Request) {
     try {
-        const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
+        const { error: authError, user } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
         const { gymId, titulo, mensaje, prioridad = 'alta' } = await request.json();
@@ -21,7 +21,8 @@ export async function POST(request: Request) {
             entidad_tipo: 'gimnasio',
             entidad_id: gymId,
             detalles: { titulo, mensaje, prioridad },
-            gimnasio_id: gymId
+            gimnasio_id: gymId,
+            usuario_id: user?.id
         });
 
         // Intentamos insertar en una tabla de avisos (si existe) o enviamos por "soporte"
@@ -30,7 +31,8 @@ export async function POST(request: Request) {
             gimnasio_id: gymId,
             asunto: `⚠️ NOTIFICACIÓN URGENTE: ${titulo}`,
             prioridad: 'critica',
-            estado: 'abierto'
+            estado: 'abierto',
+            usuario_id: user?.id
         }).select().single();
 
         if (ticketError) throw ticketError;

@@ -53,7 +53,7 @@ export default function StudentProfilePage() {
                 email: user?.email || '',
                 telefono: profile.telefono || '',
                 fecha_nacimiento: profile.fecha_nacimiento || '',
-                genero: (profile.genero as any) || 'prefer_not_to_say',
+                genero: (profile.gender as any) || 'prefer_not_to_say',
                 contacto_emergencia_nombre: emergency.nombre_completo || '',
                 contacto_emergencia_telefono: emergency.telefono || ''
             });
@@ -76,7 +76,7 @@ export default function StudentProfilePage() {
                 nombre_completo: profileData.nombre_completo,
                 telefono: profileData.telefono,
                 fecha_nacimiento: profileData.fecha_nacimiento,
-                genero: profileData.genero,
+                gender: profileData.genero,
                 contacto_emergencia: {
                     nombre_completo: profileData.contacto_emergencia_nombre,
                     telefono: profileData.contacto_emergencia_telefono

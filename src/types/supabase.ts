@@ -189,7 +189,7 @@ export type Database = {
           creado_en: string | null
           datos_anteriores: Json | null
           datos_nuevos: Json | null
-          direccion_ip: unknown
+          direccion_ip: string | null
           id: string
           operacion: string
           registro_id: string | null
@@ -201,7 +201,7 @@ export type Database = {
           creado_en?: string | null
           datos_anteriores?: Json | null
           datos_nuevos?: Json | null
-          direccion_ip?: unknown
+          direccion_ip?: string | null
           id?: string
           operacion: string
           registro_id?: string | null
@@ -213,7 +213,7 @@ export type Database = {
           creado_en?: string | null
           datos_anteriores?: Json | null
           datos_nuevos?: Json | null
-          direccion_ip?: unknown
+          direccion_ip?: string | null
           id?: string
           operacion?: string
           registro_id?: string | null
@@ -228,6 +228,57 @@ export type Database = {
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      auditoria_global: {
+        Row: {
+          id: string
+          usuario_id: string | null
+          gimnasio_id: string | null
+          accion: string
+          entidad_tipo: string | null
+          entidad_id: string | null
+          detalles: Json | null
+          ip_address: string | null
+          creado_en: string | null
+        }
+        Insert: {
+          id?: string
+          usuario_id?: string | null
+          gimnasio_id?: string | null
+          accion: string
+          entidad_tipo?: string | null
+          entidad_id?: string | null
+          detalles?: Json | null
+          ip_address?: string | null
+          creado_en?: string | null
+        }
+        Update: {
+          id?: string
+          usuario_id?: string | null
+          gimnasio_id?: string | null
+          accion?: string
+          entidad_tipo?: string | null
+          entidad_id?: string | null
+          detalles?: Json | null
+          ip_address?: string | null
+          creado_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditoria_global_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auditoria_global_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
+            referencedColumns: ["id"]
+          }
         ]
       }
       campanas_marketing: {
@@ -288,14 +339,18 @@ export type Database = {
         Row: {
           actualizado_en: string | null
           creado_en: string | null
-          creator_id: string | null
+          creado_por: string | null
+          creator_id: string | null // Legacy alias
           descripcion: string | null
           estado: string
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
-          judge_id: string | null
-          premio_puntos: number | null
+          juez_id: string | null
+          judge_id: string | null // Legacy alias
+          ganador_id: string | null
+          puntos_recompensa: number | null
+          premio_puntos: number | null // Legacy alias
           reglas: string | null
           tipo: string
           titulo: string
@@ -590,14 +645,21 @@ export type Database = {
       }
       historial_cambios_perfil: {
         Row: {
-          changed_by: string | null
-          created_at: string | null
-          field_changed: string
+          cambiado_por: string | null
+          changed_by: string | null // Alias
+          creado_en: string | null
+          created_at: string | null // Alias
+          campo_cambiado: string
+          field_changed: string // Alias
           id: string
-          new_value: string | null
-          old_value: string | null
-          profile_id: string | null
-          reason: string | null
+          valor_nuevo: string | null
+          new_value: string | null // Alias
+          valor_anterior: string | null
+          old_value: string | null // Alias
+          perfil_id: string | null
+          profile_id: string | null // Alias
+          razon: string | null
+          reason: string | null // Alias
         }
         Insert: {
           changed_by?: string | null
@@ -770,9 +832,10 @@ export type Database = {
       logros: {
         Row: {
           categoria: string | null
-          created_at: string | null
+          creado_en: string | null
           descripcion: string | null
-          icon: string | null
+          icono: string | null
+          icon: string | null // Legacy alias
           id: string
           nombre: string
           puntos_recompensa: number | null
@@ -1239,7 +1302,8 @@ export type Database = {
           fecha_fin_membresia: string | null
           fecha_inicio_membresia: string | null
           fecha_nacimiento: string | null
-          gender: string | null
+          genero: string | null
+          gender: string | null // Alias for backwards compatibility
           gimnasio_id: string | null
           id: string
           informacion_medica: Json | null
@@ -1272,7 +1336,8 @@ export type Database = {
           fecha_fin_membresia?: string | null
           fecha_inicio_membresia?: string | null
           fecha_nacimiento?: string | null
-          gender?: string | null
+          genero?: string | null
+          gender?: string | null // Alias for backwards compatibility
           gimnasio_id?: string | null
           id: string
           informacion_medica?: Json | null
@@ -2118,6 +2183,54 @@ export type Database = {
           },
         ]
       }
+      tickets_soporte: {
+        Row: {
+          id: string
+          gimnasio_id: string | null
+          usuario_id: string | null
+          asunto: string
+          prioridad: string | null
+          estado: string | null
+          creado_en: string | null
+          actualizado_en: string | null
+        }
+        Insert: {
+          id?: string
+          gimnasio_id?: string | null
+          usuario_id?: string | null
+          asunto: string
+          prioridad?: string | null
+          estado?: string | null
+          creado_en?: string | null
+          actualizado_en?: string | null
+        }
+        Update: {
+          id?: string
+          gimnasio_id?: string | null
+          usuario_id?: string | null
+          asunto?: string
+          prioridad?: string | null
+          estado?: string | null
+          creado_en?: string | null
+          actualizado_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_soporte_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_soporte_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       videos_ejercicio: {
         Row: {
           actualizado_en: string | null
@@ -2370,6 +2483,12 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saas_mrr_actual: {
+        Row: {
+          mrr_estimado: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {

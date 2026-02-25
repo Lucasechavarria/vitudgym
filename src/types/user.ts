@@ -67,11 +67,13 @@ export interface SupabaseUserProfile {
     ciudad?: string | null;
     fecha_nacimiento?: string | null;
     genero?: string | null;
+    gender?: string | null; // Alias for Database consistency
     informacion_medica?: UserMedicalInfo | null;
     contacto_emergencia?: UserEmergencyContact | null;
     exencion_aceptada?: boolean;
     fecha_exencion?: string | null;
     estado_membresia?: 'active' | 'inactive' | 'pending' | 'expired';
+    role?: UserRole; // Alias for rol
     fecha_inicio_membresia?: string | null;
     fecha_fin_membresia?: string | null;
     observaciones_entrenador?: string | null;
@@ -81,7 +83,7 @@ export interface SupabaseUserProfile {
     onboarding_completado_en?: string | null;
     creado_en?: string;
     actualizado_en?: string;
-    [key: string]: unknown;
+    [key: string]: any;
 }
 
 export interface AdminUserListResponse extends SupabaseUserProfile {
