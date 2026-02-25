@@ -12,13 +12,31 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+
+interface Gym {
+    nombre: string;
+    logo_url?: string;
+    color_primario?: string;
+    config_landing?: {
+        hero_titulo?: string;
+        hero_subtitulo?: string;
+        hero_imagen?: string;
+        carrusel_imagenes?: string[];
+        secciones?: {
+            nosotros?: boolean;
+            actividades?: boolean;
+            contacto?: boolean;
+        };
+    };
+}
 
 interface GymLandingProps {
     slug: string;
 }
 
 export default function GymPublicLanding({ params }: { params: { slug: string } }) {
-    const [gym, setGym] = useState<any>(null);
+    const [gym, setGym] = useState<Gym | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -49,7 +67,9 @@ export default function GymPublicLanding({ params }: { params: { slug: string } 
             <nav className="fixed top-0 left-0 right-0 z-50 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent backdrop-blur-sm">
                 <div className="flex items-center gap-4">
                     {gym.logo_url ? (
-                        <img src={gym.logo_url} alt={gym.nombre} className="h-10 w-10 object-contain" />
+                        <div className="relative h-10 w-10">
+                            <Image src={gym.logo_url} alt={gym.nombre} fill className="object-contain" unoptimized />
+                        </div>
                     ) : (
                         <span className="text-2xl font-black italic tracking-tighter uppercase">{gym.nombre}</span>
                     )}
@@ -70,10 +90,12 @@ export default function GymPublicLanding({ params }: { params: { slug: string } 
             {/* Hero Section */}
             <section className="relative h-screen flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
-                    <img
+                    <Image
                         src={config.hero_imagen || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80"}
                         alt="Hero"
-                        className="w-full h-full object-cover opacity-60"
+                        fill
+                        className="object-cover opacity-60"
+                        unoptimized
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                 </div>
@@ -127,7 +149,9 @@ export default function GymPublicLanding({ params }: { params: { slug: string } 
                                 whileHover={{ y: -10 }}
                                 className="aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl"
                             >
-                                <img src={img} alt={`Slide ${i}`} className="w-full h-full object-cover" />
+                                <div className="relative w-full h-full">
+                                    <Image src={img} alt={`Slide ${i}`} fill className="object-cover" unoptimized />
+                                </div>
                             </motion.div>
                         ))}
                     </div>

@@ -15,11 +15,27 @@ import {
     ToggleRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
+
+interface LandingConfig {
+    hero_titulo: string;
+    hero_subtitulo: string;
+    hero_imagen: string;
+    carrusel_imagenes: string[];
+    mostrar_tarifas: boolean;
+    mostrar_ubicacion: boolean;
+    slug?: string;
+    secciones: {
+        nosotros: boolean;
+        actividades: boolean;
+        contacto: boolean;
+    };
+}
 
 export default function LandingSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [config, setConfig] = useState<any>(null);
+    const [config, setConfig] = useState<LandingConfig | null>(null);
 
     useEffect(() => {
         fetchLandingConfig();
@@ -166,7 +182,7 @@ export default function LandingSettingsPage() {
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {config.carrusel_imagenes?.map((img: string, i: number) => (
                                 <div key={i} className="relative aspect-video rounded-2xl overflow-hidden group border border-white/10">
-                                    <img src={img} alt={`Slide ${i}`} className="w-full h-full object-cover" />
+                                    <Image src={img} alt={`Slide ${i}`} fill className="object-cover" unoptimized />
                                     <button
                                         onClick={() => removeCarouselImage(i)}
                                         className="absolute top-2 right-2 p-2 bg-black/60 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 hover:text-white"

@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, Zap, Beef, Droplets, Target, ShieldCheck, AlertCircle, RotateCcw, Loader2, Apple, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase/client';
 
@@ -175,7 +176,7 @@ export default function MacroSnap() {
                         ) : (
                             <div className="space-y-6">
                                 <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 bg-black aspect-square shadow-2xl">
-                                    <img src={imageUrl} alt="Plato a analizar" className="w-full h-full object-cover" />
+                                    <Image src={imageUrl} alt="Plato a analizar" fill className="object-cover" unoptimized />
                                     {analyzing && (
                                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-10">
                                             <div className="w-20 h-20 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4" />

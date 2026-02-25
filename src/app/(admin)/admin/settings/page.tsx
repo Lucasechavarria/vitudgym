@@ -4,14 +4,15 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Plus } from 'lucide-react';
+import Image from 'next/image';
 import { RoleManagement } from '@/components/features/admin/RoleManagement';
 
 export default function SettingsPage() {
     const [activeSection, setActiveSection] = useState<'gym' | 'integrations' | 'users' | 'branding' | 'equipment' | 'billing'>('gym');
     const [loading, setLoading] = useState(false);
 
-    const [gymInfo, setGymInfo] = useState<any>(null);
-    const [limits, setLimits] = useState<any>(null);
+    const [gymInfo, setGymInfo] = useState<Record<string, any> | null>(null);
+    const [limits, setLimits] = useState<Record<string, any> | null>(null);
 
     const [gymSettings, setGymSettings] = useState({
         name: '',
@@ -228,8 +229,8 @@ export default function SettingsPage() {
                                                 onClick={handleSaaSPayment}
                                                 disabled={loading}
                                                 className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl ${gymInfo?.estado_pago_saas === 'active'
-                                                        ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-purple-900/20'
-                                                        : 'bg-green-600 text-white hover:bg-green-700 shadow-green-900/20'
+                                                    ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-purple-900/20'
+                                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-green-900/20'
                                                     }`}
                                             >
                                                 {loading ? 'Procesando...' : gymInfo?.estado_pago_saas === 'active' ? 'Mejorar mi Suscripción' : '🚀 Pagar Mensualidad'}
@@ -564,8 +565,8 @@ export default function SettingsPage() {
                                         <div className="space-y-4">
                                             <h3 className="text-sm font-black text-purple-400 uppercase tracking-widest">Logo Principal</h3>
                                             <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-3">
-                                                <div className="w-full h-12 bg-black/40 rounded-lg flex items-center justify-center overflow-hidden">
-                                                    <img src="/logos/Logo-Fondo-Negro.png" alt="Logo" className="h-8 object-contain" />
+                                                <div className="w-full h-12 bg-black/40 rounded-lg flex items-center justify-center overflow-hidden relative">
+                                                    <Image src="/logos/Logo-Fondo-Negro.png" alt="Logo" width={120} height={32} className="object-contain" />
                                                 </div>
                                                 <button className="w-full py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl transition-all border border-white/5">
                                                     Cambiar Logo

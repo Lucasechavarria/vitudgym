@@ -15,6 +15,7 @@ import {
     Palette
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function SaasCommercialLanding() {
     return (
@@ -94,10 +95,12 @@ export default function SaasCommercialLanding() {
                 >
                     <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black z-20" />
                     <div className="bg-[#1c1c1e] rounded-[3rem] border border-white/10 p-4 shadow-[0_0_100px_rgba(255,255,255,0.05)] overflow-hidden">
-                        <img
+                        <Image
                             src="https://images.unsplash.com/photo-1593642532842-98d0fd5ebc1a?auto=format&fit=crop&q=80"
                             alt="Dashboard Preview"
-                            className="w-full rounded-[2rem] opacity-80 group-hover:scale-[1.01] transition-all duration-700"
+                            width={1200}
+                            height={800}
+                            className="w-full h-auto rounded-[2rem] opacity-80 group-hover:scale-[1.01] transition-all duration-700"
                         />
                     </div>
                 </motion.div>

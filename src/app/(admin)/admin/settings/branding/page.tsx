@@ -9,6 +9,7 @@ import {
     Layout
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
 
 export default function BrandingSettingsPage() {
     const [saving, setSaving] = useState(false);
@@ -133,7 +134,7 @@ export default function BrandingSettingsPage() {
                         <div className="w-48 h-20 rounded-3xl overflow-hidden border border-white/10 relative shadow-2xl flex items-center justify-center p-4 bg-black">
                             <div className="absolute inset-0 opacity-20" style={{ backgroundColor: config.color_primario }} />
                             {config.logo_url ? (
-                                <img src={config.logo_url} alt="Logo Preview" className="h-full object-contain relative z-10" />
+                                <Image src={config.logo_url} alt="Logo Preview" fill className="object-contain p-4 relative z-10" unoptimized />
                             ) : (
                                 <h4 className="text-white font-black italic relative z-10">{config.nombre || 'TU GIMNASIO'}</h4>
                             )}

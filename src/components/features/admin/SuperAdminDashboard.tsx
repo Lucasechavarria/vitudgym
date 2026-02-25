@@ -34,7 +34,7 @@ interface Stats {
     revenue: number;
 }
 
-interface Activity {
+interface SystemActivity {
     id: string;
     accion: string;
     entidad_tipo: string;
@@ -51,17 +51,38 @@ interface Alert {
     link: string;
 }
 
+interface GymHealth {
+    id: string;
+    nombre: string;
+    scoring_salud: number;
+    fase_onboarding: string;
+}
+
+interface Announcement {
+    id: string;
+    titulo: string;
+    contenido: string;
+    tipo: string;
+    destino: string;
+    creado_en: string;
+}
+
+interface ChurnData {
+    fecha: string;
+    churn_gyms_mes: number;
+}
+
 export default function SuperAdminOverview() {
     const [stats, setStats] = useState<Stats | null>(null);
-    const [activities, setActivities] = useState<Activity[]>([]);
+    const [activities, setActivities] = useState<SystemActivity[]>([]);
     const [alerts, setAlerts] = useState<Alert[]>([]);
-    const [churnData, setChurnData] = useState<any[]>([]);
+    const [churnData, setChurnData] = useState<ChurnData[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     const [activeTab, setActiveTab] = useState<'gyms' | 'saas' | 'global'>('gyms');
-    const [gymsHealth, setGymsHealth] = useState<any[]>([]);
-    const [announcements, setAnnouncements] = useState<any[]>([]);
+    const [gymsHealth, setGymsHealth] = useState<GymHealth[]>([]);
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
     const [newAnnouncement, setNewAnnouncement] = useState({ titulo: '', contenido: '', tipo: 'info', destino: 'todos' });
@@ -83,11 +104,12 @@ export default function SuperAdminOverview() {
 
     const globalCards = [
         { title: 'Usuarios Totales', value: stats?.users || 0, icon: <Users />, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/50', href: '/admin/users' },
+        { title: 'Logs de Auditoría', value: '24h', icon: <History />, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'hover:border-amber-500/50', href: '/admin/audit-logs' },
     ];
 
     const quickActions = {
         gyms: [
-            { label: 'Nuevo Gimnasio', icon: <PlusCircle size={20} />, href: '/admin/gyms?action=new', color: 'from-blue-600 to-cyan-500' },
+            { label: 'Nuevo Gimnasio', icon: <PlusCircle size={20} />, href: '/admin/gyms/new', color: 'from-blue-600 to-cyan-500' },
             { label: 'Listado Global', icon: <LayoutDashboard size={20} />, href: '/admin/gyms', color: 'from-indigo-600 to-blue-500' },
         ],
         saas: [
@@ -95,6 +117,7 @@ export default function SuperAdminOverview() {
             { label: 'Métricas de Pago', icon: <CreditCard size={20} />, href: '/admin/finance/metrics', color: 'from-green-600 to-emerald-500' },
         ],
         global: [
+            { label: 'Centro de Auditoría', icon: <History size={20} />, href: '/admin/audit-logs', color: 'from-amber-600 to-orange-500' },
             { label: 'Soporte Global', icon: <Ticket size={20} />, href: '/admin/reports/tickets', color: 'from-orange-600 to-red-500' },
             { label: 'Configuración', icon: <Settings size={20} />, href: '/admin/settings', color: 'from-gray-600 to-slate-500' },
         ],
@@ -485,7 +508,7 @@ export default function SuperAdminOverview() {
 
 // -- Sub-componentes para mantener el orden --
 
-function StatusRow({ label, value, color, progress }: any) {
+function StatusRow({ label, value, color, progress }: { label: string; value: string | number; color: string; progress: number }) {
     return (
         <div>
             <div className="flex justify-between text-[10px] font-black uppercase text-gray-500 mb-2">
@@ -503,7 +526,7 @@ function StatusRow({ label, value, color, progress }: any) {
     );
 }
 
-function SystemRow({ label, status, color }: any) {
+function SystemRow({ label, status, color }: { label: string; status: string; color: string }) {
     return (
         <div className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl">
             <span className="text-[10px] font-black text-gray-400 uppercase">{label}</span>
@@ -541,7 +564,7 @@ function AlertList({ alerts }: { alerts: Alert[] }) {
     );
 }
 
-function ActivityLog({ activities }: { activities: Activity[] }) {
+function ActivityLog({ activities }: { activities: SystemActivity[] }) {
     if (activities.length === 0) return <p className="text-gray-600 text-center py-10 italic">No hay actividad.</p>;
     return (
         <div className="space-y-4">
@@ -567,7 +590,7 @@ function ActivityLog({ activities }: { activities: Activity[] }) {
     );
 }
 
-function ChurnChart({ data }: { data: any[] }) {
+function ChurnChart({ data }: { data: ChurnData[] }) {
     if (data.length === 0) return <p className="text-gray-600 text-xs italic text-center pb-10">Sin datos históricos</p>;
     return (
         <div className="flex items-end gap-3 h-32 mb-4">

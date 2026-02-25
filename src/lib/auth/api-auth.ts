@@ -1,6 +1,6 @@
+import { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import type { User } from '@supabase/supabase-js';
 
 /**
  * Authenticate a request using Supabase Auth
@@ -29,7 +29,7 @@ export async function authenticateRequest(request: Request) {
         }
 
         return { user, supabase, error: null };
-    } catch (err) {
+    } catch (_err) {
         return {
             error: NextResponse.json(
                 { error: 'Authentication failed', message: 'Failed to verify authentication' },
@@ -54,7 +54,7 @@ export async function authenticateRequest(request: Request) {
  * if (error) return error;
  */
 export async function requireRole(
-    supabase: any,
+    supabase: SupabaseClient,
     userId: string,
     allowedRoles: string[]
 ) {
@@ -90,7 +90,7 @@ export async function requireRole(
                             message: 'No se pudo verificar el nivel de acceso.',
                             code: error.code
                         },
-                        { status: error.status || 403 }
+                        { status: 403 }
                     ),
                     profile: null
                 };

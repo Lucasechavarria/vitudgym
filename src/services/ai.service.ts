@@ -60,7 +60,7 @@ export class AIService {
         // @ts-ignore - Schema conversion
         const jsonSchema = zodToJsonSchema(RoutineSchema);
         if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
-          delete (jsonSchema as any).$schema;
+          delete (jsonSchema as { $schema?: string }).$schema;
         }
 
         const model = aiClient.getGenerativeModel({
@@ -119,9 +119,9 @@ export class AIService {
     const { studentProfile, userGoal, gymEquipment, coachNotes, templateKey } = context;
 
     const normalizedKey = templateKey?.toString().toUpperCase() as AITemplateKey;
-    const template = (normalizedKey && AI_PROMPT_TEMPLATES[normalizedKey])
+    const template = ((normalizedKey && AI_PROMPT_TEMPLATES[normalizedKey])
       ? AI_PROMPT_TEMPLATES[normalizedKey]
-      : this.inferTemplate(userGoal?.primary_goal || userGoal?.objetivo_principal || '');
+      : this.inferTemplate(userGoal?.primary_goal || userGoal?.objetivo_principal || '')) as any;
 
     const safeTemplate = template || AI_PROMPT_TEMPLATES.BEGINNER;
     const medicalData = studentProfile.informacion_medica || {};
@@ -182,7 +182,7 @@ ${safeTemplate.promptSuffix}
     `;
   }
 
-  private inferTemplate(goal: string): any {
+  private inferTemplate(goal: string) {
     const g = goal.toLowerCase();
     if (g.includes('rehab') || g.includes('salud') || g.includes('lesión') || g.includes('dolor')) return AI_PROMPT_TEMPLATES.REHAB;
     if (g.includes('fuerza') || g.includes('músculo') || g.includes('hipertrofia') || g.includes('volumen') || g.includes('ganancia_muscular')) return AI_PROMPT_TEMPLATES.HYPERTROPHY;
@@ -344,7 +344,7 @@ ${safeTemplate.promptSuffix}
    * Genera un reporte adaptativo basado en el historial reciente del alumno
    */
   async generateAdaptiveReport(
-    studentProfile: any,
+    studentProfile: StudentProfile,
     visionLogs: any[],
     nutritionLogs: any[],
     measurementLogs: any[] = [],
