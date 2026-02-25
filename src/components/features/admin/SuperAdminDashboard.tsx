@@ -21,8 +21,23 @@ import {
     Megaphone,
     ToggleLeft,
     Activity,
-    Eye
+    Eye,
+    TrendingDown,
+    Brain
 } from 'lucide-react';
+import {
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    BarChart,
+    Bar,
+    LineChart,
+    Line
+} from 'recharts';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -83,6 +98,7 @@ export default function SuperAdminOverview() {
     const [activeTab, setActiveTab] = useState<'gyms' | 'saas' | 'global'>('gyms');
     const [gymsHealth, setGymsHealth] = useState<GymHealth[]>([]);
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [historyMetrics, setHistoryMetrics] = useState<any[]>([]);
 
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
     const [newAnnouncement, setNewAnnouncement] = useState({ titulo: '', contenido: '', tipo: 'info', destino: 'todos' });
@@ -138,6 +154,13 @@ export default function SuperAdminOverview() {
                 setChurnData(data.churnHistory || []);
                 setGymsHealth(data.gymsHealth || []);
                 setAnnouncements(data.announcements || []);
+            }
+
+            // Fetch metrics history
+            const histRes = await fetch('/api/admin/metrics/history');
+            const histData = await histRes.json();
+            if (histRes.ok) {
+                setHistoryMetrics(histData.metrics || []);
             }
         } catch (error) {
             console.error('Error fetching global stats:', error);
@@ -233,7 +256,96 @@ export default function SuperAdminOverview() {
                 transition={{ duration: 0.2 }}
                 className="space-y-8"
             >
-                {/* Stats Grid Dinámico */}
+                {/* Tab Content */}
+                {activeTab === 'saas' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                    >
+                        {/* MRR Chart */}
+                        <div className="bg-[#1c1c1e] p-8 rounded-[3rem] border border-white/5 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-center mb-10">
+                                    <div>
+                                        <h3 className="text-xl font-black text-white italic uppercase tracking-tight">Evolución MRR</h3>
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Ingresos recurrentes mensuales</p>
+                                    </div>
+                                    <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 border border-green-500/20">
+                                        <TrendingUp size={20} />
+                                    </div>
+                                </div>
+                                <div className="h-[250px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={historyMetrics}>
+                                            <defs>
+                                                <linearGradient id="colorMrr" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
+                                            <XAxis
+                                                dataKey="fecha"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#4b5563', fontSize: 10, fontWeight: 900 }}
+                                                tickFormatter={(v) => new Date(v).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                                            />
+                                            <YAxis hide />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#1c1c1e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem' }}
+                                                itemStyle={{ color: '#fff', fontSize: '10px', fontWeight: 'bold' }}
+                                                labelStyle={{ color: '#4b5563', fontSize: '8px', marginBottom: '4px' }}
+                                            />
+                                            <Area type="monotone" dataKey="mrr" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorMrr)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* AI Usage Chart */}
+                        <div className="bg-[#1c1c1e] p-8 rounded-[3rem] border border-white/5 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-center mb-10">
+                                    <div>
+                                        <h3 className="text-xl font-black text-white italic uppercase tracking-tight">Carga Cognitiva IA</h3>
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Rutinas y Videos procesados</p>
+                                    </div>
+                                    <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-500 border border-purple-500/20">
+                                        <Brain size={20} />
+                                    </div>
+                                </div>
+                                <div className="h-[250px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={historyMetrics}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
+                                            <XAxis
+                                                dataKey="fecha"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#4b5563', fontSize: 10, fontWeight: 900 }}
+                                                tickFormatter={(v) => new Date(v).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                                            />
+                                            <YAxis hide />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#1c1c1e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem' }}
+                                                cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                                            />
+                                            <Bar dataKey="rutinas_ia_hoy" name="Rutinas" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="videos_procesados_hoy" name="Videos" fill="#d946ef" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Gyms Tab Content */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {(activeTab === 'gyms' ? gymCards : activeTab === 'saas' ? saasCards : globalCards).map((card, i) => (
                         <motion.div

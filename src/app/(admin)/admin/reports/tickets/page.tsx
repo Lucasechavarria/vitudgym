@@ -2,48 +2,42 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
 import {
-    Clock,
-    CheckCircle2,
-    AlertCircle,
+    Ticket,
+    Search,
+    Filter,
     ChevronLeft,
-    MessageSquare,
+    Clock,
     User,
-    Mail,
-    Search
+    Building2,
+    MessageSquare,
+    AlertCircle,
+    CheckCircle2,
+    MoreVertical,
+    Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import Image from 'next/image';
 
-interface Ticket {
+interface TicketSaaS {
     id: string;
-    title: string;
-    description: string;
-    type: string;
-    status: 'pending' | 'in_progress' | 'resolved';
-    admin_response?: string;
-    created_at: string;
-    profiles: {
-        full_name: string;
-        email: string;
-    };
+    asunto: string;
+    descripcion: string;
+    prioridad: 'baja' | 'media' | 'alta' | 'critica';
+    estado: 'abierto' | 'en_progreso' | 'resuelto' | 'cerrado';
+    categoria: string;
+    creado_en: string;
+    gimnasio: { nombre: string; logo_url: string | null };
+    perfil: { nombre_completo: string; correo: string; url_avatar: string | null };
 }
 
-const STATUS_CONFIG = {
-    pending: { label: 'Pendiente', color: 'orange', icon: <Clock size={16} /> },
-    in_progress: { label: 'En Proceso', color: 'blue', icon: <AlertCircle size={16} /> },
-    resolved: { label: 'Resuelto', color: 'green', icon: <CheckCircle2 size={16} /> },
-};
-
-export default function AdminTicketsPage() {
-    const router = useRouter();
-    const [tickets, setTickets] = useState<Ticket[]>([]);
+export default function SaaSSupportPage() {
+    const [tickets, setTickets] = useState<TicketSaaS[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all');
+    const [filter, setFilter] = useState('todo');
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-    const [response, setResponse] = useState('');
-    const [updating, setUpdating] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         fetchTickets();
@@ -51,266 +45,159 @@ export default function AdminTicketsPage() {
 
     const fetchTickets = async () => {
         try {
-            const res = await fetch('/api/admin/reports/tickets');
-            if (!res.ok) throw new Error('Error al cargar tickets');
+            const res = await fetch('/api/admin/tickets');
             const data = await res.json();
-            setTickets(data);
-        } catch (_error) {
-            toast.error('Ocurrió un error al cargar los tickets');
+            if (res.ok) {
+                setTickets(data.tickets);
+            }
+        } catch (error) {
+            toast.error('Error al cargar tickets');
         } finally {
             setLoading(false);
         }
     };
 
     const handleUpdateStatus = async (id: string, newStatus: string) => {
-        setUpdating(true);
         try {
-            const res = await fetch('/api/admin/reports/tickets', {
-                method: 'PATCH',
+            const res = await fetch(`/api/admin/tickets/${id}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id,
-                    status: newStatus,
-                    admin_response: response
-                }),
+                body: JSON.stringify({ estado: newStatus })
             });
 
-            if (!res.ok) throw new Error();
-
-            toast.success('Ticket actualizado correctamente');
-            setSelectedTicket(null);
-            setResponse('');
-            fetchTickets();
-        } catch (_error) {
-            toast.error('Error al actualizar el ticket');
-        } finally {
-            setUpdating(false);
+            if (res.ok) {
+                toast.success('Ticket actualizado');
+                fetchTickets();
+            }
+        } catch (error) {
+            toast.error('Error al actualizar');
         }
     };
 
     const filteredTickets = tickets.filter(t => {
-        const matchesFilter = filter === 'all' || t.status === filter;
-        const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            t.profiles.full_name.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesFilter && matchesSearch;
+        const matchesSearch = t.asunto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            t.gimnasio.nombre.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = filter === 'todo' || t.estado === filter;
+        return matchesSearch && matchesFilter;
     });
 
-    if (loading) {
-        return <div className="p-8 text-center text-gray-400">Cargando incidencias...</div>;
-    }
-
     return (
-        <div className="p-8 space-y-8 min-h-screen bg-[#09090b]">
+        <div className="space-y-8 p-6 md:p-10 max-w-7xl mx-auto pb-32">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                     <button
-                        onClick={() => router.push('/admin/reports')}
-                        className="text-purple-400 hover:text-purple-300 flex items-center gap-1 text-sm mb-2 transition-colors"
+                        onClick={() => router.back()}
+                        className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest mb-4 group"
                     >
-                        <ChevronLeft size={16} /> Volver a Analytics
+                        <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                        Dashboard
                     </button>
-                    <h1 className="text-4xl font-black text-white">Gestión de Tickets</h1>
-                    <p className="text-gray-400">Resuelve las dudas e incidencias de tus alumnos</p>
-                </div>
-
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Buscar por título o alumno..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-[#1c1c1e] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-white text-sm focus:border-purple-500 transition-colors outline-none"
-                        />
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-orange-600/20 rounded-2xl flex items-center justify-center text-orange-500 border border-orange-500/20">
+                            <Ticket size={24} />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">
+                                Centro de <span className="text-orange-500">Soporte</span>
+                            </h1>
+                            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-60">Gestión de Incidencias SaaS</p>
+                        </div>
                     </div>
                 </div>
+
+                <div className="flex bg-[#1c1c1e] p-1.5 rounded-2xl border border-white/5">
+                    {['todo', 'abierto', 'en_progreso', 'resuelto'].map(f => (
+                        <button
+                            key={f}
+                            onClick={() => setFilter(f)}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === f
+                                    ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20'
+                                    : 'text-gray-500 hover:text-gray-300'
+                                }`}
+                        >
+                            {f.replace('_', ' ')}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Filters */}
-            <div className="flex gap-2 p-1 bg-[#1c1c1e] w-fit rounded-xl border border-white/5">
-                {['all', 'pending', 'in_progress', 'resolved'].map((f) => (
-                    <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === f
-                            ? 'bg-purple-600 text-white shadow-lg'
-                            : 'text-gray-500 hover:text-white'
-                            }`}
-                    >
-                        {f === 'all' ? 'Todos' : STATUS_CONFIG[f as keyof typeof STATUS_CONFIG].label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Tickets Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                <AnimatePresence>
-                    {filteredTickets.map((ticket) => (
+            {/* Content */}
+            <div className="grid grid-cols-1 gap-4">
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <div className="w-10 h-10 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+                    </div>
+                ) : filteredTickets.length === 0 ? (
+                    <div className="bg-[#1c1c1e] border border-dashed border-white/5 rounded-[3rem] py-32 flex flex-col items-center justify-center">
+                        <Ticket size={48} className="text-gray-800 mb-6" />
+                        <h3 className="text-xl font-black text-gray-700 italic uppercase">Bandeja de entrada vacía</h3>
+                        <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest mt-2">Todo el ecosistema está en calma</p>
+                    </div>
+                ) : (
+                    filteredTickets.map((ticket, i) => (
                         <motion.div
                             key={ticket.id}
-                            layout
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            onClick={() => {
-                                setSelectedTicket(ticket);
-                                setResponse(ticket.admin_response || '');
-                            }}
-                            className="bg-[#1c1c1e] border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 transition-all cursor-pointer group relative overflow-hidden"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
-                                    ${ticket.status === 'pending' ? 'bg-orange-500/20 text-orange-400' :
-                                        ticket.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
-                                            'bg-green-500/20 text-green-400'}`}>
-                                    {STATUS_CONFIG[ticket.status].icon}
-                                    {STATUS_CONFIG[ticket.status].label}
-                                </span>
-                                <span className="text-[10px] text-gray-500 font-mono">
-                                    {new Date(ticket.created_at).toLocaleDateString()}
-                                </span>
-                            </div>
-
-                            <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-400 transition-colors">
-                                {ticket.title}
-                            </h3>
-                            <p className="text-gray-400 text-sm line-clamp-2 mb-4 h-10">
-                                {ticket.description}
-                            </p>
-
-                            <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-auto">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500 font-bold border border-purple-500/30">
-                                        {ticket.profiles?.full_name?.charAt(0) || 'U'}
-                                    </div>
-                                    <div className="text-xs">
-                                        <p className="text-gray-300 font-medium">{ticket.profiles?.full_name}</p>
-                                        <p className="text-gray-500">{ticket.type}</p>
-                                    </div>
-                                </div>
-                                <MessageSquare size={16} className="text-gray-600 group-hover:text-purple-500 transition-colors" />
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </div>
-
-            {/* Details Modal */}
-            <AnimatePresence>
-                {selectedTicket && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 20 }}
-                            className="bg-[#1c1c1e] w-full max-w-2xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+                            transition={{ delay: i * 0.05 }}
+                            className="bg-[#1c1c1e] border border-white/5 rounded-3xl p-6 group hover:border-orange-500/30 transition-all flex flex-col md:flex-row gap-6 items-center"
                         >
-                            <div className="p-8 border-b border-white/5 flex justify-between items-start bg-gradient-to-r from-purple-900/10 to-transparent">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase
-                                            ${selectedTicket.status === 'pending' ? 'bg-orange-500 text-white' :
-                                                selectedTicket.status === 'in_progress' ? 'bg-blue-500 text-white' :
-                                                    'bg-green-500 text-white'}`}>
-                                            {STATUS_CONFIG[selectedTicket.status].label}
-                                        </span>
-                                        <span className="text-xs text-gray-500">#{selectedTicket.id.slice(0, 8)}</span>
-                                    </div>
-                                    <h2 className="text-2xl font-black text-white">{selectedTicket.title}</h2>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedTicket(null)}
-                                    className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-white transition-all"
-                                >
-                                    ✕
-                                </button>
+                            <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center border font-black text-[10px] uppercase leading-none p-2 shrink-0 ${ticket.prioridad === 'critica' ? 'bg-red-600/20 text-red-500 border-red-500/30' :
+                                    ticket.prioridad === 'alta' ? 'bg-orange-600/20 text-orange-500 border-orange-500/30' :
+                                        'bg-blue-600/20 text-blue-500 border-blue-500/30'
+                                }`}>
+                                <Zap size={18} className="mb-1" />
+                                <span>{ticket.prioridad}</span>
                             </div>
 
-                            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                                {/* Details Grid */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                                        <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1 block">Alumno</label>
-                                        <div className="flex items-center gap-2">
-                                            <User size={14} className="text-purple-500" />
-                                            <span className="text-white text-sm font-medium">{selectedTicket.profiles.full_name}</span>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                                        <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1 block">Contacto</label>
-                                        <div className="flex items-center gap-2">
-                                            <Mail size={14} className="text-purple-500" />
-                                            <span className="text-white text-sm font-medium">{selectedTicket.profiles.email}</span>
-                                        </div>
-                                    </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${ticket.estado === 'abierto' ? 'bg-emerald-500/20 text-emerald-500' :
+                                            ticket.estado === 'en_progreso' ? 'bg-blue-500/20 text-blue-500' :
+                                                'bg-gray-500/20 text-gray-500'
+                                        }`}>
+                                        {ticket.estado}
+                                    </span>
+                                    <h3 className="text-white font-black italic uppercase tracking-tight truncate">{ticket.asunto}</h3>
+                                </div>
+                                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <Building2 size={12} className="text-orange-500" />
+                                    {ticket.gimnasio.nombre}
+                                    <span className="opacity-20">•</span>
+                                    <Clock size={12} />
+                                    {new Date(ticket.creado_en).toLocaleString()}
+                                </p>
+                                <p className="text-gray-400 text-xs mt-3 line-clamp-1 opacity-70 italic">"{ticket.descripcion}"</p>
+                            </div>
+
+                            <div className="flex items-center gap-6 shrink-0">
+                                <div className="flex flex-col items-end">
+                                    <p className="text-[10px] font-black text-white uppercase">{ticket.perfil.nombre_completo}</p>
+                                    <p className="text-[9px] font-bold text-gray-600">{ticket.perfil.correo}</p>
                                 </div>
 
-                                <div>
-                                    <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2 block">Mensaje del Alumno</label>
-                                    <div className="bg-white/5 p-5 rounded-2xl text-gray-300 text-sm leading-relaxed border border-white/5 italic">
-                                        "{selectedTicket.description}"
-                                    </div>
-                                </div>
-
-                                {/* Manage Status */}
-                                <div className="space-y-4">
-                                    <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold block">Respuesta de Administración</label>
-                                    <textarea
-                                        value={response}
-                                        onChange={(e) => setResponse(e.target.value)}
-                                        placeholder="Escribe la respuesta o resolución aquí..."
-                                        className="w-full bg-[#09090b] border border-white/10 rounded-2xl p-4 text-white placeholder-gray-600 focus:border-purple-500 outline-none transition-all h-32 resize-none"
-                                    />
-
-                                    <div className="flex gap-4">
-                                        <div className="flex-1 grid grid-cols-2 gap-2">
-                                            <button
-                                                onClick={() => handleUpdateStatus(selectedTicket.id, 'in_progress')}
-                                                disabled={updating || selectedTicket.status === 'in_progress'}
-                                                className="py-3 px-4 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl text-sm font-bold transition-all disabled:opacity-50"
-                                            >
-                                                En Proceso
-                                            </button>
-                                            <button
-                                                onClick={() => handleUpdateStatus(selectedTicket.id, 'resolved')}
-                                                disabled={updating || selectedTicket.status === 'resolved'}
-                                                className="py-3 px-4 bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white rounded-xl text-sm font-bold transition-all disabled:opacity-50"
-                                            >
-                                                Resolver
-                                            </button>
-                                        </div>
-                                    </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleUpdateStatus(ticket.id, 'en_progreso')}
+                                        className="p-3 bg-white/5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                        title="Marcar en progreso"
+                                    >
+                                        <MessageSquare size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdateStatus(ticket.id, 'resuelto')}
+                                        className="p-3 bg-white/5 rounded-xl text-emerald-500/50 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all"
+                                        title="Resolver"
+                                    >
+                                        <CheckCircle2 size={16} />
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>
-                    </div>
+                    ))
                 )}
-            </AnimatePresence>
-
-            {filteredTickets.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-gray-600 space-y-4">
-                    <div className="text-6xl">📥</div>
-                    <p className="text-xl font-medium">No se encontraron tickets con los filtros actuales</p>
-                </div>
-            )}
-
-            <style jsx global>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #3a3a3c;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #48484a;
-                }
-            `}</style>
+            </div>
         </div>
     );
 }

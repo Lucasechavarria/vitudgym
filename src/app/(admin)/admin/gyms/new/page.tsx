@@ -12,7 +12,9 @@ import {
     ShieldCheck,
     Globe,
     Gem,
-    Loader2
+    Loader2,
+    PartyPopper,
+    LayoutDashboard
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -20,6 +22,7 @@ import { toast } from 'react-hot-toast';
 export default function GymOnboardingPage() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
     const [plans, setPlans] = useState<any[]>([]);
     const router = useRouter();
 
@@ -66,7 +69,7 @@ export default function GymOnboardingPage() {
 
             if (res.ok) {
                 toast.success('¡Gimnasio y administrador configurados con éxito!');
-                router.push('/admin');
+                setSuccess(true);
             } else {
                 const data = await res.json();
                 toast.error(data.error || 'Error en el alta');
@@ -225,8 +228,8 @@ export default function GymOnboardingPage() {
                                                 modulos: { ...formData.modulos, [mod.id]: !formData.modulos[mod.id as keyof typeof formData.modulos] }
                                             })}
                                             className={`p-6 rounded-3xl border text-left transition-all ${formData.modulos[mod.id as keyof typeof formData.modulos]
-                                                    ? 'bg-emerald-500/10 border-emerald-500/50 text-white'
-                                                    : 'bg-black/20 border-white/5 text-gray-600'
+                                                ? 'bg-emerald-500/10 border-emerald-500/50 text-white'
+                                                : 'bg-black/20 border-white/5 text-gray-600'
                                                 }`}
                                         >
                                             <div className="flex justify-between items-start mb-4">
@@ -308,6 +311,43 @@ export default function GymOnboardingPage() {
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
                                     Finalizar y Desplegar
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {success && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-6 text-center"
+                        >
+                            <div className="max-w-md space-y-8">
+                                <div className="w-24 h-24 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center text-emerald-500 border border-emerald-500/20 mx-auto shadow-2xl shadow-emerald-500/20">
+                                    <PartyPopper size={48} />
+                                </div>
+                                <div className="space-y-4">
+                                    <h2 className="text-4xl font-black italic uppercase italic leading-none">Despliegue <span className="text-emerald-500">Exitoso</span></h2>
+                                    <p className="text-gray-500 text-xs font-black uppercase tracking-[0.2em]">El gimnasio {formData.nombre} ahora está en línea</p>
+                                </div>
+                                <div className="bg-[#1c1c1e] p-6 rounded-3xl border border-white/5 space-y-4 text-left">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                        <span>Credenciales Auth</span>
+                                        <span className="text-emerald-500">Activas</span>
+                                    </div>
+                                    <div className="p-4 bg-black/40 rounded-2xl border border-white/5 space-y-2">
+                                        <p className="text-[10px] font-bold text-gray-400">Usuario: <span className="text-white">{formData.admin_email}</span></p>
+                                        <p className="text-[10px] font-bold text-gray-400">Acceso: <span className="text-white">vitudgym.vercel.app/g/{formData.slug}</span></p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => router.push('/admin')}
+                                    className="w-full py-6 bg-emerald-600 text-white rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-900/40 flex items-center justify-center gap-3"
+                                >
+                                    <LayoutDashboard size={20} />
+                                    Regresar al HUB
                                 </button>
                             </div>
                         </motion.div>
