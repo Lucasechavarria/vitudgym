@@ -67,6 +67,21 @@ export async function GET(request: Request) {
             .order('fecha', { ascending: true })
             .limit(6);
 
+        // 7. NEW: Salud de Gimnasios
+        const { data: gymsHealth } = await adminClient
+            .from('gimnasios')
+            .select('id, nombre, scoring_salud, fase_onboarding')
+            .order('scoring_salud', { ascending: false })
+            .limit(10);
+
+        // 8. NEW: Anuncios Globales
+        const { data: announcements } = await adminClient
+            .from('anuncios_globales')
+            .select('*')
+            .eq('activo', true)
+            .order('creado_en', { ascending: false })
+            .limit(5);
+
         return NextResponse.json({
             stats: {
                 gyms: totalGyms || 0,
@@ -91,7 +106,9 @@ export async function GET(request: Request) {
                     link: `/admin/finance/metrics`
                 }))
             ].slice(0, 5),
-            churnHistory: churnData || []
+            churnHistory: churnData || [],
+            gymsHealth: gymsHealth || [],
+            announcements: announcements || []
         });
 
     } catch (error: any) {

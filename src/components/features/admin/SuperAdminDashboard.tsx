@@ -17,10 +17,15 @@ import {
     Ticket,
     Settings,
     Gem,
-    ArrowUpRight
+    ArrowUpRight,
+    Megaphone,
+    ToggleLeft,
+    Activity,
+    Eye
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 interface Stats {
     gyms: number;
@@ -55,11 +60,16 @@ export default function SuperAdminOverview() {
     const router = useRouter();
 
     const [activeTab, setActiveTab] = useState<'gyms' | 'saas' | 'global'>('gyms');
+    const [gymsHealth, setGymsHealth] = useState<any[]>([]);
+    const [announcements, setAnnouncements] = useState<any[]>([]);
+
+    const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+    const [newAnnouncement, setNewAnnouncement] = useState({ titulo: '', contenido: '', tipo: 'info', destino: 'todos' });
 
     const tabs = [
         { id: 'gyms', label: 'Gestión de Red', icon: <Building2 size={16} /> },
-        { id: 'saas', label: 'Economía SaaS', icon: <TrendingUp size={16} /> },
-        { id: 'global', label: 'Control Global', icon: <History size={16} /> },
+        { id: 'saas', label: 'Econ. SaaS', icon: <TrendingUp size={16} /> },
+        { id: 'global', label: 'Comandos Hub', icon: <Megaphone size={16} /> },
     ];
 
     const gymCards = [
@@ -103,11 +113,64 @@ export default function SuperAdminOverview() {
                 setActivities(data.recentActivity);
                 setAlerts(data.alerts || []);
                 setChurnData(data.churnHistory || []);
+                setGymsHealth(data.gymsHealth || []);
+                setAnnouncements(data.announcements || []);
             }
         } catch (error) {
             console.error('Error fetching global stats:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleImpersonate = async (gymId: string, gymName: string) => {
+        if (!confirm(`¿Estás seguro de que deseas acceder remotamente al entorno de "${gymName}"?\nEsta acción quedará registrada en el log de auditoría.`)) return;
+
+        try {
+            const res = await fetch('/api/admin/impersonate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gymId, reason: 'Acceso desde Panel de SuperAdmin' })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(data.message);
+                // Redirect to the gym's dashboard in a new tab or same view
+                window.open(data.redirectUrl, '_blank');
+            } else {
+                toast.error(data.error);
+            }
+        } catch (err) {
+            toast.error('Error al intentar el acceso remoto');
+        }
+    };
+
+    const handleBroadcast = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newAnnouncement.titulo || !newAnnouncement.contenido) {
+            toast.error('Título y contenido son obligatorios');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/admin/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newAnnouncement)
+            });
+
+            if (res.ok) {
+                toast.success('Anuncio enviado exitosamente');
+                setShowBroadcastModal(false);
+                setNewAnnouncement({ titulo: '', contenido: '', tipo: 'info', destino: 'todos' });
+                fetchGlobalData();
+            } else {
+                const d = await res.json();
+                toast.error(d.error);
+            }
+        } catch (err) {
+            toast.error('Error al enviar comunicado');
         }
     };
 
@@ -130,8 +193,8 @@ export default function SuperAdminOverview() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id
-                                ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
-                                : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
+                            ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                            : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                             }`}
                     >
                         {tab.icon}
@@ -203,19 +266,47 @@ export default function SuperAdminOverview() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Contenido dinámico según el Tab */}
                     {activeTab === 'gyms' && (
-                        <div className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div className="bg-gradient-to-br from-blue-600/10 to-transparent border border-blue-500/20 rounded-[2.5rem] p-8">
-                                <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight">Rendimiento Operativo</h3>
-                                <div className="space-y-6">
-                                    <StatusRow label="Salud de la Red" value="Estable" color="bg-green-500" progress={95} />
-                                    <StatusRow label="Disponibilidad Sedes" value="99.9%" color="bg-blue-500" progress={99.9} />
+                        <>
+                            <div className="lg:col-span-2 bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
+                                <h3 className="text-lg font-black text-white italic uppercase mb-6 tracking-tight flex items-center gap-2">
+                                    <Activity size={18} className="text-blue-500" /> Salud de Gimnasios (Red)
+                                </h3>
+                                <div className="space-y-4">
+                                    {gymsHealth.map((gym, i) => (
+                                        <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/[0.07] transition-all">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center font-black text-xs text-blue-500">
+                                                    {gym.scoring_salud}%
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-white font-bold">{gym.nombre}</p>
+                                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{gym.fase_onboarding}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => router.push(`/admin/gyms/${gym.id}`)} className="p-2 bg-white/5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all" title="Ver Configuración">
+                                                    <ToggleLeft size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleImpersonate(gym.id, gym.nombre)}
+                                                    className="p-2 bg-red-600/10 rounded-lg text-red-500 hover:bg-red-600 hover:text-white transition-all"
+                                                    title="Acceso Remoto (Impersonate)"
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {gymsHealth.length === 0 && (
+                                        <p className="text-xs text-center text-gray-500 py-10 uppercase font-black italic">No hay datos de salud disponibles</p>
+                                    )}
                                 </div>
                             </div>
                             <div className="bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
                                 <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight">Alertas de Sedes</h3>
                                 <AlertList alerts={alerts.filter(a => a.type === 'ticket')} />
                             </div>
-                        </div>
+                        </>
                     )}
 
                     {activeTab === 'saas' && (
@@ -239,25 +330,155 @@ export default function SuperAdminOverview() {
                         <>
                             <div className="lg:col-span-2 bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tight">Log de Auditoría Global</h3>
-                                    <Link href="/admin/security" className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white">Ver Todo</Link>
+                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tight flex items-center gap-2">
+                                        <Megaphone size={20} className="text-red-500" /> Broadcast Center
+                                    </h3>
+                                    <button
+                                        onClick={() => setShowBroadcastModal(true)}
+                                        className="px-4 py-2 bg-red-600 text-[10px] font-black uppercase tracking-widest text-white rounded-xl shadow-lg shadow-red-600/20 hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        Nuevo Anuncio
+                                    </button>
                                 </div>
-                                <ActivityLog activities={activities} />
+                                <div className="space-y-4">
+                                    {announcements.map((ann, i) => (
+                                        <div key={i} className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${ann.tipo === 'alerta' ? 'bg-red-500' : ann.tipo === 'mantenimiento' ? 'bg-orange-500' : 'bg-blue-600'} text-white`}>
+                                                        {ann.tipo}
+                                                    </span>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 text-gray-400">
+                                                        Destino: {ann.destino === 'coaches' ? 'Profesores' : ann.destino === 'admin_gym' ? 'Admins Gym' : ann.destino}
+                                                    </span>
+                                                </div>
+                                                <span className="text-[10px] text-gray-600 font-mono italic">{new Date(ann.creado_en).toLocaleDateString('es-AR')}</span>
+                                            </div>
+                                            <h4 className="text-sm text-white font-bold">{ann.titulo}</h4>
+                                            <p className="text-xs text-gray-500 mt-1">{ann.contenido}</p>
+                                        </div>
+                                    ))}
+                                    {announcements.length === 0 && (
+                                        <div className="py-20 flex flex-col items-center justify-center opacity-30">
+                                            <Megaphone size={40} className="text-white mb-4" />
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white">Silencio total en la red</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="space-y-6">
                                 <div className="bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
-                                    <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight">Sistema</h3>
+                                    <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight flex items-center gap-2">
+                                        <ShieldAlert size={18} className="text-orange-500" /> Seguridad
+                                    </h3>
                                     <div className="space-y-4">
-                                        <SystemRow label="Base de Datos" status="Perfect" color="bg-green-500" />
-                                        <SystemRow label="Edge Functions" status="Active" color="bg-blue-500" />
-                                        <SystemRow label="Auth Service" status="Stable" color="bg-green-500" />
+                                        <SystemRow label="Auditoría" status="Activa" color="bg-green-500" />
+                                        <SystemRow label="Remote Connect" status="Safe" color="bg-blue-500" />
+                                        <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                                            <p className="text-[9px] font-black text-blue-400 uppercase leading-tight">
+                                                Tu acceso está siendo auditado bajo cumplimiento ISO-27001.
+                                            </p>
+                                        </div>
                                     </div>
+                                </div>
+                                <div className="bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
+                                    <h3 className="text-lg font-black text-white italic uppercase mb-4 tracking-tight">Actividad</h3>
+                                    <ActivityLog activities={activities.slice(0, 3)} />
                                 </div>
                             </div>
                         </>
                     )}
                 </div>
             </motion.div>
+
+            {/* Modal de Broadcast */}
+            {showBroadcastModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#1c1c1e] border border-white/10 rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col"
+                    >
+                        <div className="p-8 border-b border-white/5 bg-gradient-to-r from-red-600/10 to-transparent">
+                            <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
+                                <Megaphone className="text-red-500" /> Crear Comunicado
+                            </h3>
+                            <p className="text-gray-500 text-xs mt-1 uppercase font-bold tracking-widest">Broadcast Global Network</p>
+                        </div>
+
+                        <form onSubmit={handleBroadcast} className="p-8 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Título del Anuncio</label>
+                                <input
+                                    type="text"
+                                    value={newAnnouncement.titulo}
+                                    onChange={e => setNewAnnouncement({ ...newAnnouncement, titulo: e.target.value })}
+                                    placeholder="Ej: Mantenimiento Programado"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 transition-all"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Tipo</label>
+                                    <select
+                                        value={newAnnouncement.tipo}
+                                        onChange={e => setNewAnnouncement({ ...newAnnouncement, tipo: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 transition-all appearance-none"
+                                    >
+                                        <option value="info">Información</option>
+                                        <option value="alerta">Alerta Crítica</option>
+                                        <option value="novedad">Novedad / Update</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Destinatarios</label>
+                                    <select
+                                        value={newAnnouncement.destino}
+                                        onChange={e => setNewAnnouncement({ ...newAnnouncement, destino: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 transition-all appearance-none"
+                                    >
+                                        <option value="todos">Toda la Red (Todos)</option>
+                                        <option value="admin_gym">Solo Administradores</option>
+                                        <option value="coaches">Solo Profesores / Coaches</option>
+                                        <option value="alumnos">Solo Alumnos</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Mensaje Detallado</label>
+                                <textarea
+                                    rows={4}
+                                    value={newAnnouncement.contenido}
+                                    onChange={e => setNewAnnouncement({ ...newAnnouncement, contenido: e.target.value })}
+                                    placeholder="Escribe aquí el contenido del comunicado..."
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 transition-all resize-none"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowBroadcastModal(false)}
+                                    className="flex-1 px-6 py-4 bg-white/5 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-6 py-4 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-red-600/20 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    Enviar a la Red
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }
