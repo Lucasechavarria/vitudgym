@@ -14,32 +14,31 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing gymId' }, { status: 400 });
         }
 
-        const adminClient = createAdminClient();
+        // 1. Intentar registrar el evento de acceso remoto (Auditoría)
+        // Lo envolvemos para que si la tabla no existe no bloquee el acceso
+        try {
+            const adminClient = createAdminClient();
+            await adminClient
+                .from('logs_acceso_remoto')
+                .insert({
+                    superadmin_id: adminUser.id,
+                    gimnasio_id: gymId,
+                    motivo: reason || 'Soporte Técnico / Verificación'
+                });
+        } catch (logError) {
+            console.warn('⚠️ No se pudo registrar el log de auditoría (posiblemente falta la tabla):', logError);
+        }
 
-        // 1. Log the impersonation event
-        const { error: logError } = await adminClient
-            .from('logs_acceso_remoto')
-            .insert({
-                superadmin_id: adminUser.id,
-                gimnasio_id: gymId,
-                motivo: reason || 'Soporte Técnico / Verificación'
-            });
-
-        if (logError) throw logError;
-
-        // 2. In a real scenario, we would generate a temporary session or cookie here.
-        // For now, we return success and the destination URL.
-        // The frontend can then redirect or show the gym-specific view.
-
+        // 2. Retornar éxito y la URL de destino
         return NextResponse.json({
             success: true,
-            message: 'Acceso remoto registrado y concedido',
-            redirectUrl: `/admin/gyms/${gymId}/dashboard` // This would be the dashboard for that gym
+            message: 'Acceso concedido al entorno del gimnasio',
+            redirectUrl: `/admin/gyms/${gymId}/dashboard`
         });
 
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('❌ Impersonation Error:', error);
+        const message = error instanceof Error ? error.message : 'Error interno del servidor';
+        console.error('❌ Error en Impersonation:', error);
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }

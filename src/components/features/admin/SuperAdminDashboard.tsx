@@ -105,7 +105,7 @@ export default function SuperAdminOverview() {
     const tabs = [
         { id: 'gyms', label: 'Gestión de Red', icon: <Building2 size={16} /> },
         { id: 'saas', label: 'Econ. SaaS', icon: <TrendingUp size={16} /> },
-        { id: 'global', label: 'Comandos Hub', icon: <Megaphone size={16} /> },
+        { id: 'global', label: 'Comandos Hub', icon: <Zap size={16} /> },
     ];
 
     const gymCards = [
@@ -114,13 +114,11 @@ export default function SuperAdminOverview() {
     ];
 
     const saasCards = [
-        { title: 'Ingresos Netos', value: `$${stats?.revenue.toLocaleString('es-AR')}`, icon: <TrendingUp />, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/50', href: '/admin/finance' },
+        { title: 'Ingresos Netos (MRR)', value: `$${stats?.revenue.toLocaleString('es-AR')}`, icon: <TrendingUp />, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/50', href: '/admin/finance' },
     ];
 
     const globalCards = [
         { title: 'Usuarios Totales', value: stats?.users || 0, icon: <Users />, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/50', href: '/admin/users' },
-        { title: 'Logs de Auditoría', value: '24h', icon: <History />, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'hover:border-amber-500/50', href: '/admin/audit-logs' },
-        { title: 'MercadoPago Hub', value: 'Network', icon: <DollarSign />, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'hover:border-emerald-500/50', href: '/admin/finance' },
     ];
 
     const quickActions = {
@@ -130,12 +128,11 @@ export default function SuperAdminOverview() {
         ],
         saas: [
             { label: 'Planes SaaS', icon: <Gem size={20} />, href: '/admin/plans', color: 'from-purple-600 to-pink-500' },
-            { label: 'Ingresos (Hub)', icon: <DollarSign size={20} />, href: '/admin/finance', color: 'from-green-600 to-emerald-500' },
+            { label: 'Ingresos (Hub)', icon: <TrendingUp size={20} />, href: '/admin/finance', color: 'from-green-600 to-emerald-500' },
         ],
         global: [
-            { label: 'Centro de Auditoría', icon: <History size={20} />, href: '/admin/audit-logs', color: 'from-amber-600 to-orange-500' },
-            { label: 'MercadoPago Hub', icon: <DollarSign size={20} />, href: '/admin/finance', color: 'from-emerald-600 to-teal-500' },
-            { label: 'Broadcast Center', icon: <Megaphone size={20} />, href: '#', onClick: () => { setActiveTab('global'); setShowBroadcastModal(true); }, color: 'from-pink-600 to-rose-500' },
+            { label: 'Logs de Auditoría', icon: <History size={20} />, href: '/admin/audit-logs', color: 'from-amber-600 to-orange-500' },
+            { label: 'MercadoPago Hub', icon: <DollarSign size={20} />, href: '/admin/finance', color: 'from-blue-600 to-indigo-500' },
         ],
     };
 
@@ -232,6 +229,33 @@ export default function SuperAdminOverview() {
 
     return (
         <div className="space-y-8">
+            {/* Super Admin Brand Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 rounded-full blur-3xl -mr-32 -mt-32" />
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Building2 size={16} className="text-red-500" />
+                        <h2 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Gimnasio</h2>
+                    </div>
+                    <div className="flex items-end gap-3">
+                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Virtud Gym</h1>
+                        <span className="text-xs font-bold text-gray-500 mb-1 flex items-center gap-1">
+                            <span className="text-red-500">📍</span> Casa Central
+                        </span>
+                    </div>
+                </div>
+
+                <div className="relative z-10 flex items-center gap-4">
+                    <div className="flex flex-col items-end">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-xl shadow-lg shadow-red-600/20">
+                            <Zap size={14} className="fill-white" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Vista como Super Admin</span>
+                        </div>
+                        <p className="text-[8px] font-bold text-gray-600 uppercase mt-2 tracking-widest">Acceso Global Nivel 4</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Tab Selector */}
             <div className="flex p-1.5 bg-[#1c1c1e] rounded-2xl border border-white/5 w-fit">
                 {tabs.map((tab) => (
@@ -466,15 +490,16 @@ export default function SuperAdminOverview() {
                             <div className="lg:col-span-2 bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-8">
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="text-xl font-black text-white italic uppercase tracking-tight flex items-center gap-2">
-                                        <Megaphone size={20} className="text-red-500" /> Broadcast Center
+                                        <Megaphone size={20} className="text-red-500" /> Centro de Comunicados
                                     </h3>
                                     <button
                                         onClick={() => setShowBroadcastModal(true)}
                                         className="px-4 py-2 bg-red-600 text-[10px] font-black uppercase tracking-widest text-white rounded-xl shadow-lg shadow-red-600/20 hover:scale-105 active:scale-95 transition-all"
                                     >
-                                        Nuevo Anuncio
+                                        Crear Anuncio
                                     </button>
                                 </div>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase mb-6">Emite notificaciones en tiempo real a toda la red o roles específicos.</p>
                                 <div className="space-y-4">
                                     {announcements.map((ann, i) => (
                                         <div key={i} className="p-4 bg-white/5 border border-white/5 rounded-2xl">
@@ -512,7 +537,7 @@ export default function SuperAdminOverview() {
                                         <ShieldAlert size={18} className="text-orange-500" /> Seguridad
                                     </h3>
                                     <div className="space-y-4">
-                                        <SystemRow label="Auditoría" status="Activa" color="bg-green-500" />
+                                        <SystemRow label="Monitor de Auditoría" status="Activo" color="bg-green-500" />
                                         <SystemRow label="Remote Connect" status="Safe" color="bg-blue-500" />
                                         <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
                                             <p className="text-[9px] font-black text-blue-400 uppercase leading-tight">
@@ -541,9 +566,9 @@ export default function SuperAdminOverview() {
                     >
                         <div className="p-8 border-b border-white/5 bg-gradient-to-r from-red-600/10 to-transparent">
                             <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
-                                <Megaphone className="text-red-500" /> Crear Comunicado
+                                <Megaphone className="text-red-500" /> Nuevo Comunicado
                             </h3>
-                            <p className="text-gray-500 text-xs mt-1 uppercase font-bold tracking-widest">Broadcast Global Network</p>
+                            <p className="text-gray-500 text-xs mt-1 uppercase font-bold tracking-widest">Red Global de Notificaciones</p>
                         </div>
 
                         <form onSubmit={handleBroadcast} className="p-8 space-y-6">
