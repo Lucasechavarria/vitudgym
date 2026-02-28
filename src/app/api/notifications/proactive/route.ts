@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
     try {
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
             .eq('is_active', true) as any);
 
         if (coachError || !assignments || assignments.length === 0) {
-            console.log('ℹ️ No se encontró coach primario para el alumno:', studentId);
+            logger.info('Sin coach primario para notificación proactiva', { studentId });
             return NextResponse.json({ success: true, message: 'No se requiere notificación (sin coach asignado)' });
         }
 
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'Notificaciones proactivas enviadas' });
     } catch (error: any) {
-        console.error('❌ Error in proactive notification:', error);
+        logger.error('Error en notificación proactiva', { error: error.message });
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

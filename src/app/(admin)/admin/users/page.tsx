@@ -69,7 +69,7 @@ export default function UsersPage() {
                 setCoaches(data.coaches);
             }
         } catch (_error) {
-            console.error('fetchCoaches error:', _error);
+            // Silencio intencional — toast ya notifica al usuario
             toast.error('No se pudo cargar la lista de profesores');
         }
     };
@@ -77,7 +77,6 @@ export default function UsersPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            console.log('🔄 [DEBUG] Solicitando lista de usuarios...');
             const response = await fetch('/api/admin/users/list', {
                 cache: 'no-store',
                 headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
@@ -88,15 +87,9 @@ export default function UsersPage() {
                 throw new Error(data.error || 'Error al obtener lista de usuarios');
             }
 
-            console.log('✅ [DEBUG] Usuarios recibidos:', data.users?.length);
-            // Verificar si algún usuario tiene coach asignado para debugear
-            const assignedCount = (data.users || []).filter((u: User) => u.assigned_coach_id).length;
-            console.log('📊 [DEBUG] Usuarios con coach asignado:', assignedCount);
-
             setUsers(data.users || []);
         } catch (_error) {
             const err = _error as Error;
-            console.error(err);
             toast.error('Error cargando usuarios: ' + err.message);
         } finally {
             setLoading(false);

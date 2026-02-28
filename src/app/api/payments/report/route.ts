@@ -69,19 +69,14 @@ export async function POST(request: Request) {
             .single();
 
         if (paymentError) {
-            logger.error('Error al crear reporte de pago', { error: paymentError.message });
+            logger.error('Error creando reporte de pago', { error: paymentError.message, userId: user!.id });
             return NextResponse.json({
                 error: 'Error reporting payment',
                 message: paymentError.message
             }, { status: 500 });
         }
 
-        logger.info('Pago reportado por usuario', {
-            paymentId: payment.id,
-            userId: user!.id,
-            amount: numericAmount,
-            method
-        });
+        logger.info('Pago reportado por usuario', { paymentId: payment.id, userId: user!.id, amount: numericAmount, method });
 
         return NextResponse.json({
             success: true,
@@ -90,7 +85,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error) {
-        logger.error('Error en reporte de pago', { error: error instanceof Error ? error.message : error });
+        logger.error('Error en reporte de pago', { error: error instanceof Error ? error.message : String(error) });
         const errorMessage = error instanceof Error ? error.message : 'Error al reportar pago';
         return NextResponse.json({
             error: 'Internal Server Error',

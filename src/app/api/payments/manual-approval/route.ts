@@ -102,7 +102,7 @@ export async function POST(request: Request) {
             .single();
 
         if (paymentError) {
-            logger.error('Error creating manual payment', { error: paymentError.message });
+            logger.error('Error creating payment record', { error: paymentError.message, userId, amount: numericAmount });
             return NextResponse.json({
                 error: 'Payment creation failed',
                 message: paymentError.message,
@@ -118,7 +118,9 @@ export async function POST(request: Request) {
             });
 
         if (approvalError) {
-            logger.error('Error en aprobación de pago con reglas', { error: approvalError.message });
+            logger.error('Error aprobando pago con RPC', { error: approvalError.message, paymentId: payment.id });
+            // Fallback: Si falla la RPC, intentar actualizar manualmente como antes (seguridad)
+            // O devolver error 500. Decidimos devolver error para investigar.
             return NextResponse.json({
                 error: 'Payment approval logic failed',
                 message: approvalError.message
@@ -144,7 +146,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error) {
-        logger.error('Error en aprobación manual de pago', { error: error instanceof Error ? error.message : error });
+        logger.error('Error en aprobación manual de pago', { error: error instanceof Error ? error.message : String(error) });
         const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
         return NextResponse.json({
             error: 'Payment approval failed',
@@ -201,7 +203,7 @@ export async function GET(request: Request) {
         });
 
     } catch (error) {
-        logger.error('Error al obtener pagos manuales', { error: error instanceof Error ? error.message : error });
+        logger.error('Error obteniendo pagos manuales', { error: error instanceof Error ? error.message : String(error) });
         const errorMessage = error instanceof Error ? error.message : 'Error al obtener pagos';
         return NextResponse.json({
             error: 'Failed to fetch payments',

@@ -79,11 +79,11 @@ export async function POST(request: Request) {
             }
         });
 
-        logger.info('Preferencia MP creada', { id: result.id, amount: numericPrice * numericQuantity });
+        logger.info('Preferencia MercadoPago creada', { id: result.id, amount: numericPrice * numericQuantity });
 
         return NextResponse.json({ id: result.id, init_point: result.init_point });
     } catch (error) {
-        logger.error('MercadoPago: Error creando preferencia', { error: error instanceof Error ? error.message : error });
+        logger.error('MercadoPago Error creando preferencia', { error: error instanceof Error ? error.message : String(error) });
         const errorMessage = error instanceof Error ? error.message : 'Error al crear preferencia';
         return NextResponse.json({ error: errorMessage }, { status: 500 });
     }

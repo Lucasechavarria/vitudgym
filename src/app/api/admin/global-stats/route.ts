@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/admin/global-stats
  * Retorna las métricas globales para el Superadmin sumando todos los gyms.
+ * Q2: Ahora incluye MRR real desde saas_mrr_actual + desglose por plan.
  */
 export async function GET(request: Request) {
     try {
@@ -15,80 +17,119 @@ export async function GET(request: Request) {
 
         const adminClient = createAdminClient();
 
-        // 1. Conteo de Entidades Globales
+        // ══════════════════════════════════════════════════════
+        // 1. Conteo de Entidades + MRR Real en paralelo
+        // ══════════════════════════════════════════════════════
         const [
             { count: totalGyms },
             { count: totalUsers },
             { count: totalBranches },
-            { data: revenueData }
+            { count: activeGyms },
+            { data: mrrData },
+            { data: revenueData },
+            { data: gymsByPlan }
         ] = await Promise.all([
             adminClient.from('gimnasios').select('*', { count: 'exact', head: true }),
             adminClient.from('perfiles').select('*', { count: 'exact', head: true }),
             adminClient.from('sucursales').select('*', { count: 'exact', head: true }),
-            adminClient.from('pagos').select('monto').eq('estado', 'aprobado')
+            adminClient.from('gimnasios').select('*', { count: 'exact', head: true }).eq('es_activo', true),
+            // MRR real desde la vista calculada
+            adminClient.from('saas_mrr_actual').select('*').single(),
+            // Revenue de pagos Stripe/MP reales aprobados este mes
+            adminClient
+                .from('pagos')
+                .select('monto')
+                .eq('estado', 'approved')
+                .gte('creado_en', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+            // Distribución de gimnasios por plan
+            adminClient
+                .from('gimnasios')
+                .select('plan_id, planes_suscripcion!plan_id(nombre, precio_mensual)')
+                .eq('es_activo', true)
+                .limit(100)
         ]);
 
-        // 2. Calcular Ganancias Totales de la Red
-        const totalRevenue = (revenueData as { monto: number }[] | null)?.reduce((acc, curr) => acc + Number(curr.monto), 0) || 0;
+        // Calcular revenue mensual real de pagos
+        const monthlyRevenue = (revenueData as { monto: number }[] | null)
+            ?.reduce((acc, curr) => acc + Number(curr.monto), 0) || 0;
 
-        // 3. Obtener Actividad Reciente Cruzada (Auditoría)
+        // MRR estimado desde la vista (fallback a revenue real)
+        const estimatedMRR = (mrrData as any)?.mrr_estimado || monthlyRevenue;
+
+        // Desglose por plan para el gráfico de doughnut
+        const planBreakdown = ((gymsByPlan as any[]) || []).reduce((acc: Record<string, number>, gym) => {
+            const planName = (gym as any)?.planes_suscripcion?.nombre || 'Sin Plan';
+            acc[planName] = (acc[planName] || 0) + 1;
+            return acc;
+        }, {});
+
+        // ══════════════════════════════════════════════════════
+        // 2. Actividad Reciente (Auditoría Global)
+        // ══════════════════════════════════════════════════════
         const { data: auditData } = await adminClient
-            .from('audit_logs')
+            .from('auditoria_global')
             .select(`
                 id,
-                operacion,
-                tabla,
+                accion,
+                entidad_tipo,
                 creado_en,
                 perfiles:usuario_id (
                     nombre_completo,
-                    gimnasios:gimnasio_id (nombre)
+                    gimnasio:gimnasio_id (nombre)
                 )
             `)
             .order('creado_en', { ascending: false })
             .limit(10);
 
-        const recentActivity = (auditData as any[])?.map(log => ({
+        const recentActivity = ((auditData as any[]) || []).map(log => ({
             id: log.id,
-            accion: log.operacion,
-            entidad_tipo: log.tabla,
+            accion: log.accion,
+            entidad_tipo: log.entidad_tipo,
             creado_en: log.creado_en,
-            perfiles: { nombre_completo: log.perfiles?.nombre_completo },
-            gimnasios: { nombre: log.perfiles?.gimnasios?.nombre || 'SaaS Core' }
+            perfiles: { nombre_completo: log.perfiles?.nombre_completo || 'Sistema' },
+            gimnasios: { nombre: log.perfiles?.gimnasio?.nombre || 'SaaS Core' }
         }));
 
-        // 4. Obtener Alertas Críticas (Tickets abiertos de alta prioridad)
-        const { data: criticalTickets } = await adminClient
-            .from('tickets_soporte_saas')
-            .select(`
-                *,
-                gimnasios (nombre)
-            `)
-            .eq('estado', 'abierto')
-            .in('prioridad', ['critica', 'alta'])
-            .limit(3);
+        // ══════════════════════════════════════════════════════
+        // 3. Alertas Críticas
+        // ══════════════════════════════════════════════════════
+        const [{ data: criticalTickets }, { data: gymsWithIssues }] = await Promise.all([
+            adminClient
+                .from('tickets_soporte')
+                .select('id, asunto, prioridad, gimnasios:gimnasio_id(nombre)')
+                .eq('estado', 'open')
+                .in('prioridad', ['critica', 'alta'])
+                .limit(3),
+            adminClient
+                .from('gimnasios')
+                .select('nombre, estado_pago_saas')
+                .not('estado_pago_saas', 'in', '("active","trial")')
+                .eq('es_activo', true)
+                .limit(3)
+        ]);
 
-        // 5. Gimnasios con problemas de pago
-        const { data: gymsWithIssues } = await adminClient
-            .from('gimnasios')
-            .select('nombre, estado_pago_saas')
-            .neq('estado_pago_saas', 'active')
-            .limit(3);
-
-        // 6. Obtener métricas de Churn (Histórico últimos 6 meses)
+        // ══════════════════════════════════════════════════════
+        // 4. MRR Histórico (Churn incluido)
+        // ══════════════════════════════════════════════════════
         const { data: churnData } = await adminClient
             .from('saas_metrics')
-            .select('fecha, churn_gyms_mes')
+            .select('fecha, churn_gyms_mes, mrr')
             .order('fecha', { ascending: true })
             .limit(6);
 
-        // 7. NEW: Salud de Gimnasios
+        // ══════════════════════════════════════════════════════
+        // 5. Salud de Gimnasios
+        // ══════════════════════════════════════════════════════
         const { data: gymsHealth } = await adminClient
             .from('gimnasios')
-            .select('id, nombre, scoring_salud, fase_onboarding')
+            .select('id, nombre, scoring_salud, fase_onboarding, modulos_activos')
+            .eq('es_activo', true)
             .order('scoring_salud', { ascending: false })
             .limit(10);
 
-        // 8. NEW: Anuncios Globales
+        // ══════════════════════════════════════════════════════
+        // 6. Anuncios Globales
+        // ══════════════════════════════════════════════════════
         const { data: announcements } = await adminClient
             .from('anuncios_globales')
             .select('*')
@@ -96,28 +137,34 @@ export async function GET(request: Request) {
             .order('creado_en', { ascending: false })
             .limit(5);
 
+        logger.info('Global stats fetched', { totalGyms, activeGyms, estimatedMRR });
+
         return NextResponse.json({
             stats: {
                 gyms: totalGyms || 0,
+                gyms_activos: activeGyms || 0,
                 users: totalUsers || 0,
                 branches: totalBranches || 0,
-                revenue: totalRevenue
+                revenue: estimatedMRR,
+                mrr: estimatedMRR,
+                monthly_real_revenue: monthlyRevenue,
+                plan_breakdown: planBreakdown
             },
             recentActivity: recentActivity || [],
             alerts: [
-                ...(criticalTickets || []).map((t: any) => ({
+                ...((criticalTickets || []) as any[]).map((t: any) => ({
                     id: t.id,
-                    type: 'ticket',
+                    type: 'ticket' as const,
                     priority: t.prioridad,
                     message: `${t.asunto} (${t.gimnasios?.nombre || 'General'})`,
                     link: `/admin/reports/tickets`
                 })),
-                ...(gymsWithIssues || []).map((g: any) => ({
+                ...((gymsWithIssues || []) as any[]).map((g: any) => ({
                     id: `gym-${g.nombre}`,
-                    type: 'payment',
+                    type: 'payment' as const,
                     priority: 'alta',
                     message: `Gimnasio "${g.nombre}" tiene estado: ${g.estado_pago_saas}`,
-                    link: `/admin/finance/metrics`
+                    link: `/admin/gyms`
                 }))
             ].slice(0, 5),
             churnHistory: churnData || [],
@@ -127,7 +174,7 @@ export async function GET(request: Request) {
 
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('❌ Error in global-stats API:', error);
+        logger.error('Error in global-stats API', { error: message });
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }

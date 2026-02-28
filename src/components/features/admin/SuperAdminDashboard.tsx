@@ -41,9 +41,13 @@ import { toast } from 'react-hot-toast';
 
 interface Stats {
     gyms: number;
+    gyms_activos: number;
     users: number;
     branches: number;
     revenue: number;
+    mrr: number;
+    monthly_real_revenue: number;
+    plan_breakdown: Record<string, number>;
 }
 
 interface SystemActivity {
@@ -111,10 +115,13 @@ export default function SuperAdminOverview() {
     const gymCards = [
         { title: 'Gimnasios en Red', value: stats?.gyms || 0, icon: <Building2 />, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/50', href: '/admin/gyms' },
         { title: 'Sedes Activas', value: stats?.branches || 0, icon: <Zap />, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'hover:border-amber-500/50', href: '/admin/gyms' },
+        { title: 'Gyms Activos', value: stats?.gyms_activos || 0, icon: <Activity />, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/50', href: '/admin/gyms' },
     ];
 
     const saasCards = [
-        { title: 'Ingresos Netos (MRR)', value: `$${stats?.revenue.toLocaleString('es-AR')}`, icon: <TrendingUp />, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/50', href: '/admin/finance' },
+        { title: 'MRR Estimado', value: `$${(stats?.mrr || 0).toLocaleString('es-AR')}`, icon: <TrendingUp />, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/50', href: '/admin/finance' },
+        { title: 'Revenue Mensual Real', value: `$${(stats?.monthly_real_revenue || 0).toLocaleString('es-AR')}`, icon: <CreditCard />, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'hover:border-emerald-500/50', href: '/admin/payments' },
+        { title: 'Planes Activos', value: Object.keys(stats?.plan_breakdown || {}).length, icon: <Gem />, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/50', href: '/admin/plans' },
     ];
 
     const globalCards = [
@@ -229,20 +236,39 @@ export default function SuperAdminOverview() {
 
     return (
         <div className="space-y-8">
-            {/* Super Admin Brand Header */}
+            {/* Super Admin Brand Header — con MRR destacado */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 rounded-full blur-3xl -mr-32 -mt-32" />
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-1">
                         <Building2 size={16} className="text-red-500" />
-                        <h2 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Gimnasio</h2>
+                        <h2 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Control SaaS Global</h2>
                     </div>
                     <div className="flex items-end gap-3">
-                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Virtud Gym</h1>
+                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Virtud Platform</h1>
                         <span className="text-xs font-bold text-gray-500 mb-1 flex items-center gap-1">
-                            <span className="text-red-500">📍</span> Casa Central
+                            <span className="text-red-500">📍</span> HQ
                         </span>
                     </div>
+                    {/* MRR highlight */}
+                    {stats && (
+                        <div className="mt-3 flex items-center gap-6">
+                            <div>
+                                <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">MRR Estimado</p>
+                                <p className="text-2xl font-black text-green-400 italic">${(stats.mrr || 0).toLocaleString('es-AR')}</p>
+                            </div>
+                            <div className="w-px h-10 bg-white/5" />
+                            <div>
+                                <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Revenue Real (Mes)</p>
+                                <p className="text-2xl font-black text-emerald-400 italic">${(stats.monthly_real_revenue || 0).toLocaleString('es-AR')}</p>
+                            </div>
+                            <div className="w-px h-10 bg-white/5" />
+                            <div>
+                                <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Gyms Activos</p>
+                                <p className="text-2xl font-black text-blue-400 italic">{stats.gyms_activos}/{stats.gyms}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="relative z-10 flex items-center gap-4">

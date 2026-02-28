@@ -109,11 +109,7 @@ export async function POST(request: Request) {
             }
         });
 
-        logger.info('Checkout MP creado exitosamente', {
-            preferenceId: result.id,
-            userId,
-            amount: numericPrice * numericQuantity
-        });
+        logger.info('Checkout MercadoPago creado', { preferenceId: result.id, userId, amount: numericPrice * numericQuantity });
 
         return NextResponse.json({
             success: true,
@@ -125,7 +121,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error) {
-        logger.error('MercadoPago: Error creando checkout', { error: error instanceof Error ? error.message : error });
+        logger.error('Error creando checkout de MercadoPago', { error: error instanceof Error ? error.message : String(error) });
 
         // Extraer mensaje de error de forma segura
         let errorMessage = 'Error al crear checkout';
@@ -182,7 +178,7 @@ export async function GET(request: Request) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            logger.error('Error de MercadoPago API al consultar pago', { status: response.status, message: errorData.message });
+            logger.error('Error de MercadoPago API consultando pago', { status: response.status, message: errorData.message });
             return NextResponse.json({
                 error: 'Error consultando pago',
                 message: errorData.message || 'No se pudo obtener informaci\u00f3n del pago',
@@ -198,7 +194,7 @@ export async function GET(request: Request) {
         });
 
     } catch (error) {
-        logger.error('Error obteniendo pago de MercadoPago', { error: error instanceof Error ? error.message : error });
+        logger.error('Error obteniendo pago de MercadoPago', { error: error instanceof Error ? error.message : String(error) });
         const errorMessage = error instanceof Error ? error.message : 'Error al obtener pago';
         return NextResponse.json({
             error: errorMessage

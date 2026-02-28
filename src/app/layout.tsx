@@ -32,10 +32,10 @@ export const metadata: Metadata = {
   },
   description: "Centro de transformación integral: Fitness, Artes Marciales y Medicina China. Elevá tu potencial al siguiente nivel.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virtud-gym.com'),
-  manifest: '/manifest.json',
+  // manifest se sirve dinámicamente desde src/app/manifest.ts por Next.js
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'Virtud Gym',
   },
   formatDetection: {
