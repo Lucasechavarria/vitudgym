@@ -40,7 +40,7 @@ export default function StudentDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -75,7 +75,7 @@ export default function StudentDashboard() {
   const stats = [
     { label: 'Peso Actual', value: `${latestProgress?.peso || '--'} kg`, icon: '⚖️', trend: 'Objetivo Personal', color: 'from-blue-600 to-cyan-500' },
     { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: { rate: number }) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-purple-600 to-indigo-500' },
-    { label: 'Grasa Corporal', value: `${latestProgress?.grasa_corporal || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-orange-600 to-red-500' },
+    { label: 'Grasa Corporal', value: `${latestProgress?.grasa_corporal || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-primary/80 to-primary' },
     { label: 'Músculo', value: `${latestProgress?.masa_muscular || '--'} kg`, icon: '💪', trend: 'En Aumento', color: 'from-emerald-600 to-teal-500' },
   ];
 

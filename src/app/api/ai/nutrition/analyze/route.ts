@@ -4,8 +4,25 @@ import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 
 export async function POST(req: Request) {
     try {
-        const { user, error } = await authenticateAndRequireRole(req, ['student', 'coach', 'admin']);
+        const { user, profile, error } = await authenticateAndRequireRole(req, ['member', 'coach', 'admin']);
         if (error) return error;
+
+        // --- CONTROL DE CUOTAS IA (Q3 Goal A) ---
+        if (profile?.gimnasio_id) {
+            const { consumeAIQuota } = await import('@/lib/ai/quota-gate');
+            const quotaCheck = await consumeAIQuota(
+                profile.gimnasio_id,
+                user.id,
+                'nutrition'
+            );
+
+            if (!quotaCheck.allowed) {
+                return NextResponse.json({
+                    error: quotaCheck.error || 'Cuota de IA insuficiente'
+                }, { status: 403 });
+            }
+        }
+        // ----------------------------------------
 
         const { filePart, mimeType } = await req.json();
 

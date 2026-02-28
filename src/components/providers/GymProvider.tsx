@@ -9,9 +9,12 @@ interface GymContextType {
         nombre: string;
         slug: string;
         color_primario: string;
+        color_secundario: string;
         logo_url: string | null;
+        favicon_url: string | null;
         modulos: Record<string, boolean>;
-        config_visual: Record<string, unknown>;
+        config_visual: Record<string, any>;
+        config_landing: Record<string, any>;
     } | null;
     isLoading: boolean;
     hasModule: (moduleName: string) => boolean;
@@ -53,21 +56,25 @@ export const GymProvider = ({ children }: { children: React.ReactNode }) => {
                 }
 
                 // 2. Obtener datos del gimnasio usando las columnas reales de la DB
+                // Ahora seleccionamos también color_secundario y favicon_url
                 const { data: gymData } = await supabase
                     .from("gimnasios")
-                    .select("id, nombre, slug, logo_url, color_primario, config_visual, modulos_activos, es_activo")
+                    .select("id, nombre, slug, logo_url, color_primario, color_secundario, favicon_url, config_visual, config_landing, modulos_activos, es_activo")
                     .eq("id", profile.gimnasio_id)
                     .single();
 
                 if (gymData) {
-                    const color = gymData.color_primario || DEFAULT_COLOR;
+                    const primaryColor = gymData.color_primario || DEFAULT_COLOR;
+                    const secondaryColor = gymData.color_secundario || "#111111";
 
                     setGym({
                         id: gymData.id,
                         nombre: gymData.nombre,
                         slug: gymData.slug,
-                        color_primario: color,
+                        color_primario: primaryColor,
+                        color_secundario: secondaryColor,
                         logo_url: gymData.logo_url || null,
+                        favicon_url: gymData.favicon_url || null,
                         modulos: (gymData.modulos_activos as Record<string, boolean>) || {
                             rutinas_ia: true,
                             gamificacion: true,
@@ -75,15 +82,31 @@ export const GymProvider = ({ children }: { children: React.ReactNode }) => {
                             pagos_online: true,
                             clases_reserva: true,
                         },
-                        config_visual: (gymData.config_visual as Record<string, unknown>) || {},
+                        config_visual: (gymData.config_visual as Record<string, any>) || {},
+                        config_landing: (gymData.config_landing as Record<string, any>) || {},
                     });
 
-                    // 3. Inyectar el color primario en CSS variables globales
-                    document.documentElement.style.setProperty("--primary", color);
-                    document.documentElement.style.setProperty("--primary-foreground", "#ffffff");
+                    // 3. Inyectar variables CSS para Tailwind y UI Premium
+                    const root = document.documentElement;
+                    root.style.setProperty("--primary", primaryColor);
+                    root.style.setProperty("--primary-foreground", "#ffffff");
+                    root.style.setProperty("--secondary", secondaryColor);
+
+                    // Favicon dinámico (Tarea de apoyo para PWA)
+                    if (gymData.favicon_url || gymData.logo_url) {
+                        const favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+                        if (favicon) {
+                            favicon.href = (gymData.favicon_url || gymData.logo_url)!;
+                        }
+                    }
+
+                    // Título de la pestaña dinámico para mejorar la percepción de Marca Propia
+                    if (gymData.nombre) {
+                        document.title = `${gymData.nombre} | Virtud Gym`;
+                    }
                 }
             } catch (error) {
-                // Silently catch gym loading errors to avoid UI noise
+                console.error("Error al cargar branding del gimnasio:", error);
             } finally {
                 setIsLoading(false);
             }

@@ -41,6 +41,20 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(redirectUrl);
         }
 
+        // Si hay usuario, obtener su perfil para el header del manifest
+        if (user) {
+            const { data: profile } = await supabase
+                .from('perfiles')
+                .select('gimnasio_id, gimnasios(slug)')
+                .eq('id', user.id)
+                .single();
+
+            if (profile && (profile as any).gimnasios?.slug) {
+                // Inyectar el slug en los headers para que manifest.ts lo lea
+                request.headers.set('x-gym-slug', (profile as any).gimnasios.slug);
+            }
+        }
+
         // Si no hay usuario, terminar aquí (ruta pública)
         if (!user) return response;
 

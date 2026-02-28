@@ -23,9 +23,18 @@ export async function GET(
                 color_primario,
                 color_secundario,
                 config_visual,
-                config_landing
+                config_landing,
+                planes: planes_suscripcion(
+                  id,
+                  nombre,
+                  descripcion,
+                  precio,
+                  duracion_meses,
+                  beneficios
+                )
             `)
             .eq('slug', params.slug)
+            .eq('planes_suscripcion.esta_activo', true)
             .single();
 
         if (error || !gym) {

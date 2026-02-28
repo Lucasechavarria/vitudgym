@@ -25,23 +25,47 @@ const inter = Inter({
   display: 'swap'
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "VIRTUD | Entrenamiento Inteligente",
-    template: "%s | VIRTUD"
-  },
-  description: "Centro de transformación integral: Fitness, Artes Marciales y Medicina China. Elevá tu potencial al siguiente nivel.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virtud-gym.com'),
-  // manifest se sirve dinámicamente desde src/app/manifest.ts por Next.js
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Virtud Gym',
-  },
-  formatDetection: {
-    telephone: false,
-  },
-};
+import { createAdminClient } from '@/lib/supabase/admin';
+import { headers } from 'next/headers';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+  const slug = headersList.get('x-gym-slug');
+
+  let gymName = 'VIRTUD';
+  let gymDescription = "Centro de transformación integral: Fitness, Artes Marciales y Medicina China.";
+
+  if (slug) {
+    const supabase = createAdminClient();
+    const { data: gym } = await supabase
+      .from('gimnasios')
+      .select('nombre')
+      .eq('slug', slug)
+      .single();
+
+    if (gym) {
+      gymName = gym.nombre;
+      gymDescription = `App oficial de ${gym.nombre} - Gestionado por Virtud Gym`;
+    }
+  }
+
+  return {
+    title: {
+      default: `${gymName} | Entrenamiento Inteligente`,
+      template: `%s | ${gymName}`
+    },
+    description: gymDescription,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virtud-gym.com'),
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'black-translucent',
+      title: gymName,
+    },
+    formatDetection: {
+      telephone: false,
+    },
+  };
+}
 
 import { PushProvider } from "@/components/providers/PushManager";
 

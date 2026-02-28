@@ -13,6 +13,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     let gymShortName = 'Virtud';
     let themeColor = '#6d28d9';
     let backgroundColor = '#000000';
+    let gymLogoUrl: string | null = null;
 
     try {
         const headersList = await headers();
@@ -33,12 +34,13 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             query = query.or(`slug.eq.${host.split('.')[0]}`);
         }
 
-        const { data: gym } = await query.single() as { data: { nombre: string; slug: string; color_primario: string; logo_url: string | null; es_activo: boolean } | null };
+        const { data: gym } = await query.single() as any;
 
         if (gym) {
             gymName = gym.nombre;
             gymShortName = gym.nombre.split(' ')[0]; // Primera palabra como short name
             themeColor = gym.color_primario || themeColor;
+            gymLogoUrl = gym.logo_url;
         }
     } catch {
         // Si falla, usar defaults — no bloquear la app
@@ -57,15 +59,15 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         lang: 'es',
         icons: [
             {
-                src: '/icons/icon-192x192.png',
+                src: gymLogoUrl || '/icons/icon-192x192.png',
                 sizes: '192x192',
                 type: 'image/png',
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore — 'purpose' está en la especificación pero tipado incompleto en Next
+                // @ts-ignore
                 purpose: 'any maskable',
             },
             {
-                src: '/icons/icon-512x512.png',
+                src: gymLogoUrl || '/icons/icon-512x512.png',
                 sizes: '512x512',
                 type: 'image/png',
                 // @ts-ignore

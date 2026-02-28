@@ -35,6 +35,23 @@ export async function POST(request: Request) {
         // Parsear y validar body
         const { studentId, goalId, goal, coachNotes, includeNutrition = true, templateKey } = await request.json();
 
+        // --- CONTROL DE CUOTAS IA (Q3 Goal A) ---
+        if (profile?.gimnasio_id) {
+            const { consumeAIQuota } = await import('@/lib/ai/quota-gate');
+            const quotaCheck = await consumeAIQuota(
+                profile.gimnasio_id,
+                user.id,
+                'routine'
+            );
+
+            if (!quotaCheck.allowed) {
+                return NextResponse.json({
+                    error: quotaCheck.error || 'Cuota de IA insuficiente'
+                }, { status: 403 });
+            }
+        }
+        // ----------------------------------------
+
         // Acepta tanto goal (string) como goalId (database ID) para flexibilidad
         if (!studentId || (!goalId && !goal)) {
             return NextResponse.json({

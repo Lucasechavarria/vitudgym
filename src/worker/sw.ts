@@ -1,7 +1,55 @@
 /// <reference lib="webworker" />
 
-export default null;
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+
 declare var self: any;
+
+// Precachear manifiesto y archivos estáticos generados por build
+precacheAndRoute(self.__WB_MANIFEST || []);
+
+// 1. Estrategia para Fuentes (Google Fonts)
+registerRoute(
+    ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
+    new StaleWhileRevalidate({
+        cacheName: 'google-fonts',
+    })
+);
+
+// 2. Estrategia para Imágenes de Marca (Logos, favicons de Supabase/Storage)
+registerRoute(
+    ({ request }) => request.destination === 'image',
+    new CacheFirst({
+        cacheName: 'gym-images',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 60,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 días
+            }),
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    })
+);
+
+// 3. Estrategia de Navegación (Dashboard, Rutinas) - Prioridad Red pero fallback a Caché
+registerRoute(
+    ({ request }) => request.mode === 'navigate',
+    new NetworkFirst({
+        cacheName: 'pages-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    })
+);
+
+// --- Manejo de Notificaciones Push ---
 
 self.addEventListener('push', (event) => {
     if (!event.data) return;
@@ -51,3 +99,5 @@ self.addEventListener('notificationclick', (event) => {
         })
     );
 });
+
+export default null;
