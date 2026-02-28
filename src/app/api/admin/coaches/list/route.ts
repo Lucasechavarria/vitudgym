@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/admin/coaches/list
@@ -11,56 +12,33 @@ export async function GET(request: Request) {
         const { supabase, error } = await authenticateAndRequireRole(request, ['admin', 'coach']);
         if (error) return error;
 
-        // Depuración: Probar una consulta mínima para ver qué columnas existen realmente
-        const { data: testData, error: testError } = await supabase!.from('perfiles').select('*').limit(1);
-        if (testData && testData.length > 0) {
-            console.log('🔍 [DEBUG] Columnas disponibles en perfiles:', Object.keys(testData[0]));
-        }
-
         const { data: coaches, error: dbError } = await supabase!
             .from('perfiles')
-            .select('*')
-            // Filtro flexible: probar con 'rol' y como fallback no filtrar si falla
-            .in('rol' as any, ['coach', 'admin', 'profesor', 'administrador', 'Coach', 'Admin', 'Profesor', 'Administrador']);
+            .select('id, correo, nombre_completo, nombre, apellido, rol')
+            .in('rol', ['coach', 'admin', 'superadmin']);
 
         if (dbError) {
-            console.error('❌ [DEBUG] Error en consulta de coaches:', dbError);
-            // Fallback ultra-seguro: traer todo pero filtrar en memoria por rol
-            const fallback = await supabase!.from('perfiles').select('*');
-            if (fallback.error) throw fallback.error;
-
-            const filtered = (fallback.data as any[]).filter(u =>
-                ['coach', 'admin', 'profesor', 'administrador', 'Coach', 'Admin', 'Profesor', 'Administrador'].includes(u.rol)
-            );
-
-            return NextResponse.json({ coaches: normalizeCoaches(filtered) });
+            logger.error('Error al listar coaches', { error: dbError.message });
+            return NextResponse.json({ error: dbError.message }, { status: 500 });
         }
 
-        return NextResponse.json({ coaches: normalizeCoaches(coaches) });
+        return NextResponse.json({ coaches: normalizeCoaches(coaches || []) });
 
     } catch (error: any) {
-        console.error('❌ Error crítico fetching coaches:', error);
+        logger.error('Error crítico listando coaches', { error: error.message });
         return NextResponse.json({
-            error: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
+            error: error.message
         }, { status: 500 });
     }
 }
 
 function normalizeCoaches(data: any[]) {
-    return (data as any[])
-        ?.filter(c => ['coach', 'admin', 'profesor', 'administrador', 'Coach', 'Admin', 'Profesor', 'Administrador'].includes(c.rol))
-        .map(c => {
-            const email = c.correo || c.email || '';
-            const nombre = c.nombre_completo || `${c.nombre || ''} ${c.apellido || ''}`.trim() || email;
-
-            return {
-                id: c.id,
-                nombre_completo: nombre,
-                email: email,
-                rol: ['coach', 'profesor', 'Coach', 'Profesor'].includes(c.rol) ? 'coach' : 'admin'
-            };
-        });
+    return (data || [])
+        .filter(c => ['coach', 'admin', 'superadmin'].includes(c.rol))
+        .map(c => ({
+            id: c.id,
+            nombre_completo: c.nombre_completo || `${c.nombre || ''} ${c.apellido || ''}`.trim() || c.correo,
+            email: c.correo || '',
+            rol: c.rol === 'coach' ? 'coach' : 'admin'
+        }));
 }

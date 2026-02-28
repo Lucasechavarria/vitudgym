@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { preference } from '@/lib/config/mercadopago';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/payments/create-preference
@@ -78,11 +79,11 @@ export async function POST(request: Request) {
             }
         });
 
-        console.log('\u2705 Preferencia creada:', { id: result.id, amount: numericPrice * numericQuantity });
+        logger.info('Preferencia MP creada', { id: result.id, amount: numericPrice * numericQuantity });
 
         return NextResponse.json({ id: result.id, init_point: result.init_point });
     } catch (error) {
-        console.error('\u274c MercadoPago Error:', error);
+        logger.error('MercadoPago: Error creando preferencia', { error: error instanceof Error ? error.message : error });
         const errorMessage = error instanceof Error ? error.message : 'Error al crear preferencia';
         return NextResponse.json({ error: errorMessage }, { status: 500 });
     }

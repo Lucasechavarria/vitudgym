@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/payments/manual-approval
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
             .single();
 
         if (paymentError) {
-            console.error('❌ Error creating payment:', paymentError);
+            logger.error('Error creating manual payment', { error: paymentError.message });
             return NextResponse.json({
                 error: 'Payment creation failed',
                 message: paymentError.message,
@@ -117,9 +118,7 @@ export async function POST(request: Request) {
             });
 
         if (approvalError) {
-            console.error('❌ Error aprobando pago con reglas:', approvalError);
-            // Fallback: Si falla la RPC, intentar actualizar manualmente como antes (seguridad)
-            // O devolver error 500. Decidimos devolver error para investigar.
+            logger.error('Error en aprobación de pago con reglas', { error: approvalError.message });
             return NextResponse.json({
                 error: 'Payment approval logic failed',
                 message: approvalError.message
@@ -129,7 +128,7 @@ export async function POST(request: Request) {
         // El resultado de la RPC incluye la fecha
         const membershipEndDate = approvalData.fecha_fin_membresia;
 
-        console.log('✅ Pago manual aprobado con reglas:', {
+        logger.info('Pago manual aprobado con reglas', {
             paymentId: payment.id,
             userId,
             amount: numericAmount,
@@ -145,7 +144,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error) {
-        console.error('❌ Error en aprobación manual de pago:', error);
+        logger.error('Error en aprobación manual de pago', { error: error instanceof Error ? error.message : error });
         const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
         return NextResponse.json({
             error: 'Payment approval failed',
@@ -189,7 +188,7 @@ export async function GET(request: Request) {
             .limit(100);
 
         if (paymentsError) {
-            console.error('Error fetching payments:', paymentsError);
+            logger.error('Error fetching manual payments', { error: paymentsError.message });
             return NextResponse.json({
                 error: 'Failed to fetch payments',
                 message: paymentsError.message
@@ -202,7 +201,7 @@ export async function GET(request: Request) {
         });
 
     } catch (error) {
-        console.error('❌ Error al obtener pagos:', error);
+        logger.error('Error al obtener pagos manuales', { error: error instanceof Error ? error.message : error });
         const errorMessage = error instanceof Error ? error.message : 'Error al obtener pagos';
         return NextResponse.json({
             error: 'Failed to fetch payments',

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { authenticateRequest } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/payments/create-checkout
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
         // Validar que el access token est\u00e9 configurado
         if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
-            console.error('\u274c MERCADOPAGO_ACCESS_TOKEN no configurado');
+            logger.error('MERCADOPAGO_ACCESS_TOKEN no configurado');
             return NextResponse.json({
                 error: 'Configuraci\u00f3n de pago no disponible',
                 message: 'El sistema de pagos no est\u00e1 configurado correctamente'
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
             }
         });
 
-        console.log('\u2705 Checkout creado exitosamente:', {
+        logger.info('Checkout MP creado exitosamente', {
             preferenceId: result.id,
             userId,
             amount: numericPrice * numericQuantity
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error) {
-        console.error('\u274c Error creando checkout de MercadoPago:', error);
+        logger.error('MercadoPago: Error creando checkout', { error: error instanceof Error ? error.message : error });
 
         // Extraer mensaje de error de forma segura
         let errorMessage = 'Error al crear checkout';
@@ -163,7 +164,7 @@ export async function GET(request: Request) {
 
         // Validar que el access token est\u00e9 configurado
         if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
-            console.error('\u274c MERCADOPAGO_ACCESS_TOKEN no configurado');
+            logger.error('MERCADOPAGO_ACCESS_TOKEN no configurado en GET checkout');
             return NextResponse.json({
                 error: 'Configuraci\u00f3n de pago no disponible'
             }, { status: 503 });
@@ -181,7 +182,7 @@ export async function GET(request: Request) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('\u274c Error de MercadoPago API:', errorData);
+            logger.error('Error de MercadoPago API al consultar pago', { status: response.status, message: errorData.message });
             return NextResponse.json({
                 error: 'Error consultando pago',
                 message: errorData.message || 'No se pudo obtener informaci\u00f3n del pago',
@@ -197,7 +198,7 @@ export async function GET(request: Request) {
         });
 
     } catch (error) {
-        console.error('\u274c Error obteniendo pago:', error);
+        logger.error('Error obteniendo pago de MercadoPago', { error: error instanceof Error ? error.message : error });
         const errorMessage = error instanceof Error ? error.message : 'Error al obtener pago';
         return NextResponse.json({
             error: errorMessage
