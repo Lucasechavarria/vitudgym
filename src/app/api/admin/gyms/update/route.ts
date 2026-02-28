@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
     try {
         const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
-        const { id, nombre, slug, es_activo, logo_url, plan_id, estado_pago_saas } = await request.json();
+        const {
+            id,
+            nombre,
+            slug,
+            es_activo,
+            logo_url,
+            plan_id,
+            estado_pago_saas,
+            configuracion_visual,
+            modulos_activos
+        } = await request.json();
 
         if (!id) {
             return NextResponse.json({ error: 'ID de gimnasio requerido' }, { status: 400 });
@@ -23,7 +34,9 @@ export async function POST(request: Request) {
                 es_activo,
                 logo_url,
                 plan_id,
-                estado_pago_saas
+                estado_pago_saas,
+                configuracion_visual,
+                modulos_activos
             })
             .eq('id', id)
             .select()
@@ -35,7 +48,7 @@ export async function POST(request: Request) {
 
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Update Gym Error:', error);
+        logger.error('Update Gym Error:', { error: message });
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }

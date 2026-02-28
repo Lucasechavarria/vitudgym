@@ -1,9 +1,9 @@
-
 import { aiClient, DEFAULT_MODEL, RoutineSchema, SAFETY_SETTINGS } from '@/lib/config/gemini';
 import { AI_PROMPT_TEMPLATES, AITemplateKey } from '@/lib/constants/ai-templates';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { CorreccionesIASchema } from '@/lib/validations/videos';
 import { AdaptiveReportSchema, type AdaptiveReport } from '@/lib/validations/adaptive-engine';
+import { logger } from '@/lib/logger';
 
 /**
  * Parámetros para generar una rutina mejorada
@@ -55,7 +55,7 @@ export class AIService {
 
     while (attempt < maxRetries) {
       try {
-        console.log(`Generating routine with Gemini (Model: ${DEFAULT_MODEL}, Attempt: ${attempt + 1})...`);
+        logger.info(`Generating routine with Gemini (Model: ${DEFAULT_MODEL}, Attempt: ${attempt + 1})...`);
 
         // @ts-ignore - Schema conversion
         const jsonSchema = zodToJsonSchema(RoutineSchema);
@@ -80,13 +80,13 @@ export class AIService {
         try {
           text = response.text();
         } catch (_error) {
-          console.error("Error retrieving text (likely blocked):", _error);
-          console.log("Candidates:", JSON.stringify(response.candidates, null, 2));
-          console.log("PromptFeedback:", JSON.stringify(response.promptFeedback, null, 2));
+          logger.error("Error retrieving text (likely blocked):", { error: _error instanceof Error ? _error.message : _error });
+          logger.info("Candidates:", { candidates: response.candidates });
+          logger.info("PromptFeedback:", { promptFeedback: response.promptFeedback });
         }
 
         if (!text) {
-          console.error("Empty text received. Full response:", JSON.stringify(result, null, 2));
+          logger.error("Empty text received. Full response:", { result });
           throw new Error("La IA no devolvió texto. Revise logs del servidor para detalles de seguridad/bloqueo.");
         }
 
@@ -94,13 +94,13 @@ export class AIService {
 
       } catch (_error) {
         const err = _error as Error & { status?: number };
-        console.error(`Gemini Attempt ${attempt + 1} Error:`, err.message);
+        logger.error(`Gemini Attempt ${attempt + 1} Error:`, { error: err.message, status: err.status });
 
         // Retry on 429 or 503
         if (err.status === 429 || err.status === 503 || err.message?.includes('429')) {
           attempt++;
           const delay = Math.pow(2, attempt) * 1000;
-          console.log(`Retrying in ${delay}ms...`);
+          logger.info(`Retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
@@ -194,7 +194,7 @@ ${safeTemplate.promptSuffix}
    */
   async generateChatResponse(message: string, history: { role: string; content: string }[] = [], _previousInteractionId?: string) {
     try {
-      console.log('Chat response with Gemini (Standard)...');
+      logger.info('Chat response with Gemini (Standard)...');
 
       // Map history for standard model
       const chatHistory = history.map(msg => ({
@@ -219,7 +219,7 @@ ${safeTemplate.promptSuffix}
       };
     } catch (_error) {
       const err = _error as Error;
-      console.error("AI Chat Error:", err);
+      logger.error("AI Chat Error:", { error: err.message });
       throw new Error(err.message || "Error al procesar mensaje de IA");
     }
   }
@@ -279,7 +279,7 @@ ${safeTemplate.promptSuffix}
       return JSON.parse(text);
     } catch (_error) {
       const err = _error as Error;
-      console.error("Vision Analyze Error:", err);
+      logger.error("Vision Analyze Error:", { error: err.message });
       throw new Error(`Error analizando el movimiento: ${err.message}`);
     }
   }
@@ -335,7 +335,7 @@ ${safeTemplate.promptSuffix}
       return JSON.parse(text);
     } catch (_error) {
       const err = _error as Error;
-      console.error("Nutrition Analysis Error:", err);
+      logger.error("Nutrition Analysis Error:", { error: err.message });
       throw new Error(`Error en el análisis nutricional: ${err.message}`);
     }
   }
@@ -351,7 +351,7 @@ ${safeTemplate.promptSuffix}
     recoveryLogs: any[] = []
   ): Promise<AdaptiveReport> {
     try {
-      console.log('Generating Adaptive Report with Gemini...');
+      logger.info('Generating Adaptive Report with Gemini...');
 
       // @ts-ignore
       const jsonSchema = zodToJsonSchema(AdaptiveReportSchema);
@@ -416,7 +416,7 @@ ${safeTemplate.promptSuffix}
       return JSON.parse(text);
     } catch (_error) {
       const err = _error as Error;
-      console.error("Adaptive Report Error:", err);
+      logger.error("Adaptive Report Error:", { error: err.message });
       throw new Error(`Error generando reporte adaptativo: ${err.message}`);
     }
   }

@@ -28,7 +28,7 @@ export function UniversalLayoutWrapper({
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const btnColor = profileRole === 'superadmin' ? 'red' : (profileRole === 'coach' ? 'orange' : 'purple');
+    // btnColor is no longer used for dynamic classes that Tailwind might not catch
 
     return (
         <div className="flex w-full min-h-screen">
@@ -36,7 +36,7 @@ export function UniversalLayoutWrapper({
             {isMobile && (
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`fixed top-4 left-4 z-50 p-3 bg-${btnColor}-500 hover:bg-${btnColor}-600 rounded-xl shadow-lg transition-all lg:hidden`}
+                    className="fixed top-4 left-4 z-50 p-3 bg-primary hover:opacity-90 text-primary-foreground rounded-xl shadow-lg transition-all lg:hidden"
                     aria-label="Toggle menu"
                 >
                     <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

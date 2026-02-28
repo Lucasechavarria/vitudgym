@@ -1,30 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-} from 'chart.js';
-
-// Registrar componentes de Chart.js
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend
-);
+import { 
+    LineChart, 
+    Line as RechartsLine, 
+    BarChart, 
+    Bar as RechartsBar, 
+    XAxis, 
+    YAxis, 
+    CartesianGrid, 
+    Tooltip, 
+    Legend, 
+    ResponsiveContainer 
+} from 'recharts';
 
 interface SecurityMetrics {
     totalAccess: number;
@@ -79,35 +67,25 @@ export default function SecurityDashboardPage() {
     };
 
     // Datos para gráfico de accesos por hora
-    const accessByHourData = {
-        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-        datasets: [
-            {
-                label: 'Accesos',
-                data: [12, 19, 45, 78, 56, 34],
-                borderColor: 'rgb(255, 87, 34)',
-                backgroundColor: 'rgba(255, 87, 34, 0.1)',
-                tension: 0.4
-            }
-        ]
-    };
+    const accessByHourData = [
+        { time: '00:00', Accesos: 12 },
+        { time: '04:00', Accesos: 19 },
+        { time: '08:00', Accesos: 45 },
+        { time: '12:00', Accesos: 78 },
+        { time: '16:00', Accesos: 56 },
+        { time: '20:00', Accesos: 34 }
+    ];
 
     // Datos para gráfico de accesos por día
-    const accessByDayData = {
-        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-        datasets: [
-            {
-                label: 'Exitosos',
-                data: [245, 289, 312, 298, 267, 156, 123],
-                backgroundColor: 'rgba(76, 175, 80, 0.8)',
-            },
-            {
-                label: 'Fallidos',
-                data: [12, 15, 8, 23, 18, 9, 5],
-                backgroundColor: 'rgba(244, 67, 54, 0.8)',
-            }
-        ]
-    };
+    const accessByDayData = [
+        { day: 'Lun', Exitosos: 245, Fallidos: 12 },
+        { day: 'Mar', Exitosos: 289, Fallidos: 15 },
+        { day: 'Mié', Exitosos: 312, Fallidos: 8 },
+        { day: 'Jue', Exitosos: 298, Fallidos: 23 },
+        { day: 'Vie', Exitosos: 267, Fallidos: 18 },
+        { day: 'Sáb', Exitosos: 156, Fallidos: 9 },
+        { day: 'Dom', Exitosos: 123, Fallidos: 5 }
+    ];
 
     return (
         <div className="p-6 bg-[#0a0a0a] min-h-screen">
@@ -148,12 +126,41 @@ export default function SecurityDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                     <h2 className="text-xl font-bold text-white mb-4">Accesos por Hora (Últimas 24h)</h2>
-                    <Line data={accessByHourData} options={{ responsive: true, maintainAspectRatio: true }} />
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={accessByHourData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                <XAxis dataKey="time" stroke="#9ca3af" />
+                                <YAxis stroke="#9ca3af" />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
+                                    itemStyle={{ color: '#fff' }}
+                                />
+                                <Legend />
+                                <RechartsLine type="monotone" dataKey="Accesos" stroke="#ff5722" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                     <h2 className="text-xl font-bold text-white mb-4">Accesos por Día (Última Semana)</h2>
-                    <Bar data={accessByDayData} options={{ responsive: true, maintainAspectRatio: true }} />
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={accessByDayData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                                <XAxis dataKey="day" stroke="#9ca3af" />
+                                <YAxis stroke="#9ca3af" />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
+                                    cursor={{ fill: '#374151', opacity: 0.4 }}
+                                />
+                                <Legend />
+                                <RechartsBar dataKey="Exitosos" fill="#4caf50" radius={[4, 4, 0, 0]} />
+                                <RechartsBar dataKey="Fallidos" fill="#f44336" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 

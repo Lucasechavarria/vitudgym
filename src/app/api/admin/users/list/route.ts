@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { SupabaseUserProfile } from '@/types/user';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
             .order('creado_en', { ascending: false });
 
         if (dbError) {
-            console.error('❌ Error en DB query:', dbError);
+            logger.error('❌ Error en DB query:', { error: dbError });
             // Fallback si falla el JOIN (posiblemente por desajuste de schema extremo)
             const fallback = await adminClient.from('perfiles').select('*');
             if (fallback.error) throw fallback.error;
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
 
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('❌ Error fetching users:', error);
+        logger.error('❌ Error fetching users:', { error: message });
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }
@@ -85,9 +86,9 @@ function normalizeUser(u: any) {
         null;
 
     if (primaryRelation) {
-        console.log(`🔍 [DEBUG] Alumno ${u.id}: Coach ${assignedCoachId} (Primario encontrado)`);
+        logger.info(`🔍 [DEBUG] Alumno ${u.id}: Coach ${assignedCoachId} (Primario encontrado)`);
     } else if (relations.length > 0) {
-        console.warn(`⚠️ [DEBUG] Alumno ${u.id}: Tiene ${relations.length} relaciones pero NINGUNA es primaria.`);
+        logger.warn(`⚠️ [DEBUG] Alumno ${u.id}: Tiene ${relations.length} relaciones pero NINGUNA es primaria.`);
     }
 
     // Normalizar datos de perfil

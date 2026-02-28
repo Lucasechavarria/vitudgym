@@ -2,6 +2,7 @@
 "use client";
 import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
+import { GymProvider } from "@/components/providers/GymProvider";
 
 export default function ClientProviders() {
   useEffect(() => {
@@ -17,19 +18,21 @@ export default function ClientProviders() {
   }, []);
 
   return (
-    <Toaster
-      position="top-right"
-      toastOptions={{
-        className: 'font-sans text-sm',
-        success: {
-          duration: 3000,
-          iconTheme: { primary: '#3b82f6', secondary: '#fff' }
-        },
-        error: {
-          duration: 5000,
-          iconTheme: { primary: '#ef4444', secondary: '#fff' }
-        }
-      }}
-    />
+    <GymProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: 'font-sans text-sm',
+          success: {
+            duration: 3000,
+            iconTheme: { primary: '#3b82f6', secondary: '#fff' }
+          },
+          error: {
+            duration: 5000,
+            iconTheme: { primary: '#ef4444', secondary: '#fff' }
+          }
+        }}
+      />
+    </GymProvider>
   );
 }

@@ -2,6 +2,7 @@ import { Worker } from 'bullmq';
 import { getRedisConnection } from './queue';
 import { aiService } from '@/services/ai.service';
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +15,7 @@ export const videoWorker = (process.env.NEXT_PHASE !== 'phase-production-build')
     async (job) => {
         const { videoId, url, ejercicioId } = job.data;
 
-        console.log(`Processing video ${videoId} for job ${job.id}`);
+        logger.info(`Processing video ${videoId} for job ${job.id}`);
 
         try {
             // 1. Obtener registro del video para saber la ruta real en Storage
@@ -68,10 +69,10 @@ export const videoWorker = (process.env.NEXT_PHASE !== 'phase-production-build')
 
             if (updateError) throw updateError;
 
-            console.log(`Video ${videoId} analyzed successfully with AI`);
+            logger.info(`Video ${videoId} analyzed successfully with AI`);
 
         } catch (error: any) {
-            console.error(`Error processing video ${videoId}:`, error);
+            logger.error(`Error processing video ${videoId}:`, { error: error.message || error });
 
             await supabase
                 .from('videos_ejercicio')
@@ -92,10 +93,10 @@ export const videoWorker = (process.env.NEXT_PHASE !== 'phase-production-build')
 
 if (videoWorker) {
     videoWorker.on('completed', (job) => {
-        console.log(`Job ${job.id} completed!`);
+        logger.info(`Job ${job.id} completed!`);
     });
 
     videoWorker.on('failed', (job, err) => {
-        console.error(`Job ${job?.id} failed with error: ${err.message}`);
+        logger.error(`Job ${job?.id} failed with error: ${err.message}`, { error: err });
     });
 }

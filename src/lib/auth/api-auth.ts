@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 /**
  * Authenticate a request using Supabase Auth
@@ -71,7 +72,7 @@ export async function requireRole(
 
         // 2. Fallback a base de datos solo si no hay metadata (ej. usuarios viejos no sincronizados)
         if (!role) {
-            console.log(`requireRole: Rol no encontrado en metadata para ${userId}. Consultando DB...`);
+            logger.info(`requireRole: Rol no encontrado en metadata para ${userId}. Consultando DB...`);
 
             const { data: profile, error } = await supabase
                 .from('perfiles')
@@ -80,7 +81,7 @@ export async function requireRole(
                 .single();
 
             if (error) {
-                console.error('requireRole: Error consultando perfil en DB:', error);
+                logger.error('requireRole: Error consultando perfil en DB:', { error });
                 // Si hay un error 406 o similar, es probable que el RLS esté bloqueando.
                 // No podemos determinar el rol, así que denegamos acceso por seguridad.
                 return {
@@ -122,7 +123,7 @@ export async function requireRole(
         const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
         if (!normalizedAllowedRoles.includes(normalizedUserRole) && normalizedUserRole !== 'superadmin') {
-            console.warn(`requireRole: Acceso denegado para ${userId}. Rol: ${role}, Requeridos: ${allowedRoles}`);
+            logger.warn(`requireRole: Acceso denegado para ${userId}. Rol: ${role}, Requeridos: ${allowedRoles}`);
             return {
                 error: NextResponse.json(
                     {
@@ -138,7 +139,7 @@ export async function requireRole(
 
         return { profile: { role }, error: null };
     } catch (err) {
-        console.error('requireRole: Error inesperado:', err);
+        logger.error('requireRole: Error inesperado:', { error: err instanceof Error ? err.message : err });
         return {
             error: NextResponse.json(
                 { error: 'Internal Authority Error', message: 'Error interno al verificar permisos' },

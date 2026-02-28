@@ -1,16 +1,18 @@
+import { logger } from '@/lib/logger';
+
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export const initAnalytics = () => {
     // Initialize GA if needed, usually handled by a Script component in layout
     // This function can be used for custom initialization logic
-    console.log('Analytics initialized');
+    logger.info('Analytics initialized');
 };
 
 export const logEvent = (action: string, params: any) => {
     if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', action, params);
     } else {
-        console.log('Analytics Event:', action, params);
+        logger.info('Analytics Event:', { action, params });
     }
 };
 

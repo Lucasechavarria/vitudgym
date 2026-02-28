@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 interface LogData {
@@ -16,15 +18,25 @@ class Logger {
     info(message: string, data?: LogData): void {
         if (this.isDevelopment) {
             console.log(this.formatMessage('info', message, data));
+        } else {
+            Sentry.captureMessage(message, { level: 'info', extra: data });
         }
     }
 
     warn(message: string, data?: LogData): void {
-        console.warn(this.formatMessage('warn', message, data));
+        if (this.isDevelopment) {
+            console.warn(this.formatMessage('warn', message, data));
+        } else {
+            Sentry.captureMessage(message, { level: 'warning', extra: data });
+        }
     }
 
     error(message: string, data?: LogData): void {
-        console.error(this.formatMessage('error', message, data));
+        if (this.isDevelopment) {
+            console.error(this.formatMessage('error', message, data));
+        } else {
+            Sentry.captureException(new Error(message), { extra: data });
+        }
     }
 
     debug(message: string, data?: LogData): void {

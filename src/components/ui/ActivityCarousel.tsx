@@ -55,7 +55,7 @@ export function ActivityCarousel({
         <div className={`py-12 ${bgColor}`}>
             <div className="container mx-auto px-4">
                 <h2 className={`text-3xl font-bold mb-8 ${textColor} flex items-center gap-2`}>
-                    <span className="w-2 h-8 bg-orange-500 rounded-full inline-block"></span>
+                    <span className="w-2 h-8 bg-primary rounded-full inline-block"></span>
                     {title}
                 </h2>
 
@@ -99,7 +99,7 @@ export function ActivityCarousel({
                                             <span className="text-gray-400">Sin Imagen</span>
                                         </div>
                                     )}
-                                    <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
+                                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
                                         {activity.type || "General"}
                                     </div>
                                 </div>
@@ -109,11 +109,11 @@ export function ActivityCarousel({
 
                                     <div className="space-y-2 text-sm text-gray-600">
                                         <div className="flex items-center gap-2">
-                                            <User className="w-4 h-4 text-orange-500" />
+                                            <User className="w-4 h-4 text-primary" />
                                             <span>{activity.instructor}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-orange-500" />
+                                            <Clock className="w-4 h-4 text-primary" />
                                             <span>{activity.time}</span>
                                         </div>
                                     </div>

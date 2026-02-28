@@ -27,9 +27,15 @@ interface Gimnasio {
     logo_url: string;
     es_activo: boolean;
     sucursales: Sucursal[];
+    modulos_activos: Record<string, boolean>;
     creado_en: string;
     plan_id?: string;
     estado_pago_saas?: string;
+    configuracion_visual?: {
+        color_primario: string;
+        logo_url: string | null;
+        tema: string;
+    };
 }
 
 export default function GymsManagementPage() {
@@ -62,7 +68,9 @@ export default function GymsManagementPage() {
         es_activo: true,
         logo_url: '',
         plan_id: '',
-        estado_pago_saas: ''
+        estado_pago_saas: '',
+        color_primario: '#00ff00',
+        modulos: {} as Record<string, boolean>
     });
 
     const [plans, setPlans] = useState<{ id: string; nombre: string; precio_mensual: number }[]>([]);
@@ -160,7 +168,16 @@ export default function GymsManagementPage() {
             const res = await fetch('/api/admin/gyms/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...configData, id: selectedGym.id })
+                body: JSON.stringify({
+                    ...configData,
+                    id: selectedGym.id,
+                    configuracion_visual: {
+                        color_primario: configData.color_primario,
+                        logo_url: configData.logo_url,
+                        tema: 'dark'
+                    },
+                    modulos_activos: configData.modulos
+                })
             });
             if (res.ok) {
                 toast.success('Configuración actualizada');
@@ -186,7 +203,15 @@ export default function GymsManagementPage() {
             es_activo: gym.es_activo,
             logo_url: gym.logo_url || '',
             plan_id: gym.plan_id || '',
-            estado_pago_saas: gym.estado_pago_saas || 'active'
+            estado_pago_saas: gym.estado_pago_saas || 'active',
+            color_primario: gym.configuracion_visual?.color_primario || '#00ff00',
+            modulos: gym.modulos_activos || {
+                rutinas_ia: true,
+                gamificacion: true,
+                nutricion_ia: true,
+                pagos_online: true,
+                clases_reserva: true
+            }
         });
         setShowConfigModal(true);
     };
@@ -201,7 +226,7 @@ export default function GymsManagementPage() {
             {/* Header section with Stats */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-red-500">
+                    <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-primary">
                         🏢 Gestión de Red (SaaS)
                     </h1>
                     <p className="text-gray-400 mt-2 font-medium">
@@ -213,7 +238,7 @@ export default function GymsManagementPage() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setShowCreateModal(true)}
-                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-red-900/20 transition-all"
+                    className="px-6 py-3 bg-primary hover:opacity-90 text-primary-foreground rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary/20 transition-all"
                 >
                     <Plus size={20} />
                     Sumar Nuevo Gimnasio
@@ -287,7 +312,26 @@ export default function GymsManagementPage() {
                                 </div>
                             </div>
 
-                            <Input label="Logo URL" value={configData.logo_url} onChange={v => setConfigData({ ...configData, logo_url: v })} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input label="Logo URL" value={configData.logo_url} onChange={v => setConfigData({ ...configData, logo_url: v })} />
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Color Primario</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            className="w-12 h-12 bg-transparent border-none rounded-xl cursor-pointer"
+                                            value={configData.color_primario}
+                                            onChange={e => setConfigData({ ...configData, color_primario: e.target.value })}
+                                        />
+                                        <input
+                                            type="text"
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 text-white font-mono text-xs outline-none"
+                                            value={configData.color_primario}
+                                            onChange={e => setConfigData({ ...configData, color_primario: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
                                 <div className="flex-1">
@@ -301,6 +345,37 @@ export default function GymsManagementPage() {
                                 >
                                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${configData.es_activo ? 'right-1' : 'left-1'}`} />
                                 </button>
+                            </div>
+
+                            {/* Módulos de la App */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Módulos de la Plataforma</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {[
+                                        { id: 'rutinas_ia', label: 'IA Rutinas' },
+                                        { id: 'nutricion_ia', label: 'IA Nutrición' },
+                                        { id: 'gamificacion', label: 'Gamificación' },
+                                        { id: 'pagos_online', label: 'Pagos Online' },
+                                        { id: 'clases_reserva', label: 'Reservas' }
+                                    ].map(m => (
+                                        <div key={m.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setConfigData({
+                                                    ...configData,
+                                                    modulos: {
+                                                        ...configData.modulos,
+                                                        [m.id]: !configData.modulos?.[m.id]
+                                                    }
+                                                })}
+                                                className={`w-10 h-5 rounded-full transition-all relative ${configData.modulos?.[m.id] ? 'bg-primary' : 'bg-gray-600'}`}
+                                            >
+                                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${configData.modulos?.[m.id] ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                            <span className="text-xs font-bold text-gray-300">{m.label}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Zona Peligrosa / Acciones Rápidas */}
@@ -323,7 +398,7 @@ export default function GymsManagementPage() {
                                             if (res.ok) toast.success('Notificación enviada');
                                             else toast.error('Error al enviar');
                                         }}
-                                        className="w-full py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition-all"
+                                        className="w-full py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:opacity-90 transition-all"
                                     >
                                         ⚠️ Enviar Notificación de Urgencia
                                     </button>
@@ -390,7 +465,7 @@ export default function GymsManagementPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1 }}
-                            className="bg-[#1c1c1e] rounded-[2.5rem] border border-white/5 overflow-hidden group hover:border-red-500/30 transition-all duration-500"
+                            className="bg-[#1c1c1e] rounded-[2.5rem] border border-white/5 overflow-hidden group hover:border-primary/30 transition-all duration-500"
                         >
                             <div className="p-8 flex flex-col lg:flex-row gap-8 items-start lg:items-center">
                                 {/* Gym Logo/Icon */}
@@ -438,7 +513,7 @@ export default function GymsManagementPage() {
                                 <div className="flex flex-col gap-3 w-full lg:w-auto">
                                     <button
                                         onClick={() => openConfig(gym)}
-                                        className="px-8 py-3 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl active:scale-95"
+                                        className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-xl active:scale-95"
                                     >
                                         Configuración Global
                                     </button>
@@ -501,7 +576,7 @@ function Input({ label, value, onChange, placeholder, className = "" }: { label:
             <input
                 type="text"
                 placeholder={placeholder}
-                className={`w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-red-500 outline-none transition-all ${className}`}
+                className={`w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-primary outline-none transition-all ${className}`}
                 value={value}
                 onChange={e => onChange(e.target.value)}
             />
@@ -511,7 +586,7 @@ function Input({ label, value, onChange, placeholder, className = "" }: { label:
 
 function ModalButton({ children, onClick, type = "button", disabled = false, variant = "primary" }: { children: React.ReactNode, onClick?: () => void, type?: "button" | "submit", disabled?: boolean, variant?: "primary" | "secondary" }) {
     const styles = variant === "primary"
-        ? "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-900/40 border-red-500/20"
+        ? "bg-primary hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/40 border-primary/20"
         : "bg-white/5 hover:bg-white/10 text-white";
 
     return (

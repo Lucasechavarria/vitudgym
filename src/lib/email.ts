@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { logger } from './logger';
 
 // La inicialización de Resend debe ser perezosa para evitar errores durante la compilación
 // si la variable de entorno RESEND_API_KEY no está presente.
@@ -8,7 +9,7 @@ const getResend = () => {
     if (!resendInstance) {
         const apiKey = process.env.RESEND_API_KEY;
         if (!apiKey && process.env.NODE_ENV === 'production') {
-            console.warn('⚠️ RESEND_API_KEY no detectada. Los correos no se enviarán.');
+            logger.warn('⚠️ RESEND_API_KEY no detectada. Los correos no se enviarán.');
             // Retornamos un stub o lanzamos error solo al intentar usarlo
             return new Resend('re_vacio_si_no_hay_key');
         }
@@ -50,9 +51,9 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
             html
         });
 
-        console.log(`Email enviado: ${options.template} a ${options.to}`);
+        logger.info(`Email enviado: ${options.template} a ${options.to}`);
     } catch (error) {
-        console.error('Error sending email:', error);
+        logger.error('Error sending email:', { error: error instanceof Error ? error.message : error });
         throw new Error('Error al enviar email');
     }
 }

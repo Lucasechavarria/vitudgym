@@ -5,24 +5,26 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { useGym } from '@/components/providers/GymProvider';
 
 interface NavItem {
     href: string;
     label: string;
     icon: string;
+    module?: string;
 }
 
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
     admin: [
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
-        { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
-        { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
+        { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️', module: 'gamificacion' },
+        { href: '/admin/activities', label: 'Actividades', icon: '🏅', module: 'clases_reserva' },
         { href: '/admin/equipment', label: 'Equipamiento', icon: '🔧' },
-        { href: '/coach/routines', label: 'Rutinas', icon: '💪' },
-        { href: '/admin/nutrition', label: 'Nutrición', icon: '🥗' },
-        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
-        { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
+        { href: '/coach/routines', label: 'Rutinas', icon: '💪', module: 'rutinas_ia' },
+        { href: '/admin/nutrition', label: 'Nutrición', icon: '🥗', module: 'nutricion_ia' },
+        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥', module: 'vision_ia' },
+        { href: '/admin/finance', label: 'Finanzas', icon: '💰', module: 'pagos_online' },
         { href: '/admin/settings/branding', label: 'Personalización', icon: '🎨' },
         { href: '/admin/settings/landing', label: 'Marketing', icon: '🚀' },
         { href: '/admin/settings/support', label: 'Soporte Técnico', icon: '🎧' },
@@ -48,24 +50,24 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     coach: [
         { href: '/coach', label: 'Dashboard', icon: '🏠' },
         { href: '/coach/messages', label: 'Mensajes', icon: '💬' },
-        { href: '/schedule', label: 'Cronograma', icon: '🗓️' },
+        { href: '/schedule', label: 'Cronograma', icon: '🗓️', module: 'clases_reserva' },
         { href: '/coach/students', label: 'Alumnos', icon: '👥' },
         { href: '/coach/equipment', label: 'Equipamiento', icon: '🔧' },
-        { href: '/coach/classes', label: 'Clases', icon: '📅' },
-        { href: '/coach/routines', label: 'Rutinas', icon: '💪' },
+        { href: '/coach/classes', label: 'Clases', icon: '📅', module: 'clases_reserva' },
+        { href: '/coach/routines', label: 'Rutinas', icon: '💪', module: 'rutinas_ia' },
         { href: '/coach/metrics', label: 'Métricas', icon: '📊' },
-        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥' },
+        { href: '/coach/vision', label: 'Vision Lab', icon: '🎥', module: 'vision_ia' },
         { href: '/dashboard/settings', label: 'Configuración', icon: '⚙️' },
     ],
     member: [
         { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
         { href: '/dashboard/messages', label: 'Mensajes', icon: '💬' },
-        { href: '/schedule', label: 'Cronograma', icon: '🗓️' },
-        { href: '/dashboard/routine', label: 'Mi Rutina', icon: '💪' },
-        { href: '/dashboard/progress', label: 'Mi Progreso', icon: '📈' },
-        { href: '/dashboard/classes', label: 'Mis Clases', icon: '📅' },
-        { href: '/dashboard/nutrition', label: 'Nutrición', icon: '🥗' },
-        { href: '/dashboard/vision', label: 'Visión Lab', icon: '🎥' },
+        { href: '/schedule', label: 'Cronograma', icon: '🗓️', module: 'clases_reserva' },
+        { href: '/dashboard/routine', label: 'Mi Rutina', icon: '💪', module: 'rutinas_ia' },
+        { href: '/dashboard/progress', label: 'Mi Progreso', icon: '📈', module: 'gamificacion' },
+        { href: '/dashboard/classes', label: 'Mis Clases', icon: '📅', module: 'clases_reserva' },
+        { href: '/dashboard/nutrition', label: 'Nutrición', icon: '🥗', module: 'nutricion_ia' },
+        { href: '/dashboard/vision', label: 'Visión Lab', icon: '🎥', module: 'vision_ia' },
         { href: '/dashboard/settings', label: 'Configuración', icon: '⚙️' },
     ],
 };
@@ -91,6 +93,7 @@ export function UniversalSidebar({
     isMobile: boolean;
 }) {
     const pathname = usePathname();
+    const { hasModule, gym } = useGym();
     const [visionBadgeCount, setVisionBadgeCount] = React.useState(0);
 
     // Fetch unread vision analyses
@@ -142,8 +145,13 @@ export function UniversalSidebar({
         else if (pathname.startsWith('/admin')) viewRole = 'admin';
     }
 
-    const navItems = NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.member;
-    const color = ROLE_COLORS[viewRole] || 'blue';
+    const navItems = (NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.member).filter(item => {
+        if (!item.module) return true;
+        // Always show all modules to superadmin
+        if (role === 'superadmin') return true;
+        return hasModule(item.module);
+    });
+    const color = ROLE_COLORS[viewRole] || 'blue'; // This line is now effectively unused for color classes
 
     return (
         <aside
@@ -160,8 +168,8 @@ export function UniversalSidebar({
             <div className="p-6 shrink-0 flex justify-between items-center">
                 <Link href={navItems[0].href} className="block relative h-10 w-32">
                     <Image
-                        src="/logos/Logo-Fondo-Negro.png"
-                        alt="VIRTUD"
+                        src={gym?.configuracion?.logo_url || "/logos/Logo-Fondo-Negro.png"}
+                        alt={gym?.nombre || "VIRTUD"}
                         fill
                         className="object-contain"
                         sizes="128px"
@@ -189,7 +197,7 @@ export function UniversalSidebar({
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium relative ${isActive
-                                    ? `bg-${color}-500 text-white shadow-lg shadow-${color}-500/20`
+                                    ? `bg-primary text-primary-foreground shadow-lg shadow-primary/20`
                                     : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     }`}
                             >
@@ -207,9 +215,9 @@ export function UniversalSidebar({
             </nav>
 
             {/* Profile */}
-            <div className="p-4 border-t border-[#3a3a3c] shrink-0">
+            <div className="p-4 border-t border-white/5 shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full bg-${color}-500/20 text-${color}-500 flex items-center justify-center font-bold border border-${color}-500 shrink-0`}>
+                    <div className={`w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold border border-primary/20 shrink-0`}>
                         {profileName?.charAt(0).toUpperCase() || 'M'}
                     </div>
                     <div className="min-w-0">

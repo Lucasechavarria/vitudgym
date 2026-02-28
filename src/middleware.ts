@@ -1,6 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createMiddlewareClient } from '@/lib/supabase/middleware';
 
+const MODULE_ROUTES: Record<string, string> = {
+    '/admin/nutrition': 'nutricion_ia',
+    '/dashboard/nutrition': 'nutricion_ia',
+    '/coach/vision': 'vision_ia',
+    '/dashboard/vision': 'vision_ia',
+    '/admin/challenges': 'gamificacion',
+    '/dashboard/progress': 'gamificacion',
+    '/admin/finance': 'pagos_online',
+    '/coach/routines': 'rutinas_ia',
+    '/dashboard/routine': 'rutinas_ia',
+    '/admin/activities': 'clases_reserva',
+    '/schedule': 'clases_reserva',
+    '/dashboard/classes': 'clases_reserva'
+};
+
 export async function middleware(request: NextRequest) {
     // 1. Check for required environment variables to prevent crash on Vercel
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -48,7 +63,7 @@ export async function middleware(request: NextRequest) {
                 // SIEMPRE consultar la BBDD 'perfiles' para tener el rol real
                 const { data: profile, error: profileError } = await supabase
                     .from('perfiles')
-                    .select('rol')
+                    .select('rol, gimnasio_id')
                     .eq('id', user.id)
                     .single();
 
@@ -61,6 +76,25 @@ export async function middleware(request: NextRequest) {
                 // Fallback a metadata si falla la DB
                 if (!userRole) {
                     userRole = user.app_metadata?.rol || user.user_metadata?.rol || user.app_metadata?.role || user.user_metadata?.role;
+                }
+
+                // Si tiene gimnasio, verificar módulos activos si no es superadmin
+                if (profile?.gimnasio_id && userRole !== 'superadmin') {
+                    const requiredModule = Object.entries(MODULE_ROUTES).find(([route]) => pathname.startsWith(route))?.[1];
+
+                    if (requiredModule) {
+                        const { data: gym } = await supabase
+                            .from('gimnasios')
+                            .select('modulos_activos')
+                            .eq('id', profile.gimnasio_id)
+                            .single();
+
+                        const modulos = gym?.modulos_activos || {};
+                        if (!modulos[requiredModule]) {
+                            console.warn(`⛔ Acceso prohibido: El gimnasio ${profile.gimnasio_id} no tiene el módulo ${requiredModule} activo para la ruta ${pathname}`);
+                            return NextResponse.redirect(new URL('/dashboard', request.url));
+                        }
+                    }
                 }
 
                 console.log(`🔐 Middleware Check: User ${user.email} has role: ${userRole}`);

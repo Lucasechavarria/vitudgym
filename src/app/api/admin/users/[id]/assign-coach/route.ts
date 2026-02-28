@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticateAndRequireRole } from '@/lib/auth/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 /**
  * PUT /api/admin/users/[id]/assign-coach
@@ -17,7 +18,7 @@ export async function PUT(
         const body = await request.json();
         const { coachId } = body;
 
-        console.log(`🚀 [ASSIGN] Unificando asignación: User=${userId}, Coach=${coachId}`);
+        logger.info(`🚀 [ASSIGN] Unificando asignación: User=${userId}, Coach=${coachId}`);
 
         // Usamos el cliente administrativo para saltar RLS y problemas de caché
         const adminClient = createAdminClient();
@@ -30,7 +31,7 @@ export async function PUT(
             .eq('usuario_id', userId);
 
         if (deleteError) {
-            console.error('❌ [ASSIGN] Error en DELETE previo:', deleteError);
+            logger.error('❌ [ASSIGN] Error en DELETE previo:', { error: deleteError });
             return NextResponse.json({
                 error: 'Error limpiando relaciones previas',
                 details: deleteError.message
@@ -52,7 +53,7 @@ export async function PUT(
                 .select();
 
             if (insertError) {
-                console.error('❌ [ASSIGN] Error en INSERT definitivo:', insertError);
+                logger.error('❌ [ASSIGN] Error en INSERT definitivo:', { error: insertError });
                 return NextResponse.json({
                     error: 'Error al insertar la nueva relación',
                     details: insertError.message
@@ -60,9 +61,9 @@ export async function PUT(
             }
 
             finalData = insertData;
-            console.log(`✅ [ASSIGN] Éxito Global. DB Insertó (Esquema Español Real):`, JSON.stringify(insertData));
+            logger.info(`✅ [ASSIGN] Éxito Global. DB Insertó (Esquema Español Real):`, { insertData });
         } else {
-            console.log(`ℹ️ [ASSIGN] El alumno ${userId} ha quedado sin coach (Atomic Delete Only).`);
+            logger.info(`ℹ️ [ASSIGN] El alumno ${userId} ha quedado sin coach (Atomic Delete Only).`);
         }
 
         return NextResponse.json({
@@ -72,7 +73,7 @@ export async function PUT(
         });
 
     } catch (error) {
-        console.error('❌ [ASSIGN] Error crítico:', error);
+        logger.error('❌ [ASSIGN] Error crítico:', { error: error instanceof Error ? error.message : error });
         return NextResponse.json({
             error: error instanceof Error ? error.message : 'Error desconocido'
         }, { status: 500 });

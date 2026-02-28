@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import webpush from 'web-push';
 import { Database } from '@/types/supabase';
+import { logger } from '@/lib/logger';
 
 interface NotificationPayload {
     tipo: 'pago' | 'clase' | 'logro' | 'mensaje' | 'rutina' | 'sistema';
@@ -42,7 +43,7 @@ export class NotificationService {
                 .single();
 
             if (!this.shouldSend(notification.tipo, prefs)) {
-                console.log(`[NotificationService] Notificación omitida por preferencias del usuario: ${userId}`);
+                logger.info(`[NotificationService] Notificación omitida por preferencias del usuario: ${userId}`);
                 return { skipped: true, reason: 'user_preferences' };
             }
 
@@ -53,7 +54,7 @@ export class NotificationService {
                 .eq('usuario_id', userId);
 
             if (!subscriptions || subscriptions.length === 0) {
-                console.log(`[NotificationService] Usuario sin suscripciones: ${userId}`);
+                logger.info(`[NotificationService] Usuario sin suscripciones: ${userId}`);
                 return { skipped: true, reason: 'no_subscriptions' };
             }
 
@@ -98,11 +99,11 @@ export class NotificationService {
                 error: enviada ? null : 'No se pudo enviar a ninguna suscripción',
             });
 
-            console.log(`[NotificationService] Notificación enviada a ${successCount}/${subscriptions.length} suscripciones`);
+            logger.info(`[NotificationService] Notificación enviada a ${successCount}/${subscriptions.length} suscripciones`);
 
             return { sent: true, results };
         } catch (error) {
-            console.error('[NotificationService] Error al enviar notificación:', error);
+            logger.error('[NotificationService] Error al enviar notificación:', { error: error instanceof Error ? error.message : error });
 
             // Registrar error en historial
             await this.supabase.from('historial_notificaciones').insert({
@@ -135,7 +136,7 @@ export class NotificationService {
             return;
         }
 
-        console.log(`[NotificationService] Procesando ${pending.length} notificaciones pendientes`);
+        logger.info(`[NotificationService] Procesando ${pending.length} notificaciones pendientes`);
 
         for (const notif of pending) {
             try {
@@ -152,7 +153,7 @@ export class NotificationService {
                     .update({ enviada: true, enviada_en: new Date().toISOString() })
                     .eq('id', notif.id);
             } catch (error) {
-                console.error(`[NotificationService] Error procesando notificación ${notif.id}:`, error);
+                logger.error(`[NotificationService] Error procesando notificación ${notif.id}:`, { error: error instanceof Error ? error.message : error });
 
                 // Registrar error
                 await this.supabase

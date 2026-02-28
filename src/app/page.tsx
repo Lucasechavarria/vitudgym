@@ -7,6 +7,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { activities, loading } = useLandingActivities();
@@ -39,7 +40,7 @@ export default function Home() {
           >
             <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-none">
               DOMINÁ TU <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-primary/60">
                 POTENCIAL
               </span>
             </h1>
@@ -49,12 +50,16 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-5 justify-center">
-              <Link href="/signup" className="px-10 py-5 bg-orange-600 text-white font-black rounded-2xl hover:bg-orange-500 transition-all transform hover:scale-105 flex items-center justify-center gap-3 shadow-xl shadow-orange-900/40">
-                COMENZAR TRANSFORMACIÓN <ArrowRight className="w-5 h-5 group-hover:translate-x-1" />
-              </Link>
-              <Link href="/login" className="px-10 py-5 bg-white/5 backdrop-blur-md border border-white/20 text-white font-black rounded-2xl hover:bg-white/10 transition-all">
-                ACCESO MIEMBROS
-              </Link>
+              <Button asChild size="lg" className="px-10 py-8 text-lg font-black rounded-2xl hover:scale-105 transition-transform shadow-xl shadow-primary/20">
+                <Link href="/signup" className="flex items-center gap-3">
+                  COMENZAR TRANSFORMACIÓN <ArrowRight className="w-5 h-5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="px-10 py-8 text-lg font-black rounded-2xl bg-white/5 backdrop-blur-md border-white/20 text-white hover:bg-white/10">
+                <Link href="/login">
+                  ACCESO MIEMBROS
+                </Link>
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -100,19 +105,21 @@ export default function Home() {
               <div key={i} className={`p-10 rounded-[2.5rem] border-2 flex flex-col transition-all duration-500 hover:translate-y-[-10px] ${plan.color}`}>
                 <h3 className="text-2xl font-black mb-4 uppercase tracking-wider">{plan.name}</h3>
                 <div className="mb-8">
-                  <span className={`text-5xl font-black ${plan.featured ? 'text-orange-500' : 'text-gray-900'}`}>{plan.price}</span>
+                  <span className={`text-5xl font-black ${plan.featured ? 'text-primary' : 'text-gray-900'}`}>{plan.price}</span>
                   <span className={`${plan.featured ? 'text-gray-400' : 'text-gray-500'} text-lg`}>/mes</span>
                 </div>
                 <ul className="space-y-5 mb-10 flex-1">
                   {plan.features.map((f, j) => (
                     <li key={j} className="flex items-center gap-4 text-base">
-                      <span className="bg-orange-500/10 text-orange-600 p-1 rounded-full text-xs">✓</span> {f}
+                      <span className="bg-primary/10 text-primary p-1 rounded-full text-xs">✓</span> {f}
                     </li>
                   ))}
                 </ul>
-                <button className={`w-full py-5 rounded-2xl font-black text-lg transition-all ${plan.featured ? 'bg-orange-600 text-white hover:bg-orange-500 shadow-xl shadow-orange-900/20' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
+                <Button
+                  className={`w-full py-8 rounded-2xl font-black text-lg transition-all ${plan.featured ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}
+                >
                   EMPEZAR AHORA
-                </button>
+                </Button>
               </div>
             ))}
           </div>
