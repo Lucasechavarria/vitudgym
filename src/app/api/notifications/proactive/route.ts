@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
         // 2. Obtener los coaches primarios del alumno
         const { data: assignments, error: coachError } = await (supabase
             .from('relacion_alumno_coach')
-            .select('coach_id, perfiles:coach_id(nombre_completo)')
-            .eq('user_id', studentId)
-            .eq('is_primary', true)
-            .eq('is_active', true) as any);
+            .select('entrenador_id, perfiles:entrenador_id(nombre_completo)')
+            .eq('usuario_id', studentId)
+            .eq('es_principal', true)
+            .eq('esta_activo', true) as any);
 
         if (coachError || !assignments || assignments.length === 0) {
             logger.info('Sin coach primario para notificación proactiva', { studentId });
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    recipientId: rel.coach_id,
+                    recipientId: rel.entrenador_id,
                     title,
                     body: message,
                     url: `/coach/students/${studentId}/bio-logs`

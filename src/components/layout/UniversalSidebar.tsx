@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useGym } from '@/components/providers/GymProvider';
 
@@ -17,6 +17,7 @@ interface NavItem {
 const NAV_BY_ROLE: Record<string, NavItem[]> = {
     admin: [
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
+        { href: '/admin/crm', label: 'CRM Ventas', icon: '🎯', module: 'crm' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
         { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️', module: 'gamificacion' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅', module: 'clases_reserva' },
@@ -32,6 +33,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     ],
     superadmin: [
         { href: '/admin', label: 'Super Control', icon: '⚡' },
+        { href: '/admin/crm', label: 'CRM Global', icon: '🎯' },
         { href: '/admin/gyms', label: 'Gimnasios', icon: '🏢' },
         { href: '/admin/plans', label: 'Planes', icon: '💎' },
         { href: '/admin/finance/billing', label: 'Cobros SaaS', icon: '💰' },
@@ -93,8 +95,17 @@ export function UniversalSidebar({
     isMobile: boolean;
 }) {
     const pathname = usePathname();
+    const router = useRouter();
     const { hasModule, gym } = useGym();
     const [visionBadgeCount, setVisionBadgeCount] = React.useState(0);
+    const [loggingOut, setLoggingOut] = React.useState(false);
+
+    const handleLogout = async () => {
+        setLoggingOut(true);
+        await supabase.auth.signOut();
+        router.push('/login');
+        router.refresh();
+    };
 
     // Fetch unread vision analyses
     React.useEffect(() => {
@@ -214,17 +225,39 @@ export function UniversalSidebar({
                 </div>
             </nav>
 
-            {/* Profile */}
-            <div className="p-4 border-t border-white/5 shrink-0">
+            {/* Profile + Logout */}
+            <div className="p-4 border-t border-white/5 shrink-0 space-y-3">
+                {/* User info */}
                 <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold border border-primary/20 shrink-0`}>
+                    <div className="w-9 h-9 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm border border-primary/20 shrink-0">
                         {profileName?.charAt(0).toUpperCase() || 'M'}
                     </div>
-                    <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{profileName || 'Miembro'}</p>
-                        <p className="text-xs text-gray-400 capitalize truncate">{role}</p>
+                    <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-white truncate">{profileName || 'Miembro'}</p>
+                        <p className="text-[10px] text-gray-500 capitalize font-black uppercase tracking-widest truncate">{role}</p>
                     </div>
                 </div>
+
+                {/* Logout button */}
+                <button
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-red-600/20 border border-white/5 hover:border-red-500/30 text-gray-500 hover:text-red-400 transition-all duration-200 group disabled:opacity-50"
+                >
+                    {loggingOut ? (
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    )}
+                    <span className="text-xs font-black uppercase tracking-widest">
+                        {loggingOut ? 'Cerrando...' : 'Cerrar Sesión'}
+                    </span>
+                </button>
             </div>
         </aside>
     );

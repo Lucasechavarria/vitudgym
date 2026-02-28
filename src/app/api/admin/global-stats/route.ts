@@ -35,11 +35,11 @@ export async function GET(request: Request) {
             adminClient.from('gimnasios').select('*', { count: 'exact', head: true }).eq('es_activo', true),
             // MRR real desde la vista calculada
             adminClient.from('saas_mrr_actual').select('*').single(),
-            // Revenue de pagos Stripe/MP reales aprobados este mes
+            // Revenue de pagos aprobados este mes (enum en español)
             adminClient
                 .from('pagos')
                 .select('monto')
-                .eq('estado', 'approved')
+                .eq('estado', 'aprobado')
                 .gte('creado_en', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
             // Distribución de gimnasios por plan
             adminClient

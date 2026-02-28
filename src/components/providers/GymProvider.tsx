@@ -83,7 +83,7 @@ export const GymProvider = ({ children }: { children: React.ReactNode }) => {
                     document.documentElement.style.setProperty("--primary-foreground", "#ffffff");
                 }
             } catch (error) {
-                console.error("[GymProvider] Error loading gym context:", error);
+                // Silently catch gym loading errors to avoid UI noise
             } finally {
                 setIsLoading(false);
             }

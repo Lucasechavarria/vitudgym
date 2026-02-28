@@ -30,10 +30,7 @@ export function useAuth() {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((event, session) => {
-            // Debugging auth state changes
-            if (process.env.NODE_ENV === 'development') {
-                console.log(`🔐 Auth State Change: ${event}`, session?.user?.email);
-            }
+            // Update local state on auth change
 
             setSession(session);
             setUser(session?.user ?? null);
@@ -58,13 +55,12 @@ export function useAuth() {
                 .single();
 
             if (error) {
-                console.error('useAuth: Error cargando perfil desde DB:', error);
-                // No lanzamos el error para permitir que la app use el fallback de metadatos
+                // profile load error - handled by metadata fallback
             } else {
                 setProfile(data);
             }
         } catch (error) {
-            console.error('useAuth: Error inesperado en loadProfile:', error);
+            // unexpected load error
         } finally {
             setLoading(false);
         }

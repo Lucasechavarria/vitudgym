@@ -21,17 +21,26 @@ export function useChat(conversacionId: string | null) {
 
         const fetchMessages = async () => {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('mensajes')
-                .select('*')
-                .eq('conversacion_id', conversacionId)
-                .order('creado_en', { ascending: true });
+            let data: Message[] | null = null;
+            try {
+                const { data: fetchedData, error } = await supabase
+                    .from('mensajes')
+                    .select('*')
+                    .eq('conversacion_id', conversacionId)
+                    .order('creado_en', { ascending: true });
 
-            if (error) {
-                toast.error('Error al cargar mensajes');
-                console.error(error);
-            } else {
-                setMessages(data as Message[]);
+                if (error) {
+                    toast.error('Error al cargar mensajes');
+                    // gym context loading error - keeping toast.error as per instruction
+                } else {
+                    data = fetchedData as Message[];
+                }
+            } catch (error) {
+                // This catch block would typically handle network errors or unexpected exceptions
+                // Supabase client usually returns errors in the 'error' object, not throws them.
+                toast.error('Error inesperado al cargar mensajes');
+            } finally {
+                setMessages(data || []); // Ensure messages is an array even if data is null
             }
             setLoading(false);
         };
@@ -73,7 +82,6 @@ export function useChat(conversacionId: string | null) {
 
         if (error) {
             toast.error('Error al enviar mensaje');
-            console.error(error);
             return false;
         }
         return true;

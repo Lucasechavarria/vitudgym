@@ -42,7 +42,7 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
                     setConversations(data);
                 }
             } catch (error) {
-                console.error('Error fetching contacts:', error);
+                // Silently catch contact fetching errors in UI
             }
         };
 
@@ -130,8 +130,7 @@ export default function ChatInterface({ currentUser, initialRecipientId }: ChatI
             .single();
 
         if (error) {
-            console.error('Error sending message:', error);
-            // Rollback or show error
+            // Rollback optimistic update on error
             setMessages((prev) => prev.filter(m => m.id !== tempId));
         } else {
             // Replace optimistic with real

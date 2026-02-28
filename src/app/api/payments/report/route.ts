@@ -61,7 +61,7 @@ export async function POST(request: Request) {
                 moneda: 'ARS',
                 concepto: 'Pago Mensual (Reportado por Usuario)',
                 notas: `Referencia: ${reference || 'N/A'}. Notas: ${notes || ''}. Fecha: ${date}. Comprobante: ${receipt_url || 'No adjunto'}`,
-                estado: 'pending',
+                estado: 'pendiente',
                 metodo_pago: method, // 'transfer', 'cash', etc.
                 proveedor_pago: 'manual',
             })
