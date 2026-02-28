@@ -14,6 +14,7 @@ import { WaiverWarning } from '@/components/features/student/WaiverWarning';
 import { GoalRequestModal } from '@/components/features/student/GoalRequestModal';
 import { VisionAlert } from '@/components/features/student/VisionAlert';
 import { RecoveryForm } from '@/components/features/recovery/RecoveryForm';
+import Paywall from '@/components/features/dashboard/Paywall';
 
 
 export default function StudentDashboard() {
@@ -26,36 +27,6 @@ export default function StudentDashboard() {
     handleGoalModal,
   } = useStudentDashboard();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  const { progress, attendance, routine, profile } = data;
-  const latestProgress = progress[progress.length - 1];
-
-  // Membership Expiration Logic
-  const membershipEndDate = profile?.fecha_fin_membresia ? new Date(profile.fecha_fin_membresia) : null;
-  const isExpiringSoon = membershipEndDate && (membershipEndDate.getTime() - Date.now()) < 7 * 24 * 60 * 60 * 1000;
-  const daysRemaining = membershipEndDate ? Math.ceil((membershipEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
-
-  const chartData = progress.length > 0 ? progress.map((p: any) => ({
-    week: p.registrado_en ? new Date(p.registrado_en).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }) : '--/--',
-    peso: p.peso,
-    grasa: p.grasa_corporal,
-    musculo: p.masa_muscular
-  })) : [];
-
-  const stats = [
-    { label: 'Peso Actual', value: `${latestProgress?.peso || '--'} kg`, icon: '⚖️', trend: 'Objetivo: 75kg', color: 'from-blue-600 to-cyan-500' },
-    { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: { rate: number }) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-purple-600 to-indigo-500' },
-    { label: 'Grasa Corporal', value: `${latestProgress?.grasa_corporal || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-orange-600 to-red-500' },
-    { label: 'Músculo', value: `${latestProgress?.masa_muscular || '--'} kg`, icon: '💪', trend: 'En Aumento', color: 'from-emerald-600 to-teal-500' },
-  ];
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -65,6 +36,48 @@ export default function StudentDashboard() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  const { progress, attendance, routine, profile } = data;
+  const latestProgress = progress[progress.length - 1];
+
+  // Membership Paywall Logic
+  const membershipStatus = profile?.estado_membresia || 'inactive';
+  const isBlocked = ['expired', 'inactive', 'suspended'].includes(membershipStatus);
+
+  const membershipEndDate = profile?.fecha_fin_membresia ? new Date(profile.fecha_fin_membresia) : null;
+  const isExpiringSoon = !isBlocked && membershipEndDate && (membershipEndDate.getTime() - Date.now()) < 7 * 24 * 60 * 60 * 1000;
+  const daysRemaining = membershipEndDate ? Math.ceil((membershipEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+
+  if (isBlocked) {
+    return (
+      <div className="p-6 space-y-12 pb-20 pt-8">
+        <DashboardHeader gender={profile?.gender} itemVariants={itemVariants} />
+        <Paywall status={membershipStatus} gymName={(profile as any)?.gimnasios?.nombre || 'tu gimnasio'} />
+      </div>
+    );
+  }
+
+  const chartData = progress.length > 0 ? progress.map((p: any) => ({
+    week: p.registrado_en ? new Date(p.registrado_en).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' }) : '--/--',
+    peso: p.peso,
+    grasa: p.grasa_corporal,
+    musculo: p.masa_muscular
+  })) : [];
+
+  const stats = [
+    { label: 'Peso Actual', value: `${latestProgress?.peso || '--'} kg`, icon: '⚖️', trend: 'Objetivo Personal', color: 'from-blue-600 to-cyan-500' },
+    { label: 'Clases Asistidas', value: attendance.reduce((acc: number, curr: { rate: number }) => acc + (curr.rate || 0), 0).toString(), icon: '🗓️', trend: 'Total Histórico', color: 'from-purple-600 to-indigo-500' },
+    { label: 'Grasa Corporal', value: `${latestProgress?.grasa_corporal || '--'}%`, icon: '💧', trend: 'Bajo Control', color: 'from-orange-600 to-red-500' },
+    { label: 'Músculo', value: `${latestProgress?.masa_muscular || '--'} kg`, icon: '💪', trend: 'En Aumento', color: 'from-emerald-600 to-teal-500' },
+  ];
 
   return (
     <motion.div
@@ -87,9 +100,7 @@ export default function StudentDashboard() {
             <div>
               <p className="text-white font-black uppercase tracking-widest text-xs">Aviso de Membresía</p>
               <p className="text-red-400 text-sm font-medium mt-1">
-                {daysRemaining! <= 0
-                  ? 'Tu membresía ha vencido. Por favor, realiza el pago para continuar.'
-                  : `Quedan ${daysRemaining} días para el vencimiento.`}
+                Quedan {daysRemaining} días para el vencimiento.
               </p>
             </div>
           </div>

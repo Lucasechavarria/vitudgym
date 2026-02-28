@@ -18,6 +18,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     admin: [
         { href: '/admin', label: 'Panel de Control', icon: '📊' },
         { href: '/admin/crm', label: 'CRM Ventas', icon: '🎯', module: 'crm' },
+        { href: '/admin/shop', label: 'Tienda POS', icon: '🛒', module: 'inventario' },
         { href: '/admin/users', label: 'Usuarios', icon: '👥' },
         { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️', module: 'gamificacion' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅', module: 'clases_reserva' },
@@ -26,6 +27,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/admin/nutrition', label: 'Nutrición', icon: '🥗', module: 'nutricion_ia' },
         { href: '/coach/vision', label: 'Vision Lab', icon: '🎥', module: 'vision_ia' },
         { href: '/admin/finance', label: 'Finanzas', icon: '💰', module: 'pagos_online' },
+        { href: '/admin/settings/payments', label: 'Configuración Cobros', icon: '💳' },
         { href: '/admin/settings/branding', label: 'Personalización', icon: '🎨' },
         { href: '/admin/settings/landing', label: 'Marketing', icon: '🚀' },
         { href: '/admin/settings/support', label: 'Soporte Técnico', icon: '🎧' },
@@ -34,6 +36,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     superadmin: [
         { href: '/admin', label: 'Super Control', icon: '⚡' },
         { href: '/admin/crm', label: 'CRM Global', icon: '🎯' },
+        { href: '/admin/shop', label: 'Tienda Global', icon: '🛒' },
         { href: '/admin/gyms', label: 'Gimnasios', icon: '🏢' },
         { href: '/admin/plans', label: 'Planes', icon: '💎' },
         { href: '/admin/finance/billing', label: 'Cobros SaaS', icon: '💰' },
@@ -42,6 +45,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
         { href: '/coach', label: 'Vista Profesor', icon: '🏋️' },
         { href: '/dashboard', label: 'Vista Alumno', icon: '🎯' },
+        { href: '/dashboard/membership', label: 'Membresía (Demo)', icon: '💳' },
         { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
         { href: '/admin/equipment', label: 'Equipamiento', icon: '🔧' },
         { href: '/coach/routines', label: 'Rutinas', icon: '💪' },
@@ -64,6 +68,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     member: [
         { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
         { href: '/dashboard/messages', label: 'Mensajes', icon: '💬' },
+        { href: '/dashboard/membership', label: 'Mi Membresía', icon: '💳' },
         { href: '/schedule', label: 'Cronograma', icon: '🗓️', module: 'clases_reserva' },
         { href: '/dashboard/routine', label: 'Mi Rutina', icon: '💪', module: 'rutinas_ia' },
         { href: '/dashboard/progress', label: 'Mi Progreso', icon: '📈', module: 'gamificacion' },

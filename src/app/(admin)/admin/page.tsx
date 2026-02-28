@@ -1,7 +1,7 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import SuperAdminOverview from '@/components/features/admin/SuperAdminDashboard';
+import SuperAdminTabs from '@/components/features/admin/SuperAdminTabs';
 import GymAdminDashboard from '@/components/features/admin/GymAdminDashboard';
 import { redirect } from 'next/navigation';
 
@@ -24,7 +24,7 @@ export default async function AdminDashboard() {
         .single();
 
     if (profile?.rol === 'superadmin') {
-        return <SuperAdminOverview />;
+        return <SuperAdminTabs />;
     }
 
     if (profile?.rol === 'admin') {
