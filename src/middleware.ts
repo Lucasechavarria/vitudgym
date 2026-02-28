@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createMiddlewareClient } from '@/lib/supabase/middleware';
 
+// Mapeo de rutas que requieren módulos activos para poder accederse
 const MODULE_ROUTES: Record<string, string> = {
     '/admin/nutrition': 'nutricion_ia',
     '/dashboard/nutrition': 'nutricion_ia',
@@ -13,39 +14,26 @@ const MODULE_ROUTES: Record<string, string> = {
     '/dashboard/routine': 'rutinas_ia',
     '/admin/activities': 'clases_reserva',
     '/schedule': 'clases_reserva',
-    '/dashboard/classes': 'clases_reserva'
+    '/dashboard/classes': 'clases_reserva',
 };
 
 export async function middleware(request: NextRequest) {
-    // 1. Check for required environment variables to prevent crash on Vercel
+    // Saltar si faltan variables de entorno
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        console.warn('⚠️ Middleware skipping Supabase init: Missing env vars');
-        return NextResponse.next({
-            request: {
-                headers: request.headers,
-            },
-        });
+        return NextResponse.next({ request: { headers: request.headers } });
     }
 
     try {
-        let response = NextResponse.next({
-            request: {
-                headers: request.headers,
-            },
-        });
-
+        const response = NextResponse.next({ request: { headers: request.headers } });
         const supabase = createMiddlewareClient(request, response);
-
-        // Refresh session if expired
         const { data: { user }, error } = await supabase.auth.getUser();
-
         const { pathname } = request.nextUrl;
 
-        // Public routes that don't require authentication
+        // Rutas públicas — no requieren auth
         const publicRoutes = ['/', '/login', '/signup', '/auth/callback'];
         const isPublicRoute = publicRoutes.includes(pathname);
 
-        // If no user and trying to access protected route, redirect to login
+        // Sin sesión → redirigir al login
         if ((!user || error) && !isPublicRoute) {
             const redirectUrl = request.nextUrl.clone();
             redirectUrl.pathname = '/login';
@@ -53,100 +41,87 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(redirectUrl);
         }
 
-        // Optimization: Fetch profile ONCE if user exists and it's not a purely static request
-        let userRole = null;
-        if (user) {
-            try {
-                // COMENTADO: No confiar en metadatos por ahora porque pueden estar desincronizados
-                // userRole = user.app_metadata?.role || user.user_metadata?.role;
+        // Si no hay usuario, terminar aquí (ruta pública)
+        if (!user) return response;
 
-                // SIEMPRE consultar la BBDD 'perfiles' para tener el rol real
-                const { data: profile, error: profileError } = await supabase
-                    .from('perfiles')
-                    .select('rol, gimnasio_id')
-                    .eq('id', user.id)
+        // ────────────────────────────────────────────────────
+        // OBTENER ROL Y GIMNASIO DEL USUARIO
+        // ────────────────────────────────────────────────────
+        let userRole: string | null = null;
+        let gymId: string | null = null;
+
+        const { data: profile } = await supabase
+            .from('perfiles')
+            .select('rol, gimnasio_id')
+            .eq('id', user.id)
+            .single();
+
+        if (profile) {
+            userRole = profile.rol;
+            gymId = profile.gimnasio_id;
+        }
+
+        // Fallback a metadata si la DB falla (ej: primer login antes de que el trigger corra)
+        if (!userRole) {
+            userRole = user.app_metadata?.rol
+                || user.user_metadata?.rol
+                || user.app_metadata?.role
+                || user.user_metadata?.role
+                || null;
+        }
+
+        // ────────────────────────────────────────────────────
+        // REDIRIGIR SI YA ESTÁ LOGUEADO Y VA A LOGIN/SIGNUP
+        // ────────────────────────────────────────────────────
+        if (pathname === '/login' || pathname === '/signup') {
+            switch (userRole) {
+                case 'admin':
+                case 'superadmin':
+                    return NextResponse.redirect(new URL('/admin', request.url));
+                case 'coach':
+                    return NextResponse.redirect(new URL('/coach', request.url));
+                default:
+                    return NextResponse.redirect(new URL('/dashboard', request.url));
+            }
+        }
+
+        // ────────────────────────────────────────────────────
+        // RBAC: PROTECCIÓN DE RUTAS POR ROL
+        // ────────────────────────────────────────────────────
+
+        // /admin → solo admin y superadmin
+        if (pathname.startsWith('/admin')) {
+            if (!['admin', 'superadmin'].includes(userRole ?? '')) {
+                return NextResponse.redirect(new URL('/dashboard', request.url));
+            }
+        }
+
+        // /coach → coach, admin y superadmin
+        if (pathname.startsWith('/coach')) {
+            if (!['coach', 'admin', 'superadmin'].includes(userRole ?? '')) {
+                return NextResponse.redirect(new URL('/dashboard', request.url));
+            }
+        }
+
+        // ────────────────────────────────────────────────────
+        // MODULE GATING: Solo para no-superadmin con gimnasio
+        // Superadmin SIEMPRE pasa — tiene acceso total para dar soporte
+        // ────────────────────────────────────────────────────
+        if (userRole !== 'superadmin' && gymId) {
+            const requiredModule = Object.entries(MODULE_ROUTES)
+                .find(([route]) => pathname.startsWith(route))?.[1];
+
+            if (requiredModule) {
+                const { data: gym } = await supabase
+                    .from('gimnasios')
+                    .select('modulos_activos')
+                    .eq('id', gymId)
                     .single();
 
-                if (profile) {
-                    userRole = profile.rol;
-                } else if (profileError) {
-                    console.error('Middleware: Error fetching profile role:', profileError);
-                }
+                const modulos = (gym?.modulos_activos as Record<string, boolean>) || {};
 
-                // Fallback a metadata si falla la DB
-                if (!userRole) {
-                    userRole = user.app_metadata?.rol || user.user_metadata?.rol || user.app_metadata?.role || user.user_metadata?.role;
-                }
-
-                // Si tiene gimnasio, verificar módulos activos si no es superadmin
-                if (profile?.gimnasio_id && userRole !== 'superadmin') {
-                    const requiredModule = Object.entries(MODULE_ROUTES).find(([route]) => pathname.startsWith(route))?.[1];
-
-                    if (requiredModule) {
-                        const { data: gym } = await supabase
-                            .from('gimnasios')
-                            .select('modulos_activos')
-                            .eq('id', profile.gimnasio_id)
-                            .single();
-
-                        const modulos = gym?.modulos_activos || {};
-                        if (!modulos[requiredModule]) {
-                            console.warn(`⛔ Acceso prohibido: El gimnasio ${profile.gimnasio_id} no tiene el módulo ${requiredModule} activo para la ruta ${pathname}`);
-                            return NextResponse.redirect(new URL('/dashboard', request.url));
-                        }
-                    }
-                }
-
-                console.log(`🔐 Middleware Check: User ${user.email} has role: ${userRole}`);
-
-            } catch (_e) {
-                console.error('Error fetching role in middleware:', _e);
-            }
-        }
-
-        // If has user and trying to access login/signup, redirect to dashboard based on role
-        if (user && (pathname === '/login' || pathname === '/signup')) {
-            const redirectUrl = request.nextUrl.clone();
-
-            if (userRole) {
-                switch (userRole) {
-                    case 'admin':
-                    case 'superadmin':
-                        redirectUrl.pathname = '/admin';
-                        break;
-                    case 'coach':
-                        redirectUrl.pathname = '/coach';
-                        break;
-                    default:
-                        redirectUrl.pathname = '/dashboard';
-                }
-            } else {
-                redirectUrl.pathname = '/dashboard';
-            }
-
-            return NextResponse.redirect(redirectUrl);
-        }
-
-        // Role-based access control (RBAC)
-        if (user) {
-            console.log(`🛡️ RBAC Check - Path: ${pathname}, Role: ${userRole}`);
-
-            // Admin routes
-            if (pathname.startsWith('/admin')) {
-                const isAdmin = ['admin', 'superadmin'].includes(userRole);
-                console.log(`👤 User accessing /admin. Is Admin? ${isAdmin}`);
-
-                if (!isAdmin) {
-                    console.warn(`⛔ Access denied to /admin for user ${user.email} (Role: ${userRole})`);
-                    return NextResponse.redirect(new URL('/dashboard', request.url));
-                }
-            }
-
-            // Coach routes
-            if (pathname.startsWith('/coach')) {
-                const isCoach = ['coach', 'admin', 'superadmin'].includes(userRole);
-                if (!isCoach) {
-                    console.warn(`⛔ Access denied to /coach for user ${user.email} (Role: ${userRole})`);
+                if (!modulos[requiredModule]) {
+                    // Módulo no contratado → redirigir al dashboard
                     return NextResponse.redirect(new URL('/dashboard', request.url));
                 }
             }
@@ -155,24 +130,14 @@ export async function middleware(request: NextRequest) {
         return response;
 
     } catch (_e) {
-        console.error('Middleware execution error:', _e);
-        return NextResponse.next({
-            request: {
-                headers: request.headers,
-            },
-        });
+        // En caso de error, dejar pasar para no bloquear la app
+        console.error('[Middleware] Error crítico:', _e);
+        return NextResponse.next({ request: { headers: request.headers } });
     }
 }
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - public files (public folder)
-         */
         '/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };

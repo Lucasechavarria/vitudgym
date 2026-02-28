@@ -14,9 +14,10 @@ export async function POST(request: Request) {
             slug,
             es_activo,
             logo_url,
+            color_primario,
             plan_id,
             estado_pago_saas,
-            configuracion_visual,
+            config_visual,
             modulos_activos
         } = await request.json();
 
@@ -33,9 +34,10 @@ export async function POST(request: Request) {
                 slug,
                 es_activo,
                 logo_url,
+                color_primario,
                 plan_id,
                 estado_pago_saas,
-                configuracion_visual,
+                config_visual,
                 modulos_activos
             })
             .eq('id', id)

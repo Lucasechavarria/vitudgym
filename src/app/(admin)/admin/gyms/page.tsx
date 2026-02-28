@@ -25,17 +25,14 @@ interface Gimnasio {
     nombre: string;
     slug: string;
     logo_url: string;
+    color_primario: string;
     es_activo: boolean;
     sucursales: Sucursal[];
     modulos_activos: Record<string, boolean>;
     creado_en: string;
     plan_id?: string;
     estado_pago_saas?: string;
-    configuracion_visual?: {
-        color_primario: string;
-        logo_url: string | null;
-        tema: string;
-    };
+    config_visual?: Record<string, unknown>;
 }
 
 export default function GymsManagementPage() {
@@ -69,7 +66,7 @@ export default function GymsManagementPage() {
         logo_url: '',
         plan_id: '',
         estado_pago_saas: '',
-        color_primario: '#00ff00',
+        color_primario: '#6d28d9',
         modulos: {} as Record<string, boolean>
     });
 
@@ -169,14 +166,19 @@ export default function GymsManagementPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    ...configData,
                     id: selectedGym.id,
-                    configuracion_visual: {
-                        color_primario: configData.color_primario,
+                    nombre: configData.nombre,
+                    slug: configData.slug,
+                    es_activo: configData.es_activo,
+                    logo_url: configData.logo_url,
+                    color_primario: configData.color_primario,
+                    plan_id: configData.plan_id,
+                    estado_pago_saas: configData.estado_pago_saas,
+                    modulos_activos: configData.modulos,
+                    config_visual: {
                         logo_url: configData.logo_url,
                         tema: 'dark'
-                    },
-                    modulos_activos: configData.modulos
+                    }
                 })
             });
             if (res.ok) {
@@ -204,7 +206,7 @@ export default function GymsManagementPage() {
             logo_url: gym.logo_url || '',
             plan_id: gym.plan_id || '',
             estado_pago_saas: gym.estado_pago_saas || 'active',
-            color_primario: gym.configuracion_visual?.color_primario || '#00ff00',
+            color_primario: gym.color_primario || '#6d28d9',
             modulos: gym.modulos_activos || {
                 rutinas_ia: true,
                 gamificacion: true,

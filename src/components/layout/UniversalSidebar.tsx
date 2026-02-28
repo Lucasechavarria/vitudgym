@@ -168,7 +168,7 @@ export function UniversalSidebar({
             <div className="p-6 shrink-0 flex justify-between items-center">
                 <Link href={navItems[0].href} className="block relative h-10 w-32">
                     <Image
-                        src={gym?.configuracion?.logo_url || "/logos/Logo-Fondo-Negro.png"}
+                        src={gym?.logo_url || "/logos/Logo-Fondo-Negro.png"}
                         alt={gym?.nombre || "VIRTUD"}
                         fill
                         className="object-contain"
