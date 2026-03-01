@@ -7,7 +7,7 @@ interface NotificationPayload {
     tipo: 'pago' | 'clase' | 'logro' | 'mensaje' | 'rutina' | 'sistema';
     titulo: string;
     cuerpo: string;
-    datos?: Record<string, any>;
+    datos?: Record<string, unknown>;
 }
 
 interface SendResult {
@@ -170,7 +170,7 @@ export class NotificationService {
     private shouldSend(tipo: string, prefs: Database['public']['Tables']['notificaciones_preferencias']['Row'] | null): boolean {
         if (!prefs) return true; // Default: enviar todo si no hay preferencias configuradas
 
-        const prefMap: Record<string, keyof Database['public']['Tables']['notificaciones_preferencias']['Row']> = {
+        const prefMap: Record<string, string> = {
             pago: 'pagos_confirmacion',
             clase: 'clases_recordatorio',
             logro: 'logros_nuevos',
@@ -179,7 +179,7 @@ export class NotificationService {
             sistema: 'sistema', // Siempre enviar notificaciones del sistema
         };
 
-        const prefKey = prefMap[tipo];
+        const prefKey = prefMap[tipo] as keyof Database['public']['Tables']['notificaciones_preferencias']['Row'];
 
         // Notificaciones del sistema siempre se envían
         if (tipo === 'sistema') return true;

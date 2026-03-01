@@ -143,6 +143,7 @@ export async function POST(request: Request) {
                 // Total keys: nombre, objetivo, plan_nutricional_id, ... 
                 // There is NO 'descripcion' or 'description' in 'rutinas' table definition!
                 // So I must remove 'description'.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any)
             .select()
             .single();
@@ -178,6 +179,7 @@ export async function POST(request: Request) {
         if (exercises.length > 0) {
             const { error: exercisesError } = await supabase
                 .from('ejercicios')
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .insert(exercises as any);
 
             if (exercisesError) throw exercisesError;
@@ -210,6 +212,7 @@ export async function POST(request: Request) {
             // Vincular plan nutricional con rutina
             await supabase
                 .from('rutinas')
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .update({ plan_nutricional_id: nutrition.id } as any)
                 .eq('id', routine.id);
         }

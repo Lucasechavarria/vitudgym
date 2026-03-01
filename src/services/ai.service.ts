@@ -68,6 +68,7 @@ export class AIService {
           safetySettings: SAFETY_SETTINGS, // Aplicar configuración de seguridad permisiva para salud
           generationConfig: {
             responseMimeType: "application/json",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             responseSchema: jsonSchema as any,
             temperature: 0.1
           }

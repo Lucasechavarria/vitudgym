@@ -80,6 +80,7 @@ export class SessionsService {
     /**
      * Obtiene el historial de sesiones de un usuario
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static async getUserSessionHistory(userId: string, limit = 10, supabaseClient?: any) {
         const supabase = supabaseClient || await createClient();
 

@@ -83,7 +83,7 @@ export interface SupabaseUserProfile {
     onboarding_completado_en?: string | null;
     creado_en?: string;
     actualizado_en?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface AdminUserListResponse extends SupabaseUserProfile {

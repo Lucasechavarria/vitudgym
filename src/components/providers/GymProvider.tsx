@@ -13,8 +13,8 @@ interface GymContextType {
         logo_url: string | null;
         favicon_url: string | null;
         modulos: Record<string, boolean>;
-        config_visual: Record<string, any>;
-        config_landing: Record<string, any>;
+        config_visual: Record<string, unknown>;
+        config_landing: Record<string, unknown>;
     } | null;
     isLoading: boolean;
     hasModule: (moduleName: string) => boolean;
@@ -82,8 +82,8 @@ export const GymProvider = ({ children }: { children: React.ReactNode }) => {
                             pagos_online: true,
                             clases_reserva: true,
                         },
-                        config_visual: (gymData.config_visual as Record<string, any>) || {},
-                        config_landing: (gymData.config_landing as Record<string, any>) || {},
+                        config_visual: (gymData.config_visual as Record<string, unknown>) || {},
+                        config_landing: (gymData.config_landing as Record<string, unknown>) || {},
                     });
 
                     // 3. Inyectar variables CSS para Tailwind y UI Premium

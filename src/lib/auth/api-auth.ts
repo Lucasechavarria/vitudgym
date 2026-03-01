@@ -13,7 +13,7 @@ import { logger } from '@/lib/logger';
  * const { user, supabase, error } = await authenticateRequest(request);
  * if (error) return error;
  */
-export async function authenticateRequest(request: Request) {
+export async function authenticateRequest(_request: Request) {
     try {
         const supabase = await createClient();
         const { data: { user }, error } = await supabase.auth.getUser();
@@ -137,7 +137,20 @@ export async function requireRole(
             };
         }
 
-        return { profile: { role }, error: null };
+        // 4. Obtener/Retornar perfil completo enriquecido
+        const { data: fullProfile } = await supabase
+            .from('perfiles')
+            .select('rol, gimnasio_id')
+            .eq('id', userId)
+            .single();
+
+        return {
+            profile: {
+                role: normalizedUserRole,
+                gimnasio_id: fullProfile?.gimnasio_id
+            },
+            error: null
+        };
     } catch (err) {
         logger.error('requireRole: Error inesperado:', { error: err instanceof Error ? err.message : err });
         return {

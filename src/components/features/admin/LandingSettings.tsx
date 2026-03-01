@@ -12,10 +12,9 @@ import {
     MousePointer2,
     CheckCircle2,
     X,
-    Upload
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function LandingSettings() {
     const { gym } = useGym();
@@ -62,7 +61,7 @@ export default function LandingSettings() {
 
             setConfig(prev => ({ ...prev, hero_imagen: publicUrl }));
             toast.success('Imagen de portada subida');
-        } catch (error) {
+        } catch (_error) {
             toast.error('Error al subir imagen');
         } finally {
             setLoading(false);
@@ -155,7 +154,7 @@ export default function LandingSettings() {
                                 <div className="flex items-center gap-4">
                                     {config.hero_imagen ? (
                                         <div className="relative group w-32 h-20 shrink-0">
-                                            <img src={config.hero_imagen} className="w-full h-full object-cover rounded-xl border border-white/10" alt="Hero preview" />
+                                            <Image src={config.hero_imagen} fill className="w-full h-full object-cover rounded-xl border border-white/10" alt="Hero preview" unoptimized />
                                             <button
                                                 onClick={() => setConfig(prev => ({ ...prev, hero_imagen: '' }))}
                                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -211,7 +210,7 @@ export default function LandingSettings() {
                         <div className="absolute inset-x-0 top-0 h-full overflow-y-auto scrollbar-hide pb-10">
                             {/* Hero Image */}
                             <div className="relative h-60 w-full">
-                                <img src={config.hero_imagen || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48"} className="w-full h-full object-cover" />
+                                <Image src={config.hero_imagen || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48"} fill className="w-full h-full object-cover" alt="Hero preview" unoptimized />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                                 <div className="absolute bottom-4 left-4 right-4">
                                     <h4 className="text-xl font-black italic uppercase tracking-tighter leading-tight">{config.hero_titulo || "Tu Título Aquí"}</h4>

@@ -41,38 +41,31 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(redirectUrl);
         }
 
-        // Si hay usuario, obtener su perfil para el header del manifest
-        if (user) {
-            const { data: profile } = await supabase
-                .from('perfiles')
-                .select('gimnasio_id, gimnasios(slug)')
-                .eq('id', user.id)
-                .single();
-
-            if (profile && (profile as any).gimnasios?.slug) {
-                // Inyectar el slug en los headers para que manifest.ts lo lea
-                request.headers.set('x-gym-slug', (profile as any).gimnasios.slug);
-            }
-        }
-
-        // Si no hay usuario, terminar aquí (ruta pública)
-        if (!user) return response;
-
         // ────────────────────────────────────────────────────
-        // OBTENER ROL Y GIMNASIO DEL USUARIO
+        // OBTENER ROL, GIMNASIO Y SLUG DEL USUARIO
         // ────────────────────────────────────────────────────
         let userRole: string | null = null;
         let gymId: string | null = null;
+        let gymSlug: string | null = null;
 
-        const { data: profile } = await supabase
-            .from('perfiles')
-            .select('rol, gimnasio_id')
-            .eq('id', user.id)
-            .single();
+        if (user) {
+            const { data: profile } = await supabase
+                .from('perfiles')
+                .select('rol, gimnasio_id, gimnasios(slug)')
+                .eq('id', user.id)
+                .single();
 
-        if (profile) {
-            userRole = profile.rol;
-            gymId = profile.gimnasio_id;
+            if (profile) {
+                userRole = profile.rol;
+                gymId = profile.gimnasio_id;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                gymSlug = (profile as any).gimnasios?.slug;
+            }
+        }
+
+        // Inyectar el slug en los headers para que manifest.ts lo lea
+        if (gymSlug) {
+            request.headers.set('x-gym-slug', gymSlug);
         }
 
         // Fallback a metadata si la DB falla (ej: primer login antes de que el trigger corra)

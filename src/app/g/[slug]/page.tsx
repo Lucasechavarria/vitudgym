@@ -3,13 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    MapPin,
-    Clock,
     MessageCircle,
     ChevronDown,
     Activity,
     Shield,
-    CheckCircle2
+    CheckCircle2,
+    MapPin
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -43,9 +42,6 @@ interface Gym {
     };
 }
 
-interface GymLandingProps {
-    slug: string;
-}
 
 export default function GymPublicLanding({ params }: { params: { slug: string } }) {
     const [gym, setGym] = useState<Gym | null>(null);
@@ -254,6 +250,7 @@ export default function GymPublicLanding({ params }: { params: { slug: string } 
                                 <Link
                                     href={`/inscripcion?plan=${plan.id}&gym=${gym.slug}`}
                                     className="mt-12 w-full py-5 rounded-2xl text-center font-black uppercase italic tracking-widest text-[10px] bg-white text-black group-hover:bg-primary group-hover:text-white transition-all shadow-xl"
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     style={{ '--tw-bg-opacity': '1' } as any}
                                 >
                                     Elegir Plan

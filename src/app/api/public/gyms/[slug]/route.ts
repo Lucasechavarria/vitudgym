@@ -12,6 +12,7 @@ export async function GET(
     { params }: { params: { slug: string } }
 ) {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const adminClient = createAdminClient() as any;
 
         const { data: gym, error } = await adminClient
@@ -24,7 +25,7 @@ export async function GET(
                 color_secundario,
                 config_visual,
                 config_landing,
-                planes: planes_suscripcion(
+                planes: planes_gimnasio(
                   id,
                   nombre,
                   descripcion,
@@ -34,7 +35,7 @@ export async function GET(
                 )
             `)
             .eq('slug', params.slug)
-            .eq('planes_suscripcion.esta_activo', true)
+            .eq('planes_gimnasio.esta_activo', true)
             .single();
 
         if (error || !gym) {
@@ -42,7 +43,7 @@ export async function GET(
         }
 
         return NextResponse.json({ gym });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }

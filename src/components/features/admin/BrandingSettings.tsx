@@ -5,18 +5,16 @@ import { useGym } from '@/components/providers/GymProvider';
 import { supabase } from '@/lib/supabase/client';
 import {
     Palette,
-    Upload,
     Smartphone,
     Globe,
     Save,
     Eye,
     Type,
     ImageIcon,
-    CheckCircle2,
     X
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function BrandingSettings() {
     const { gym } = useGym();
@@ -34,8 +32,10 @@ export default function BrandingSettings() {
             setFormData({
                 nombre: gym.nombre || '',
                 color_primario: gym.color_primario || '#fbbf24',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 color_secundario: (gym as any).color_secundario || '#000000',
                 logo_url: gym.logo_url || '',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 favicon_url: (gym as any).favicon_url || '',
             });
         }
@@ -155,7 +155,7 @@ export default function BrandingSettings() {
                                 <div className="flex items-center gap-4">
                                     {formData.logo_url ? (
                                         <div className="relative group w-16 h-16 shrink-0">
-                                            <img src={formData.logo_url} className="w-full h-full object-cover rounded-xl border border-white/10" alt="Logo preview" />
+                                            <Image src={formData.logo_url} fill className="w-full h-full object-cover rounded-xl border border-white/10" alt="Logo preview" unoptimized />
                                             <button
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))}
@@ -185,7 +185,7 @@ export default function BrandingSettings() {
                                 <div className="flex items-center gap-4">
                                     {formData.favicon_url ? (
                                         <div className="relative group w-16 h-16 shrink-0">
-                                            <img src={formData.favicon_url} className="w-full h-full object-cover rounded-xl border border-white/10" alt="Favicon preview" />
+                                            <Image src={formData.favicon_url} fill className="w-full h-full object-cover rounded-xl border border-white/10" alt="Favicon preview" unoptimized />
                                             <button
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, favicon_url: '' }))}
@@ -236,7 +236,9 @@ export default function BrandingSettings() {
 
                         <div className="p-10 space-y-10 aspect-[9/16] max-h-[600px] flex flex-col items-center justify-center text-center bg-black/40">
                             {formData.logo_url ? (
-                                <img src={formData.logo_url} alt="Preview Logo" className="w-[120px] h-[120px] object-contain rounded-3xl mb-4" />
+                                <div className="relative w-[120px] h-[120px] mb-4">
+                                    <Image src={formData.logo_url} alt="Preview Logo" fill className="object-contain rounded-3xl" unoptimized />
+                                </div>
                             ) : (
                                 <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mb-4 border border-primary/20">
                                     <ImageIcon className="text-primary" size={40} />

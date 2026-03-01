@@ -11,6 +11,7 @@ export async function consumeAIQuota(
 ): Promise<{ allowed: boolean; error?: string }> {
     const supabase = createAdminClient();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any).rpc('consume_ai_quota', {
         p_gym_id: gymId,
         p_user_id: userId,

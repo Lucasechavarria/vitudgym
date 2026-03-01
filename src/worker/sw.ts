@@ -6,7 +6,8 @@ import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategi
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
-declare var self: any;
+// eslint-disable-next-line no-undef
+declare const self: ServiceWorkerGlobalScope;
 
 // Precachear manifiesto y archivos estáticos generados por build
 precacheAndRoute(self.__WB_MANIFEST || []);
