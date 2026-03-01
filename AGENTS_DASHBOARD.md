@@ -30,11 +30,3 @@ Cuando quieras iniciar un cambio complejo (ej: una nueva feature de Inteligencia
 He implementado un **Bypass Directo**. La función de asignación ahora corre en el esquema `api_v2`. Esto "engaña" al sistema de caché de Supabase, obligándolo a leer la versión más reciente de la base de datos sin esperas.
 
 **Por favor, probá asignar el coach ahora.** Si todo sale bien, la configuración de agentes está lista para que me pidas cualquier tarea específica.
-
----
-
-## 🛡️ Mejoras de Seguridad y Escalabilidad Recientes (Fase 3)
-1. **Sanitización de Endpoints (Superadmin):**
-   - Endpoints como `/api/admin/gyms/create` y `/update` ahora validan y parsean el JSON de manera resiliente, incluyendo validaciones de tipos básicos (`typeof variable === 'string'`) para evitar inyecciones.
-2. **Dashboard Global Stats:**
-   - Se han documentado las áreas que requieren optimización futura, como el uso de `count: exact` en tablas grandes que podrían causar cuellos de botella por el MVCC de PostgreSQL. Se recomienda usar vistas materializadas o estimaciones cuando las entidades superen los 50k registros.

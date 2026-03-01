@@ -7,16 +7,10 @@ export async function POST(request: Request) {
         const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
-        const body = await request.json().catch(() => ({}));
-        const { nombre, slug, logo_url, sucursal_nombre, direccion } = body;
+        const { nombre, slug, logo_url, sucursal_nombre, direccion } = await request.json();
 
         if (!nombre || !slug || !sucursal_nombre) {
             return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
-        }
-
-        // Basic sanitization
-        if (typeof nombre !== 'string' || typeof slug !== 'string' || typeof sucursal_nombre !== 'string') {
-            return NextResponse.json({ error: 'Tipos de datos inválidos' }, { status: 400 });
         }
 
         const adminClient = createAdminClient();
