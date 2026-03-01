@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, MapPin, ChevronDown, Check } from 'lucide-react';
+import { Building2, MapPin, ChevronDown, Check, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Branch {
@@ -58,19 +58,19 @@ export default function GymSwitcher({ profileRole }: { profileRole?: string }) {
         }
     };
 
-    const handleSwitch = async (gym: Gym, branch?: Branch) => {
+    const handleSwitch = async (gym: Gym | null, branch?: Branch | null) => {
         try {
             const res = await fetch('/api/saas/set-context', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gymId: gym.id, branchId: branch?.id })
+                body: JSON.stringify({ gymId: gym?.id || null, branchId: branch?.id || null })
             });
 
             if (res.ok) {
                 setSelectedGym(gym);
-                if (branch) setSelectedBranch(branch);
+                setSelectedBranch(branch || null);
                 setIsOpen(false);
-                toast.success(`Contexto cambiado a: ${gym.nombre}`);
+                toast.success(gym ? `Contexto cambiado a: ${gym.nombre}` : 'Contexto cambiado a Global');
 
                 // Refresh data/page to apply new context
                 window.location.reload();
@@ -96,9 +96,11 @@ export default function GymSwitcher({ profileRole }: { profileRole?: string }) {
                     <Building2 size={16} />
                 </div>
                 <div className="flex-1 overflow-hidden">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Gimnasio</p>
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">
+                        {profileRole === 'superadmin' ? 'Contexto SaaS' : 'Gimnasio'}
+                    </p>
                     <p className="text-xs font-bold text-white truncate leading-none">
-                        {selectedGym?.nombre || 'Seleccionar...'}
+                        {selectedGym?.nombre || (profileRole === 'superadmin' ? 'Global (Red)' : 'Seleccionar...')}
                     </p>
                     {selectedBranch && (
                         <p className="text-[9px] text-red-400 font-medium truncate mt-1">
@@ -124,6 +126,18 @@ export default function GymSwitcher({ profileRole }: { profileRole?: string }) {
                             </div>
 
                             <div className="max-h-[400px] overflow-y-auto p-2 space-y-2">
+                                {profileRole === 'superadmin' && (
+                                    <div
+                                        className={`px-3 py-2 rounded-lg flex items-center justify-between group cursor-pointer transition-colors ${!selectedGym ? 'bg-red-600/10 text-red-400' : 'hover:bg-white/5 text-gray-400'}`}
+                                        onClick={() => handleSwitch(null, null)}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Zap size={14} className={!selectedGym ? 'animate-pulse' : ''} />
+                                            <span className="text-xs font-black uppercase tracking-widest">Global (Vista SaaS)</span>
+                                        </div>
+                                        {!selectedGym && <Check size={12} />}
+                                    </div>
+                                )}
                                 {gyms.map(gym => (
                                     <div key={gym.id} className="space-y-1">
                                         <div
