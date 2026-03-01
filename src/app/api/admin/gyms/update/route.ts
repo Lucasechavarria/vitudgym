@@ -8,6 +8,7 @@ export async function POST(request: Request) {
         const { error: authError } = await authenticateAndRequireRole(request, ['superadmin']);
         if (authError) return authError;
 
+        const body = await request.json().catch(() => ({}));
         const {
             id,
             nombre,
@@ -19,10 +20,15 @@ export async function POST(request: Request) {
             estado_pago_saas,
             config_visual,
             modulos_activos
-        } = await request.json();
+        } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'ID de gimnasio requerido' }, { status: 400 });
+        }
+
+        // Basic sanitization
+        if (typeof id !== 'string') {
+            return NextResponse.json({ error: 'ID de gimnasio inválido' }, { status: 400 });
         }
 
         const supabase = createAdminClient();
