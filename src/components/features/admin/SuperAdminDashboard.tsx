@@ -117,8 +117,8 @@ export default function SuperAdminOverview() {
 
     const gymCards = [
         { title: 'Gimnasios en Red', value: stats?.gyms || 0, icon: <Building2 />, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/50', href: '/admin/gyms' },
-        { title: 'Sedes Activas', value: stats?.branches || 0, icon: <Zap />, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'hover:border-amber-500/50', href: '/admin/gyms' },
-        { title: 'Gyms Activos', value: stats?.gyms_activos || 0, icon: <Activity />, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/50', href: '/admin/gyms' },
+        { title: 'Usuarios en Red', value: stats?.users || 0, icon: <Users />, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/50', href: '/admin/users' },
+        { title: 'Soporte Técnico', value: alerts.filter(a => a.type === 'ticket').length, icon: <ShieldAlert />, color: 'text-red-500', bg: 'bg-red-500/10', border: 'hover:border-red-500/50', href: '/admin/support' },
     ];
 
     const saasCards = [
@@ -136,17 +136,21 @@ export default function SuperAdminOverview() {
     const quickActions = {
         gyms: [
             { label: 'Nuevo Gimnasio', icon: <PlusCircle size={20} />, href: '/admin/gyms/new', color: 'from-blue-600 to-cyan-500' },
-            { label: 'Ver Sedes', icon: <Building2 size={20} />, href: '/admin/gyms', color: 'from-indigo-600 to-blue-500' },
+            { label: 'Configurar Red', icon: <Building2 size={20} />, href: '/admin/gyms', color: 'from-indigo-600 to-blue-500' },
+            { label: 'Usuarios Red', icon: <Users size={20} />, href: '/admin/users', color: 'from-purple-600 to-indigo-500' },
+            { label: 'Centro Soporte', icon: <ShieldAlert size={20} />, href: '/admin/support', color: 'from-red-600 to-pink-500' },
         ],
         saas: [
             { label: 'Planes SaaS', icon: <Gem size={20} />, href: '/admin/plans', color: 'from-purple-600 to-pink-500' },
             { label: 'Ingresos (Hub)', icon: <TrendingUp size={20} />, href: '/admin/finance', color: 'from-green-600 to-emerald-500' },
+            { label: 'Reportes Biz', icon: <BarChart3 size={20} />, href: '/admin/reports', color: 'from-orange-600 to-amber-500' },
+            { label: 'MercadoPago', icon: <DollarSign size={20} />, href: '/admin/payments', color: 'from-blue-600 to-sky-500' },
         ],
         global: [
-            { label: 'Gestionar Usuarios', icon: <Users size={20} />, href: '/admin/users', color: 'from-purple-600 to-blue-500' },
-            { label: 'Soporte Global', icon: <ShieldAlert size={20} />, href: '/admin/support', color: 'from-red-600 to-pink-500' },
-            { label: 'Logs Auditoría', icon: <History size={20} />, href: '/admin/audit-logs', color: 'from-amber-600 to-orange-500' },
-            { label: 'Acceso Remoto', icon: <Eye size={20} />, href: '#', color: 'from-blue-600 to-indigo-500' },
+            { label: 'Auditoría', icon: <History size={20} />, href: '/admin/audit-logs', color: 'from-amber-600 to-orange-500' },
+            { label: 'Seguridad Hub', icon: <ShieldAlert size={20} />, href: '/admin/security-dashboard', color: 'from-red-600 to-orange-500' },
+            { label: 'Broadcast', icon: <Megaphone size={20} />, href: '#', color: 'from-purple-600 to-indigo-500' },
+            { label: 'Remote Access', icon: <Eye size={20} />, href: '#', color: 'from-blue-600 to-cyan-500' },
         ],
     };
 
@@ -252,7 +256,7 @@ export default function SuperAdminOverview() {
                         <h2 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Control SaaS Global</h2>
                     </div>
                     <div className="flex items-end gap-3">
-                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Virtud Platform</h1>
+                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Vitud SaaS Hub</h1>
                         <span className="text-xs font-bold text-gray-500 mb-1 flex items-center gap-1">
                             <span className="text-red-500">📍</span> HQ
                         </span>
