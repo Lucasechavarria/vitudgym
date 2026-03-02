@@ -9,6 +9,7 @@ export default function StudentQRPage({ params }: { params: { gymId: string } })
     const [timeLeft, setTimeLeft] = useState(30);
     const [qrValue, setQrValue] = useState('generando...');
     const [loading, setLoading] = useState(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [profile, setProfile] = useState<any>(null);
     const supabase = createClient();
 

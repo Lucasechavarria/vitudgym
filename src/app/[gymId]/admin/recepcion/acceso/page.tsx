@@ -66,7 +66,7 @@ export default function QRAccessPage() {
 
     // Auto-clear result after 5 seconds to be ready for next person
     useEffect(() => {
-        let timeout: NodeJS.Timeout;
+        let timeout: ReturnType<typeof setTimeout>;
         if (lastScanResult) {
             timeout = setTimeout(() => {
                 setLastScanResult(null);

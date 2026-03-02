@@ -4,10 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function SettingsPage({ params }: { params: { gymId: string } }) {
     const [loading, setLoading] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [user, setUser] = useState<any>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [profile, setProfile] = useState<any>(null);
 
     // Form States
@@ -155,12 +158,12 @@ export default function SettingsPage({ params }: { params: { gymId: string } }) 
                     </p>
                 </div>
                 <div className="flex-shrink-0">
-                    <a
-                        href="/dashboard/profile/complete"
+                    <Link
+                        href={`/${params.gymId}/member/dashboard/profile/complete`}
                         className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-600/30 rounded-xl font-bold transition-all"
                     >
                         📝 Actualizar Ficha
-                    </a>
+                    </Link>
                 </div>
             </motion.div>
 

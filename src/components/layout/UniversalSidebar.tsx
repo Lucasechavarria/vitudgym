@@ -98,7 +98,7 @@ export function UniversalSidebar({
     const [gymInfo, setGymInfo] = useState<{ nombre?: string, logo_url?: string, modulos_activos?: string[] }>({});
 
     // Extract gymId safely from pathname since it's an app dir segment
-    const gymIdMatch = pathname.match(/^\/([^\/]+)/);
+    const gymIdMatch = pathname.match(/^\/([^/]+)/);
     const gymId = gymIdMatch ? gymIdMatch[1] : null;
 
     useEffect(() => {

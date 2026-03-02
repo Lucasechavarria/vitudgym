@@ -6,6 +6,7 @@ import { authService } from '@/services/auth.service';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -184,9 +185,9 @@ export default function LoginPage() {
             transition={{ delay: 0.7 }}
           >
             ¿No tienes cuenta?{' '}
-            <a href="/signup" className="text-orange-500 hover:text-orange-400 font-semibold">
+            <Link href="/signup" className="text-orange-500 hover:text-orange-400 font-semibold">
               Regístrate aquí
-            </a>
+            </Link>
           </motion.p>
         </motion.div>
 
