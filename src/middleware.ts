@@ -83,6 +83,11 @@ export async function middleware(request: NextRequest) {
                 || null;
         }
 
+        // Normalizar el rol para evitar problemas de case (ej: 'Superadmin' vs 'superadmin')
+        if (userRole) {
+            userRole = userRole.toLowerCase();
+        }
+
         // ────────────────────────────────────────────────────
         // REDIRIGIR SI YA ESTÁ LOGUEADO Y VA A LOGIN/SIGNUP
         // ────────────────────────────────────────────────────
