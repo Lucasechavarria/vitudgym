@@ -154,27 +154,54 @@ export function UniversalSidebar({
     // Determine nav items based on path first, then fallback to role
     let viewRole = role;
 
-    // Special handling for superadmin persona: Always show superadmin nav
     if (role === 'superadmin') {
-        viewRole = 'superadmin';
+        if (!pathname.startsWith('/saas-admin')) {
+            if (pathname.includes('/admin/recepcion')) viewRole = 'recepcion';
+            else if (pathname.includes('/admin')) viewRole = 'admin';
+            else if (pathname.includes('/coach')) viewRole = 'coach';
+            else if (pathname.includes('/member/dashboard') || pathname.includes('/dashboard')) viewRole = 'member';
+            else viewRole = 'superadmin';
+        } else {
+            viewRole = 'superadmin';
+        }
     } else if (role === 'admin') {
         viewRole = 'admin';
     } else if (role === 'recepcion') {
         viewRole = 'recepcion';
     } else {
-        if (pathname.startsWith('/coach')) viewRole = 'coach';
-        else if (pathname.startsWith('/dashboard')) viewRole = 'member';
-        else if (pathname.startsWith('/admin/recepcion')) viewRole = 'recepcion';
-        else if (pathname.startsWith('/admin')) viewRole = 'admin';
+        if (pathname.includes('/coach')) viewRole = 'coach';
+        else if (pathname.includes('/dashboard') || pathname.includes('/member')) viewRole = 'member';
+        else if (pathname.includes('/admin/recepcion')) viewRole = 'recepcion';
+        else if (pathname.includes('/admin')) viewRole = 'admin';
     }
 
-    const navItems = (NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.member).filter(item => {
+    const navItemsRaw = (NAV_BY_ROLE[viewRole] || NAV_BY_ROLE.member).filter(item => {
         if (!item.module) return true;
         // Always show all modules to superadmin
         if (role === 'superadmin') return true;
         const activeModules = gymInfo.modulos_activos || [];
         return activeModules.includes(item.module);
     });
+
+    const navItems = navItemsRaw.map(item => {
+        let finalHref = item.href;
+
+        // Members paths were originally '/dashboard' here, but need to be '/member/dashboard' in dynamic route paths
+        if (viewRole === 'member' && finalHref.startsWith('/dashboard')) {
+            finalHref = finalHref.replace('/dashboard', '/member/dashboard');
+        } else if (viewRole === 'member' && finalHref === '/schedule') {
+            finalHref = '/member/schedule';
+        }
+
+        if (finalHref.startsWith('/saas-admin')) return { ...item, href: finalHref };
+        if (finalHref.startsWith('http')) return item; // internal edge case logic
+
+        if (gymId && gymId !== 'admin') {
+            return { ...item, href: `/${gymId}${finalHref}` };
+        }
+        return { ...item, href: finalHref };
+    });
+
     const color = ROLE_COLORS[viewRole] || 'blue'; // This line is now effectively unused for color classes
 
     return (
@@ -190,7 +217,7 @@ export function UniversalSidebar({
         >
             {/* Logo & Close Button */}
             <div className="p-6 shrink-0 flex justify-between items-center">
-                <Link href={navItems[0].href} className="block relative h-10 w-32">
+                <Link href={navItems[0]?.href || '/'} className="block relative h-10 w-32">
                     <Image
                         src={gymInfo.logo_url || "/logos/Logo-Fondo-Negro.png"}
                         alt={gymInfo.nombre || "VIRTUD"}

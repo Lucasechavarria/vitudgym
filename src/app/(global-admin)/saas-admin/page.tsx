@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
+import SuperAdminOverview from '@/features/admin/components/SuperAdminDashboard';
 
 export default function SaaSAdminRoot() {
-    // Redirigir por defecto a la gestión de gimnasios para superadmins
-    redirect('/saas-admin/gyms');
+    return <SuperAdminOverview />;
 }
