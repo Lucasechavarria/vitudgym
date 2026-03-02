@@ -34,7 +34,7 @@ export async function GET(request: Request) {
             adminClient.from('sucursales').select('*', { count: 'exact', head: true }),
             adminClient.from('gimnasios').select('*', { count: 'exact', head: true }).eq('es_activo', true),
             // MRR real desde la vista calculada
-            adminClient.from('saas_mrr_actual').select('*').single(),
+            adminClient.from('saas_mrr_actual' as any).select('*').single(),
             // Revenue de pagos aprobados este mes (enum en español)
             adminClient
                 .from('pagos')
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
         // 2. Actividad Reciente (Auditoría Global)
         // ══════════════════════════════════════════════════════
         const { data: auditData } = await adminClient
-            .from('auditoria_global')
+            .from('auditoria_global' as any)
             .select(`
                 id,
                 accion,
@@ -95,7 +95,7 @@ export async function GET(request: Request) {
         // ══════════════════════════════════════════════════════
         const [{ data: criticalTickets }, { data: gymsWithIssues }] = await Promise.all([
             adminClient
-                .from('tickets_soporte')
+                .from('tickets_soporte' as any)
                 .select('id, asunto, prioridad, gimnasios:gimnasio_id(nombre)')
                 .eq('estado', 'open')
                 .in('prioridad', ['critica', 'alta'])

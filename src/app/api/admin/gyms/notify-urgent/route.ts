@@ -16,7 +16,7 @@ export async function POST(request: Request) {
         const supabase = createAdminClient();
 
         // Creamos una auditoría de la notificación
-        await supabase.from('auditoria_global').insert({
+        await supabase.from('auditoria_global' as any).insert({
             accion: 'envio_notificacion_urgente',
             entidad_tipo: 'gimnasio',
             entidad_id: gymId,
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
         // Intentamos insertar en una tabla de avisos (si existe) o enviamos por "soporte"
         // Como fallback, creamos un ticket de soporte "Automático" para que el admin lo vea
-        const { error: ticketError } = await supabase.from('tickets_soporte').insert({
+        const { error: ticketError } = await supabase.from('tickets_soporte' as any).insert({
             gimnasio_id: gymId,
             asunto: `⚠️ NOTIFICACIÓN URGENTE: ${titulo}`,
             prioridad: 'critica',

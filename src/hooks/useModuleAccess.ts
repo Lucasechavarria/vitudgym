@@ -1,26 +1,52 @@
 'use client';
 
-import { useGym } from '@/components/providers/GymProvider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase/client';
 
 /**
  * Hook to check if a specific module is active for the current gym.
  * Can optionally redirect if access is denied.
  */
 export function useModuleAccess(moduleName: string, redirectIfDenied = false) {
-    const { hasModule, isLoading } = useGym();
+    const params = useParams();
+    const gymId = params.gymId as string;
     const router = useRouter();
 
-    const isAllowed = hasModule(moduleName);
+    const [isAllowed, setIsAllowed] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!isLoading && !isAllowed && redirectIfDenied) {
-            toast.error('Este módulo no está incluido en tu plan actual');
-            router.push('/dashboard');
-        }
-    }, [isAllowed, isLoading, redirectIfDenied, router]);
+        const checkAccess = async () => {
+            if (!gymId) {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const { data } = await supabase
+                    .from('gimnasios')
+                    .select('modulos_activos')
+                    .eq('id', gymId)
+                    .single();
+
+                const hasModule = Array.isArray(data?.modulos_activos) && data.modulos_activos.includes(moduleName);
+                setIsAllowed(hasModule);
+
+                if (!hasModule && redirectIfDenied) {
+                    toast.error('Este módulo no está incluido en tu plan actual');
+                    router.push(`/${gymId}/dashboard`);
+                }
+            } catch (err) {
+                console.error("Error verifying module access", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkAccess();
+    }, [gymId, moduleName, redirectIfDenied, router]);
 
     return { isAllowed, isLoading };
 }

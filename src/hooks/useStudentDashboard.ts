@@ -18,7 +18,7 @@ interface DashboardData {
     volume: Array<{ week: string; volume: number }>;
 }
 
-export function useStudentDashboard() {
+export function useStudentDashboard(gymId: string) {
     const [loading, setLoading] = useState(true);
     const [isRequesting, setIsRequesting] = useState(false);
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -33,7 +33,7 @@ export function useStudentDashboard() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const res = await fetch('/api/student/dashboard');
+            const res = await fetch(`/api/student/dashboard?gymId=${gymId}`);
             if (!res.ok) throw new Error('Error cargando datos');
             const dashboardData = await res.json();
             setData(dashboardData);
@@ -47,7 +47,7 @@ export function useStudentDashboard() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [gymId]);
 
     const handleGoalModal = (isOpen: boolean) => {
         setIsGoalModalOpen(isOpen);

@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useGym } from '@/components/providers/GymProvider';
+import { useParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 import { Download, X, Share2, PlusSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function InstallPrompt() {
-    const { gym } = useGym();
+    const params = useParams();
+    const gymId = params.gymId as string;
+    const [gymNameState, setGymNameState] = useState('');
     const [isIOS, setIsIOS] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -28,10 +31,16 @@ export function InstallPrompt() {
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+        if (gymId) {
+            supabase.from('gimnasios').select('nombre').eq('id', gymId).single().then(({ data }) => {
+                if (data) setGymNameState(data.nombre);
+            });
+        }
+
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         };
-    }, []);
+    }, [gymId]);
 
     if (isStandalone || (!deferredPrompt && !isIOS)) {
         return null;
@@ -47,7 +56,7 @@ export function InstallPrompt() {
         }
     };
 
-    const gymName = gym?.nombre || "Virtud Gym";
+    const gymName = gymNameState || "Virtud Gym";
 
     return (
         <AnimatePresence>

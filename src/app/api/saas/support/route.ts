@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
         if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 
-        let query = adminClient.from('tickets_soporte_saas').select(`
+        let query = adminClient.from('tickets_soporte_saas' as any).select(`
             *,
             perfiles!usuario_id (nombre_completo),
             gimnasios (nombre)
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
         // 1. Crear el Ticket
         const { data: ticket, error: ticketError } = await adminClient
-            .from('tickets_soporte_saas')
+            .from('tickets_soporte_saas' as any)
             .insert({
                 gimnasio_id: profile.gimnasio_id,
                 usuario_id: profile.id,
@@ -83,9 +83,9 @@ export async function POST(request: Request) {
 
         // 2. Crear primer mensaje
         const { error: msgError } = await adminClient
-            .from('mensajes_soporte')
+            .from('mensajes_soporte' as any)
             .insert({
-                ticket_id: ticket.id,
+                ticket_id: (ticket as any).id,
                 remitente_id: profile.id,
                 mensaje,
                 es_del_staff_saas: false
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
 
         if (msgError) throw msgError;
 
-        return NextResponse.json({ success: true, ticketId: ticket.id });
+        return NextResponse.json({ success: true, ticketId: (ticket as any).id });
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json({ error: message }, { status: 500 });

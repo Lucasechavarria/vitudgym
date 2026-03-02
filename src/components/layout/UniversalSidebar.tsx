@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { useGym } from '@/components/providers/GymProvider';
 
 interface NavItem {
     href: string;
@@ -34,24 +33,11 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
     ],
     superadmin: [
-        { href: '/admin', label: 'Super Control', icon: '⚡' },
-        { href: '/admin/crm', label: 'CRM Global', icon: '🎯' },
-        { href: '/admin/shop', label: 'Tienda Global', icon: '🛒' },
-        { href: '/admin/gyms', label: 'Gimnasios', icon: '🏢' },
-        { href: '/admin/plans', label: 'Planes', icon: '💎' },
-        { href: '/admin/finance/billing', label: 'Cobros SaaS', icon: '💰' },
-        { href: '/admin/support', label: 'Soporte Global', icon: '🎫' },
-        { href: '/admin/users', label: 'Usuarios Globales', icon: '👥' },
-        { href: '/admin/challenges', label: 'Desafíos', icon: '⚔️' },
-        { href: '/coach', label: 'Vista Profesor', icon: '🏋️' },
-        { href: '/dashboard', label: 'Vista Alumno', icon: '🎯' },
-        { href: '/dashboard/membership', label: 'Membresía (Demo)', icon: '💳' },
-        { href: '/admin/activities', label: 'Actividades', icon: '🏅' },
-        { href: '/admin/equipment', label: 'Equipamiento', icon: '🔧' },
-        { href: '/coach/routines', label: 'Rutinas', icon: '💪' },
-        { href: '/admin/nutrition', label: 'Nutrición', icon: '🥗' },
-        { href: '/admin/finance', label: 'Finanzas', icon: '💰' },
-        { href: '/admin/settings', label: 'Configuración', icon: '⚙️' },
+        { href: '/saas-admin', label: 'Super Control', icon: '⚡' },
+        { href: '/saas-admin/gyms', label: 'Gimnasios', icon: '🏢' },
+        { href: '/saas-admin/billing', label: 'Cobros SaaS', icon: '💰' },
+        { href: '/saas-admin/metrics', label: 'Métricas Globales', icon: '📊' },
+        { href: '/saas-admin/audit', label: 'Auditoría', icon: '🎫' },
     ],
     coach: [
         { href: '/coach', label: 'Dashboard', icon: '🏠' },
@@ -67,6 +53,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     ],
     member: [
         { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
+        { href: '/dashboard/qr', label: 'Mi Carnet', icon: '📱' },
         { href: '/dashboard/messages', label: 'Mensajes', icon: '💬' },
         { href: '/dashboard/membership', label: 'Mi Membresía', icon: '💳' },
         { href: '/schedule', label: 'Cronograma', icon: '🗓️', module: 'clases_reserva' },
@@ -77,6 +64,10 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
         { href: '/dashboard/vision', label: 'Visión Lab', icon: '🎥', module: 'vision_ia' },
         { href: '/dashboard/settings', label: 'Configuración', icon: '⚙️' },
     ],
+    recepcion: [
+        { href: '/admin/recepcion/pos', label: 'Caja POS', icon: '🛒' },
+        { href: '/admin/recepcion/acceso', label: 'Control Accesos', icon: '📷' },
+    ],
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -84,6 +75,7 @@ const ROLE_COLORS: Record<string, string> = {
     admin: 'purple',
     coach: 'orange',
     member: 'blue',
+    recepcion: 'emerald'
 };
 
 export function UniversalSidebar({
@@ -101,9 +93,21 @@ export function UniversalSidebar({
 }) {
     const pathname = usePathname();
     const router = useRouter();
-    const { hasModule, gym } = useGym();
-    const [visionBadgeCount, setVisionBadgeCount] = React.useState(0);
-    const [loggingOut, setLoggingOut] = React.useState(false);
+    const [visionBadgeCount, setVisionBadgeCount] = useState(0);
+    const [loggingOut, setLoggingOut] = useState(false);
+    const [gymInfo, setGymInfo] = useState<{ nombre?: string, logo_url?: string, modulos_activos?: string[] }>({});
+
+    // Extract gymId safely from pathname since it's an app dir segment
+    const gymIdMatch = pathname.match(/^\/([^\/]+)/);
+    const gymId = gymIdMatch ? gymIdMatch[1] : null;
+
+    useEffect(() => {
+        if (gymId && gymId !== 'admin') { // Avoid fetching 'admin' as gymId if we are in superadmin
+            supabase.from('gimnasios').select('nombre, logo_url, modulos_activos').eq('id', gymId).single().then(({ data }) => {
+                if (data) setGymInfo(data);
+            });
+        }
+    }, [gymId]);
 
     const handleLogout = async () => {
         setLoggingOut(true);
@@ -113,7 +117,7 @@ export function UniversalSidebar({
     };
 
     // Fetch unread vision analyses
-    React.useEffect(() => {
+    useEffect(() => {
         if (role !== 'member') return;
 
         const fetchBadgeCount = async () => {
@@ -155,9 +159,12 @@ export function UniversalSidebar({
         viewRole = 'superadmin';
     } else if (role === 'admin') {
         viewRole = 'admin';
+    } else if (role === 'recepcion') {
+        viewRole = 'recepcion';
     } else {
         if (pathname.startsWith('/coach')) viewRole = 'coach';
         else if (pathname.startsWith('/dashboard')) viewRole = 'member';
+        else if (pathname.startsWith('/admin/recepcion')) viewRole = 'recepcion';
         else if (pathname.startsWith('/admin')) viewRole = 'admin';
     }
 
@@ -165,7 +172,8 @@ export function UniversalSidebar({
         if (!item.module) return true;
         // Always show all modules to superadmin
         if (role === 'superadmin') return true;
-        return hasModule(item.module);
+        const activeModules = gymInfo.modulos_activos || [];
+        return activeModules.includes(item.module);
     });
     const color = ROLE_COLORS[viewRole] || 'blue'; // This line is now effectively unused for color classes
 
@@ -184,8 +192,8 @@ export function UniversalSidebar({
             <div className="p-6 shrink-0 flex justify-between items-center">
                 <Link href={navItems[0].href} className="block relative h-10 w-32">
                     <Image
-                        src={gym?.logo_url || "/logos/Logo-Fondo-Negro.png"}
-                        alt={gym?.nombre || "VIRTUD"}
+                        src={gymInfo.logo_url || "/logos/Logo-Fondo-Negro.png"}
+                        alt={gymInfo.nombre || "VIRTUD"}
                         fill
                         className="object-contain"
                         sizes="128px"

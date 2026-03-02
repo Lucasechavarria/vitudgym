@@ -32,7 +32,7 @@ export async function GET(
         // Verificar acceso al ticket
         if (profile.rol !== 'superadmin') {
             const { data: ticket, error: ticketCheckError } = await adminClient
-                .from('tickets_soporte_saas')
+                .from('tickets_soporte_saas' as any)
                 .select('gimnasio_id')
                 .eq('id', params.ticketId)
                 .single();
@@ -41,13 +41,13 @@ export async function GET(
                 return NextResponse.json({ error: 'Ticket no encontrado' }, { status: 404 });
             }
 
-            if (ticket.gimnasio_id !== profile.gimnasio_id) {
+            if ((ticket as any).gimnasio_id !== profile.gimnasio_id) {
                 return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
             }
         }
 
         const { data: messages, error } = await adminClient
-            .from('mensajes_soporte')
+            .from('mensajes_soporte' as any)
             .select(`
                 *,
                 perfiles (nombre_completo, rol)
@@ -93,7 +93,7 @@ export async function POST(
         // Verificar acceso al ticket si no es superadmin
         if (profile.rol !== 'superadmin') {
             const { data: ticket, error: ticketCheckError } = await adminClient
-                .from('tickets_soporte_saas')
+                .from('tickets_soporte_saas' as any)
                 .select('gimnasio_id')
                 .eq('id', params.ticketId)
                 .single();
@@ -102,14 +102,14 @@ export async function POST(
                 return NextResponse.json({ error: 'Ticket no encontrado' }, { status: 404 });
             }
 
-            if (ticket.gimnasio_id !== profile.gimnasio_id) {
+            if ((ticket as any).gimnasio_id !== profile.gimnasio_id) {
                 return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
             }
         }
 
         // Enviar mensaje
         const { error: msgError } = await adminClient
-            .from('mensajes_soporte')
+            .from('mensajes_soporte' as any)
             .insert({
                 ticket_id: params.ticketId,
                 remitente_id: profile.id,
@@ -121,7 +121,7 @@ export async function POST(
 
         // Actualizar fecha del ticket
         await adminClient
-            .from('tickets_soporte_saas')
+            .from('tickets_soporte_saas' as any)
             .update({ actualizado_en: new Date().toISOString() })
             .eq('id', params.ticketId);
 

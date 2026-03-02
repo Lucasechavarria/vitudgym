@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      accesos_qr: {
+        Row: {
+          alumno_id: string
+          creado_en: string
+          expira_en: string
+          gimnasio_id: string
+          id: string
+          token_dinamico: string
+          usado: boolean
+        }
+        Insert: {
+          alumno_id: string
+          creado_en?: string
+          expira_en: string
+          gimnasio_id: string
+          id?: string
+          token_dinamico: string
+          usado?: boolean
+        }
+        Update: {
+          alumno_id?: string
+          creado_en?: string
+          expira_en?: string
+          gimnasio_id?: string
+          id?: string
+          token_dinamico?: string
+          usado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accesos_qr_alumno_id_fkey"
+            columns: ["alumno_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accesos_qr_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       actividades: {
         Row: {
           actualizado_en: string | null
@@ -69,8 +114,8 @@ export type Database = {
           creado_en: string | null
           creado_por: string | null
           destino: string | null
-          expires_at: string | null
           enviado_newsletter: boolean | null
+          expires_at: string | null
           fecha_envio_newsletter: string | null
           id: string
           tipo: string | null
@@ -83,8 +128,8 @@ export type Database = {
           creado_por?: string | null
           destino?: string | null
           enviado_newsletter?: boolean | null
-          fecha_envio_newsletter?: string | null
           expires_at?: string | null
+          fecha_envio_newsletter?: string | null
           id?: string
           tipo?: string | null
           titulo: string
@@ -96,8 +141,8 @@ export type Database = {
           creado_por?: string | null
           destino?: string | null
           enviado_newsletter?: boolean | null
-          fecha_envio_newsletter?: string | null
           expires_at?: string | null
+          fecha_envio_newsletter?: string | null
           id?: string
           tipo?: string | null
           titulo?: string
@@ -189,7 +234,7 @@ export type Database = {
           creado_en: string | null
           datos_anteriores: Json | null
           datos_nuevos: Json | null
-          direccion_ip: string | null
+          direccion_ip: unknown
           id: string
           operacion: string
           registro_id: string | null
@@ -201,7 +246,7 @@ export type Database = {
           creado_en?: string | null
           datos_anteriores?: Json | null
           datos_nuevos?: Json | null
-          direccion_ip?: string | null
+          direccion_ip?: unknown
           id?: string
           operacion: string
           registro_id?: string | null
@@ -213,7 +258,7 @@ export type Database = {
           creado_en?: string | null
           datos_anteriores?: Json | null
           datos_nuevos?: Json | null
-          direccion_ip?: string | null
+          direccion_ip?: unknown
           id?: string
           operacion?: string
           registro_id?: string | null
@@ -228,57 +273,6 @@ export type Database = {
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      auditoria_global: {
-        Row: {
-          id: string
-          usuario_id: string | null
-          gimnasio_id: string | null
-          accion: string
-          entidad_tipo: string | null
-          entidad_id: string | null
-          detalles: Json | null
-          ip_address: string | null
-          creado_en: string | null
-        }
-        Insert: {
-          id?: string
-          usuario_id?: string | null
-          gimnasio_id?: string | null
-          accion: string
-          entidad_tipo?: string | null
-          entidad_id?: string | null
-          detalles?: Json | null
-          ip_address?: string | null
-          creado_en?: string | null
-        }
-        Update: {
-          id?: string
-          usuario_id?: string | null
-          gimnasio_id?: string | null
-          accion?: string
-          entidad_tipo?: string | null
-          entidad_id?: string | null
-          detalles?: Json | null
-          ip_address?: string | null
-          creado_en?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "auditoria_global_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "perfiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "auditoria_global_gimnasio_id_fkey"
-            columns: ["gimnasio_id"]
-            isOneToOne: false
-            referencedRelation: "gimnasios"
-            referencedColumns: ["id"]
-          }
         ]
       }
       campanas_marketing: {
@@ -335,22 +329,66 @@ export type Database = {
         }
         Relationships: []
       }
+      cuentas_corrientes: {
+        Row: {
+          actualizado_en: string
+          alumno_id: string
+          creado_en: string
+          estado: Database["public"]["Enums"]["estado_cuenta_corriente"]
+          gimnasio_id: string
+          id: string
+          limite_credito: number
+          saldo_actual: number
+        }
+        Insert: {
+          actualizado_en?: string
+          alumno_id: string
+          creado_en?: string
+          estado?: Database["public"]["Enums"]["estado_cuenta_corriente"]
+          gimnasio_id: string
+          id?: string
+          limite_credito?: number
+          saldo_actual?: number
+        }
+        Update: {
+          actualizado_en?: string
+          alumno_id?: string
+          creado_en?: string
+          estado?: Database["public"]["Enums"]["estado_cuenta_corriente"]
+          gimnasio_id?: string
+          id?: string
+          limite_credito?: number
+          saldo_actual?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cuentas_corrientes_alumno_id_fkey"
+            columns: ["alumno_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuentas_corrientes_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       desafios: {
         Row: {
           actualizado_en: string | null
           creado_en: string | null
-          creado_por: string | null
-          creator_id: string | null // Legacy alias
+          creator_id: string | null
           descripcion: string | null
           estado: string
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
-          juez_id: string | null
-          judge_id: string | null // Legacy alias
-          ganador_id: string | null
-          puntos_recompensa: number | null
-          premio_puntos: number | null // Legacy alias
+          judge_id: string | null
+          premio_puntos: number | null
           reglas: string | null
           tipo: string
           titulo: string
@@ -584,12 +622,17 @@ export type Database = {
       gimnasios: {
         Row: {
           actualizado_en: string | null
+          color_primario: string | null
+          color_secundario: string | null
           configuracion: Json | null
           creado_en: string | null
+          cuota_ia_mensual: number | null
+          cuota_ia_usada: number | null
           descuento_saas: number | null
           es_activo: boolean | null
           estado_pago_saas: string | null
           fase_onboarding: string | null
+          favicon_url: string | null
           fecha_proximo_pago: string | null
           id: string
           logo_url: string | null
@@ -601,12 +644,17 @@ export type Database = {
         }
         Insert: {
           actualizado_en?: string | null
+          color_primario?: string | null
+          color_secundario?: string | null
           configuracion?: Json | null
           creado_en?: string | null
+          cuota_ia_mensual?: number | null
+          cuota_ia_usada?: number | null
           descuento_saas?: number | null
           es_activo?: boolean | null
           estado_pago_saas?: string | null
           fase_onboarding?: string | null
+          favicon_url?: string | null
           fecha_proximo_pago?: string | null
           id?: string
           logo_url?: string | null
@@ -618,12 +666,17 @@ export type Database = {
         }
         Update: {
           actualizado_en?: string | null
+          color_primario?: string | null
+          color_secundario?: string | null
           configuracion?: Json | null
           creado_en?: string | null
+          cuota_ia_mensual?: number | null
+          cuota_ia_usada?: number | null
           descuento_saas?: number | null
           es_activo?: boolean | null
           estado_pago_saas?: string | null
           fase_onboarding?: string | null
+          favicon_url?: string | null
           fecha_proximo_pago?: string | null
           id?: string
           logo_url?: string | null
@@ -645,21 +698,14 @@ export type Database = {
       }
       historial_cambios_perfil: {
         Row: {
-          cambiado_por: string | null
-          changed_by: string | null // Alias
-          creado_en: string | null
-          created_at: string | null // Alias
-          campo_cambiado: string
-          field_changed: string // Alias
+          changed_by: string | null
+          created_at: string | null
+          field_changed: string
           id: string
-          valor_nuevo: string | null
-          new_value: string | null // Alias
-          valor_anterior: string | null
-          old_value: string | null // Alias
-          perfil_id: string | null
-          profile_id: string | null // Alias
-          razon: string | null
-          reason: string | null // Alias
+          new_value: string | null
+          old_value: string | null
+          profile_id: string | null
+          reason: string | null
         }
         Insert: {
           changed_by?: string | null
@@ -832,10 +878,9 @@ export type Database = {
       logros: {
         Row: {
           categoria: string | null
-          creado_en: string | null
+          created_at: string | null
           descripcion: string | null
-          icono: string | null
-          icon: string | null // Legacy alias
+          icon: string | null
           id: string
           nombre: string
           puntos_recompensa: number | null
@@ -904,25 +949,25 @@ export type Database = {
       }
       logs_acceso_remoto: {
         Row: {
+          fecha: string | null
+          gimnasio_id: string | null
           id: string
-          superadmin_id: string
-          gimnasio_id: string
           motivo: string | null
-          creado_en: string
+          superadmin_id: string | null
         }
         Insert: {
+          fecha?: string | null
+          gimnasio_id?: string | null
           id?: string
-          superadmin_id: string
-          gimnasio_id: string
           motivo?: string | null
-          creado_en?: string
+          superadmin_id?: string | null
         }
         Update: {
+          fecha?: string | null
+          gimnasio_id?: string | null
           id?: string
-          superadmin_id?: string
-          gimnasio_id?: string
           motivo?: string | null
-          creado_en?: string
+          superadmin_id?: string | null
         }
         Relationships: [
           {
@@ -938,9 +983,9 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
-          }
+          },
         ]
-      },
+      }
       mediciones: {
         Row: {
           actualizado_en: string | null
@@ -1034,6 +1079,51 @@ export type Database = {
           {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["remitente_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimientos_cuenta: {
+        Row: {
+          concepto: string
+          creado_en: string
+          cuenta_id: string
+          id: string
+          monto: number
+          registrado_por: string | null
+          tipo_movimiento: Database["public"]["Enums"]["tipo_movimiento_cuenta"]
+        }
+        Insert: {
+          concepto: string
+          creado_en?: string
+          cuenta_id: string
+          id?: string
+          monto: number
+          registrado_por?: string | null
+          tipo_movimiento: Database["public"]["Enums"]["tipo_movimiento_cuenta"]
+        }
+        Update: {
+          concepto?: string
+          creado_en?: string
+          cuenta_id?: string
+          id?: string
+          monto?: number
+          registrado_por?: string | null
+          tipo_movimiento?: Database["public"]["Enums"]["tipo_movimiento_cuenta"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimientos_cuenta_cuenta_id_fkey"
+            columns: ["cuenta_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas_corrientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_cuenta_registrado_por_fkey"
+            columns: ["registrado_por"]
             isOneToOne: false
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
@@ -1191,6 +1281,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "pagos_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_approved_by_fkey"
             columns: ["aprobado_por"]
             isOneToOne: false
@@ -1294,16 +1391,17 @@ export type Database = {
           creado_en: string | null
           direccion: string | null
           dni: string | null
+          es_pago_agrupado_con: string | null
           estado_membresia:
-          | Database["public"]["Enums"]["membership_status_enum"]
-          | null
+            | Database["public"]["Enums"]["membership_status_enum"]
+            | null
           exencion_aceptada: boolean | null
           fecha_exencion: string | null
           fecha_fin_membresia: string | null
+          fecha_firma_parq: string | null
           fecha_inicio_membresia: string | null
           fecha_nacimiento: string | null
-          genero: string | null
-          gender: string | null // Alias for backwards compatibility
+          gender: string | null
           gimnasio_id: string | null
           id: string
           informacion_medica: Json | null
@@ -1313,6 +1411,8 @@ export type Database = {
           observaciones_entrenador: string | null
           onboarding_completado: boolean | null
           onboarding_completado_en: string | null
+          parq_firmado: boolean | null
+          plan_id: string | null
           restricciones_adicionales: string | null
           rol: Database["public"]["Enums"]["user_role"]
           sucursal_id: string | null
@@ -1328,16 +1428,17 @@ export type Database = {
           creado_en?: string | null
           direccion?: string | null
           dni?: string | null
+          es_pago_agrupado_con?: string | null
           estado_membresia?:
-          | Database["public"]["Enums"]["membership_status_enum"]
-          | null
+            | Database["public"]["Enums"]["membership_status_enum"]
+            | null
           exencion_aceptada?: boolean | null
           fecha_exencion?: string | null
           fecha_fin_membresia?: string | null
+          fecha_firma_parq?: string | null
           fecha_inicio_membresia?: string | null
           fecha_nacimiento?: string | null
-          genero?: string | null
-          gender?: string | null // Alias for backwards compatibility
+          gender?: string | null
           gimnasio_id?: string | null
           id: string
           informacion_medica?: Json | null
@@ -1347,6 +1448,8 @@ export type Database = {
           observaciones_entrenador?: string | null
           onboarding_completado?: boolean | null
           onboarding_completado_en?: string | null
+          parq_firmado?: boolean | null
+          plan_id?: string | null
           restricciones_adicionales?: string | null
           rol?: Database["public"]["Enums"]["user_role"]
           sucursal_id?: string | null
@@ -1362,12 +1465,14 @@ export type Database = {
           creado_en?: string | null
           direccion?: string | null
           dni?: string | null
+          es_pago_agrupado_con?: string | null
           estado_membresia?:
-          | Database["public"]["Enums"]["membership_status_enum"]
-          | null
+            | Database["public"]["Enums"]["membership_status_enum"]
+            | null
           exencion_aceptada?: boolean | null
           fecha_exencion?: string | null
           fecha_fin_membresia?: string | null
+          fecha_firma_parq?: string | null
           fecha_inicio_membresia?: string | null
           fecha_nacimiento?: string | null
           gender?: string | null
@@ -1380,6 +1485,8 @@ export type Database = {
           observaciones_entrenador?: string | null
           onboarding_completado?: boolean | null
           onboarding_completado_en?: string | null
+          parq_firmado?: boolean | null
+          plan_id?: string | null
           restricciones_adicionales?: string | null
           rol?: Database["public"]["Enums"]["user_role"]
           sucursal_id?: string | null
@@ -1388,6 +1495,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "perfiles_es_pago_agrupado_con_fkey"
+            columns: ["es_pago_agrupado_con"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "perfiles_gimnasio_id_fkey"
             columns: ["gimnasio_id"]
             isOneToOne: false
@@ -1395,10 +1509,64 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "perfiles_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes_gimnasio"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "perfiles_sucursal_id_fkey"
             columns: ["sucursal_id"]
             isOneToOne: false
             referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planes_gimnasio: {
+        Row: {
+          actualizado_en: string | null
+          beneficios: Json | null
+          creado_en: string | null
+          descripcion: string | null
+          duracion_meses: number
+          esta_activo: boolean | null
+          gimnasio_id: string
+          id: string
+          nombre: string
+          precio: number
+        }
+        Insert: {
+          actualizado_en?: string | null
+          beneficios?: Json | null
+          creado_en?: string | null
+          descripcion?: string | null
+          duracion_meses?: number
+          esta_activo?: boolean | null
+          gimnasio_id: string
+          id?: string
+          nombre: string
+          precio: number
+        }
+        Update: {
+          actualizado_en?: string | null
+          beneficios?: Json | null
+          creado_en?: string | null
+          descripcion?: string | null
+          duracion_meses?: number
+          esta_activo?: boolean | null
+          gimnasio_id?: string
+          id?: string
+          nombre?: string
+          precio?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planes_gimnasio_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
             referencedColumns: ["id"]
           },
         ]
@@ -1532,6 +1700,58 @@ export type Database = {
           {
             foreignKeyName: "push_subscriptions_usuario_id_fkey"
             columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registro_asistencias: {
+        Row: {
+          alumno_id: string
+          estado_membresia_momento: string | null
+          fecha_hora: string
+          gimnasio_id: string
+          id: string
+          metodo_ingreso: Database["public"]["Enums"]["metodo_ingreso_asistencia"]
+          registrado_por: string | null
+        }
+        Insert: {
+          alumno_id: string
+          estado_membresia_momento?: string | null
+          fecha_hora?: string
+          gimnasio_id: string
+          id?: string
+          metodo_ingreso: Database["public"]["Enums"]["metodo_ingreso_asistencia"]
+          registrado_por?: string | null
+        }
+        Update: {
+          alumno_id?: string
+          estado_membresia_momento?: string | null
+          fecha_hora?: string
+          gimnasio_id?: string
+          id?: string
+          metodo_ingreso?: Database["public"]["Enums"]["metodo_ingreso_asistencia"]
+          registrado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registro_asistencias_alumno_id_fkey"
+            columns: ["alumno_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registro_asistencias_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registro_asistencias_registrado_por_fkey"
+            columns: ["registrado_por"]
             isOneToOne: false
             referencedRelation: "perfiles"
             referencedColumns: ["id"]
@@ -1993,6 +2213,41 @@ export type Database = {
           },
         ]
       }
+      saas_auditoria_ia: {
+        Row: {
+          creado_en: string | null
+          gimnasio_id: string | null
+          id: string
+          tipo_generacion: string | null
+          tokens_estimados: number | null
+          usuario_id: string | null
+        }
+        Insert: {
+          creado_en?: string | null
+          gimnasio_id?: string | null
+          id?: string
+          tipo_generacion?: string | null
+          tokens_estimados?: number | null
+          usuario_id?: string | null
+        }
+        Update: {
+          creado_en?: string | null
+          gimnasio_id?: string | null
+          id?: string
+          tipo_generacion?: string | null
+          tokens_estimados?: number | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_auditoria_ia_gimnasio_id_fkey"
+            columns: ["gimnasio_id"]
+            isOneToOne: false
+            referencedRelation: "gimnasios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saas_metrics: {
         Row: {
           alumnos_activos_hoy: number | null
@@ -2037,46 +2292,46 @@ export type Database = {
       }
       saas_pagos_historial: {
         Row: {
-          id: string
-          gimnasio_id: string | null
-          monto: number
-          moneda: string | null
-          tipo_pago: string | null
-          referencia_externa: string | null
+          creado_en: string | null
           estado: string | null
           fecha_pago: string | null
-          periodo_inicio: string | null
-          periodo_fin: string | null
+          gimnasio_id: string | null
+          id: string
           metadata: Json | null
-          creado_en: string | null
+          moneda: string | null
+          monto: number
+          periodo_fin: string | null
+          periodo_inicio: string | null
+          referencia_externa: string | null
+          tipo_pago: string | null
         }
         Insert: {
-          id?: string
-          gimnasio_id?: string | null
-          monto: number
-          moneda?: string | null
-          tipo_pago?: string | null
-          referencia_externa?: string | null
+          creado_en?: string | null
           estado?: string | null
           fecha_pago?: string | null
-          periodo_inicio?: string | null
-          periodo_fin?: string | null
+          gimnasio_id?: string | null
+          id?: string
           metadata?: Json | null
-          creado_en?: string | null
+          moneda?: string | null
+          monto: number
+          periodo_fin?: string | null
+          periodo_inicio?: string | null
+          referencia_externa?: string | null
+          tipo_pago?: string | null
         }
         Update: {
-          id?: string
-          gimnasio_id?: string | null
-          monto?: number
-          moneda?: string | null
-          tipo_pago?: string | null
-          referencia_externa?: string | null
+          creado_en?: string | null
           estado?: string | null
           fecha_pago?: string | null
-          periodo_inicio?: string | null
-          periodo_fin?: string | null
+          gimnasio_id?: string | null
+          id?: string
           metadata?: Json | null
-          creado_en?: string | null
+          moneda?: string | null
+          monto?: number
+          periodo_fin?: string | null
+          periodo_inicio?: string | null
+          referencia_externa?: string | null
+          tipo_pago?: string | null
         }
         Relationships: [
           {
@@ -2085,7 +2340,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gimnasios"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       sesiones_de_entrenamiento: {
@@ -2183,54 +2438,6 @@ export type Database = {
           },
         ]
       }
-      tickets_soporte: {
-        Row: {
-          id: string
-          gimnasio_id: string | null
-          usuario_id: string | null
-          asunto: string
-          prioridad: string | null
-          estado: string | null
-          creado_en: string | null
-          actualizado_en: string | null
-        }
-        Insert: {
-          id?: string
-          gimnasio_id?: string | null
-          usuario_id?: string | null
-          asunto: string
-          prioridad?: string | null
-          estado?: string | null
-          creado_en?: string | null
-          actualizado_en?: string | null
-        }
-        Update: {
-          id?: string
-          gimnasio_id?: string | null
-          usuario_id?: string | null
-          asunto?: string
-          prioridad?: string | null
-          estado?: string | null
-          creado_en?: string | null
-          actualizado_en?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tickets_soporte_gimnasio_id_fkey"
-            columns: ["gimnasio_id"]
-            isOneToOne: false
-            referencedRelation: "gimnasios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_soporte_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "perfiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       videos_ejercicio: {
         Row: {
           actualizado_en: string | null
@@ -2315,99 +2522,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      },
-      tickets_soporte_saas: {
-        Row: {
-          id: string
-          gimnasio_id: string
-          usuario_id: string
-          asunto: string
-          prioridad: string
-          estado: string
-          creado_en: string
-          actualizado_en: string
-        }
-        Insert: {
-          id?: string
-          gimnasio_id: string
-          usuario_id: string
-          asunto: string
-          prioridad?: string
-          estado?: string
-          creado_en?: string
-          actualizado_en?: string
-        }
-        Update: {
-          id?: string
-          gimnasio_id?: string
-          usuario_id?: string
-          asunto?: string
-          prioridad?: string
-          estado?: string
-          creado_en?: string
-          actualizado_en?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tickets_soporte_saas_gimnasio_id_fkey"
-            columns: ["gimnasio_id"]
-            isOneToOne: false
-            referencedRelation: "gimnasios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_soporte_saas_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "perfiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      },
-      mensajes_soporte: {
-        Row: {
-          id: string
-          ticket_id: string
-          remitente_id: string
-          mensaje: string
-          es_del_staff_saas: boolean
-          creado_en: string
-        }
-        Insert: {
-          id?: string
-          ticket_id: string
-          remitente_id: string
-          mensaje: string
-          es_del_staff_saas?: boolean
-          creado_en?: string
-        }
-        Update: {
-          id?: string
-          ticket_id?: string
-          remitente_id?: string
-          mensaje?: string
-          es_del_staff_saas?: boolean
-          creado_en?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mensajes_soporte_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets_soporte_saas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mensajes_soporte_remitente_id_fkey"
-            columns: ["remitente_id"]
-            isOneToOne: false
-            referencedRelation: "perfiles"
-            referencedColumns: ["id"]
-          }
-        ]
       }
-    },
+    }
     Views: {
+      saas_mrr_actual: {
+        Row: {
+          mrr: number | null
+        }
+        Relationships: []
+      }
       classes_with_availability: {
         Row: {
           activity_color: string | null
@@ -2484,26 +2607,35 @@ export type Database = {
           },
         ]
       }
-      saas_mrr_actual: {
-        Row: {
-          mrr_estimado: number | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
+      check_ai_quota: { Args: { gym_id: string }; Returns: boolean }
+      consume_ai_quota: {
+        Args: { p_gym_id: string; p_type: string; p_user_id: string }
+        Returns: Json
+      }
       increment_points: {
         Args: { points_param: number; user_id_param: string }
         Returns: undefined
       }
       is_admin: { Args: never; Returns: boolean }
       is_coach: { Args: never; Returns: boolean }
+      migrate_existing_users: { Args: never; Returns: number }
     }
     Enums: {
+      estado_cuenta_corriente: "al_dia" | "con_deuda" | "suspendida"
       estado_pago: "pendiente" | "aprobado" | "rechazado" | "reembolsado"
       membership_status_enum: "active" | "inactive" | "suspended" | "expired"
+      metodo_ingreso_asistencia: "qr_app" | "manual_recepcion"
       metodo_pago: "efectivo" | "tarjeta" | "transferencia" | "mercadopago"
-      user_role: "admin" | "coach" | "member" | "superadmin" | "alumno"
+      tipo_movimiento_cuenta: "cargo" | "abono"
+      user_role:
+        | "admin"
+        | "coach"
+        | "member"
+        | "superadmin"
+        | "alumno"
+        | "recepcion"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2517,125 +2649,134 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
     Enums: {
+      estado_cuenta_corriente: ["al_dia", "con_deuda", "suspendida"],
       estado_pago: ["pendiente", "aprobado", "rechazado", "reembolsado"],
       membership_status_enum: ["active", "inactive", "suspended", "expired"],
+      metodo_ingreso_asistencia: ["qr_app", "manual_recepcion"],
       metodo_pago: ["efectivo", "tarjeta", "transferencia", "mercadopago"],
-      user_role: ["admin", "coach", "member", "superadmin", "alumno"],
+      tipo_movimiento_cuenta: ["cargo", "abono"],
+      user_role: [
+        "admin",
+        "coach",
+        "member",
+        "superadmin",
+        "alumno",
+        "recepcion",
+      ],
     },
   },
 } as const
-

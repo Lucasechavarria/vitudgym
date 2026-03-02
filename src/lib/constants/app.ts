@@ -17,7 +17,8 @@ export const ROLES = {
     MEMBER: 'member',
     COACH: 'coach',
     ADMIN: 'admin',
-    SUPERADMIN: 'superadmin'
+    SUPERADMIN: 'superadmin',
+    RECEPCION: 'recepcion'
 } as const;
 
 export const PAYMENT_STATUS = {

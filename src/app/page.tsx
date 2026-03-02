@@ -1,9 +1,9 @@
 "use client";
 
 import { useLandingActivities } from "@/hooks/useLandingActivities";
-import { ActivityCarousel } from "@/components/ui/ActivityCarousel";
-import { InstagramCarousel } from "@/components/ui/InstagramCarousel";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ActivityCarousel } from "@/components/shared/ActivityCarousel";
+import { InstagramCarousel } from "@/components/shared/InstagramCarousel";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";

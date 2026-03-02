@@ -2,7 +2,6 @@
 "use client";
 import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
-import { GymProvider } from "@/components/providers/GymProvider";
 
 export default function ClientProviders() {
   useEffect(() => {
@@ -18,7 +17,7 @@ export default function ClientProviders() {
   }, []);
 
   return (
-    <GymProvider>
+    <>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -33,6 +32,6 @@ export default function ClientProviders() {
           }
         }}
       />
-    </GymProvider>
+    </>
   );
 }

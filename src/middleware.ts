@@ -5,16 +5,22 @@ import { createMiddlewareClient } from '@/lib/supabase/middleware';
 const MODULE_ROUTES: Record<string, string> = {
     '/admin/nutrition': 'nutricion_ia',
     '/dashboard/nutrition': 'nutricion_ia',
+    '/member/dashboard/nutrition': 'nutricion_ia',
     '/coach/vision': 'vision_ia',
     '/dashboard/vision': 'vision_ia',
+    '/member/dashboard/vision': 'vision_ia',
     '/admin/challenges': 'gamificacion',
     '/dashboard/progress': 'gamificacion',
+    '/member/dashboard/progress': 'gamificacion',
     '/admin/finance': 'pagos_online',
     '/coach/routines': 'rutinas_ia',
     '/dashboard/routine': 'rutinas_ia',
+    '/member/dashboard/routine': 'rutinas_ia',
     '/admin/activities': 'clases_reserva',
     '/schedule': 'clases_reserva',
+    '/member/schedule': 'clases_reserva',
     '/dashboard/classes': 'clases_reserva',
+    '/member/dashboard/classes': 'clases_reserva',
 };
 
 export async function middleware(request: NextRequest) {
@@ -82,13 +88,16 @@ export async function middleware(request: NextRequest) {
         // ────────────────────────────────────────────────────
         if (pathname === '/login' || pathname === '/signup') {
             switch (userRole) {
-                case 'admin':
                 case 'superadmin':
-                    return NextResponse.redirect(new URL('/admin', request.url));
+                    return NextResponse.redirect(new URL('/saas-admin', request.url));
+                case 'admin':
+                    return NextResponse.redirect(new URL(`/${gymId}/admin`, request.url));
+                case 'recepcion':
+                    return NextResponse.redirect(new URL(`/${gymId}/admin/recepcion/pos`, request.url));
                 case 'coach':
-                    return NextResponse.redirect(new URL('/coach', request.url));
+                    return NextResponse.redirect(new URL(`/${gymId}/coach`, request.url));
                 default:
-                    return NextResponse.redirect(new URL('/dashboard', request.url));
+                    return NextResponse.redirect(new URL(`/${gymId}/member/dashboard`, request.url));
             }
         }
 
@@ -96,27 +105,64 @@ export async function middleware(request: NextRequest) {
         // RBAC: PROTECCIÓN DE RUTAS POR ROL
         // ────────────────────────────────────────────────────
 
-        // /admin → solo admin y superadmin
-        if (pathname.startsWith('/admin')) {
-            if (!['admin', 'superadmin'].includes(userRole ?? '')) {
-                return NextResponse.redirect(new URL('/dashboard', request.url));
+        // ────────────────────────────────────────────────────
+        // PROTECCIÓN DE RUTAS SAAS-ADMIN
+        // ────────────────────────────────────────────────────
+        if (pathname.startsWith('/saas-admin')) {
+            if (userRole !== 'superadmin') {
+                if (gymId) {
+                    return NextResponse.redirect(new URL(`/${gymId}/admin`, request.url));
+                } else {
+                    return NextResponse.redirect(new URL('/', request.url));
+                }
             }
         }
 
-        // /coach → coach, admin y superadmin
-        if (pathname.startsWith('/coach')) {
-            if (!['coach', 'admin', 'superadmin'].includes(userRole ?? '')) {
-                return NextResponse.redirect(new URL('/dashboard', request.url));
+        // ────────────────────────────────────────────────────
+        // PROTECCIÓN DE RUTAS POR GYM [gymId]
+        // ────────────────────────────────────────────────────
+        // Extraer el gymId de la URL (el primer segmento de la ruta, asumiendo que es un UUID o string)
+        const pathSegments = pathname.split('/').filter(Boolean);
+        const currentGymIdParam = pathSegments.length > 0 ? pathSegments[0] : null;
+
+        // Validar si estamos dentro de una ruta de "tenant" (ej: /[gymId]/admin, /[gymId]/coach, /[gymId]/member)
+        if (currentGymIdParam && currentGymIdParam !== 'saas-admin' && currentGymIdParam !== 'g' && currentGymIdParam !== 'api' && currentGymIdParam !== 'auth' && currentGymIdParam !== 'saas' && currentGymIdParam !== 'debug' && currentGymIdParam !== 'inscripcion') {
+            // Regla 1: Un usuario NO superadmin solo puede acceder a su propio gimnasio
+            if (userRole !== 'superadmin' && gymId && currentGymIdParam !== gymId) {
+                return NextResponse.redirect(new URL(`/${gymId}/member/dashboard`, request.url));
+            }
+
+            // Regla 2: RBAC dentro del gimnasio
+            const tenantPath = pathSegments.length > 1 ? pathSegments[1] : ''; // ej: 'admin', 'coach', 'member'
+
+            if (tenantPath === 'admin') {
+                if (!['admin', 'superadmin', 'recepcion'].includes(userRole ?? '')) {
+                    return NextResponse.redirect(new URL(`/${gymId || currentGymIdParam}/member/dashboard`, request.url));
+                }
+                // Recepción solo puede ir a /admin/recepcion
+                if (userRole === 'recepcion' && pathSegments[2] !== 'recepcion') {
+                    return NextResponse.redirect(new URL(`/${currentGymIdParam}/admin/recepcion/pos`, request.url));
+                }
+            }
+
+            if (tenantPath === 'coach') {
+                if (!['coach', 'admin', 'superadmin'].includes(userRole ?? '')) {
+                    return NextResponse.redirect(new URL(`/${gymId || currentGymIdParam}/member/dashboard`, request.url));
+                }
             }
         }
 
         // ────────────────────────────────────────────────────
         // MODULE GATING: Solo para no-superadmin con gimnasio
-        // Superadmin SIEMPRE pasa — tiene acceso total para dar soporte
         // ────────────────────────────────────────────────────
         if (userRole !== 'superadmin' && gymId) {
-            const requiredModule = Object.entries(MODULE_ROUTES)
-                .find(([route]) => pathname.startsWith(route))?.[1];
+            // Find if any module route constraint matches the CURRENT pathname
+            const requiredModuleEntry = Object.entries(MODULE_ROUTES).find(([route]) => {
+                // Check if the current pathname ENDS with the restricted portion or matches it directly
+                // We adapt this because the URL now has /[gymId]/... in front
+                return pathname.includes(route);
+            });
+            const requiredModule = requiredModuleEntry?.[1];
 
             if (requiredModule) {
                 const { data: gym } = await supabase
@@ -127,9 +173,9 @@ export async function middleware(request: NextRequest) {
 
                 const modulos = (gym?.modulos_activos as Record<string, boolean>) || {};
 
-                if (!modulos[requiredModule]) {
-                    // Módulo no contratado → redirigir al dashboard
-                    return NextResponse.redirect(new URL('/dashboard', request.url));
+                if (!modulos[requiredModule] && !Array.isArray(gym?.modulos_activos) || (Array.isArray(gym?.modulos_activos) && !gym.modulos_activos.includes(requiredModule))) {
+                    // Módulo no contratado → redirigir al dashboard del miembro (o el principal del gym)
+                    return NextResponse.redirect(new URL(`/${gymId}/member/dashboard`, request.url));
                 }
             }
         }
