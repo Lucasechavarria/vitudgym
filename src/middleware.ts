@@ -91,13 +91,13 @@ export async function middleware(request: NextRequest) {
                 case 'superadmin':
                     return NextResponse.redirect(new URL('/saas-admin', request.url));
                 case 'admin':
-                    return NextResponse.redirect(new URL(`/${gymId}/admin`, request.url));
+                    return gymId ? NextResponse.redirect(new URL(`/${gymId}/admin`, request.url)) : NextResponse.redirect(new URL('/', request.url));
                 case 'recepcion':
-                    return NextResponse.redirect(new URL(`/${gymId}/admin/recepcion/pos`, request.url));
+                    return gymId ? NextResponse.redirect(new URL(`/${gymId}/admin/recepcion/pos`, request.url)) : NextResponse.redirect(new URL('/', request.url));
                 case 'coach':
-                    return NextResponse.redirect(new URL(`/${gymId}/coach`, request.url));
+                    return gymId ? NextResponse.redirect(new URL(`/${gymId}/coach`, request.url)) : NextResponse.redirect(new URL('/', request.url));
                 default:
-                    return NextResponse.redirect(new URL(`/${gymId}/member/dashboard`, request.url));
+                    return gymId ? NextResponse.redirect(new URL(`/${gymId}/member/dashboard`, request.url)) : NextResponse.redirect(new URL('/', request.url));
             }
         }
 
@@ -137,17 +137,26 @@ export async function middleware(request: NextRequest) {
 
             if (tenantPath === 'admin') {
                 if (!['admin', 'superadmin', 'recepcion'].includes(userRole ?? '')) {
-                    return NextResponse.redirect(new URL(`/${gymId || currentGymIdParam}/member/dashboard`, request.url));
+                    if (gymId) {
+                        return NextResponse.redirect(new URL(`/${gymId}/member/dashboard`, request.url));
+                    }
+                    return NextResponse.redirect(new URL('/', request.url));
                 }
                 // Recepción solo puede ir a /admin/recepcion
                 if (userRole === 'recepcion' && pathSegments[2] !== 'recepcion') {
-                    return NextResponse.redirect(new URL(`/${currentGymIdParam}/admin/recepcion/pos`, request.url));
+                    if (gymId) {
+                        return NextResponse.redirect(new URL(`/${gymId}/admin/recepcion/pos`, request.url));
+                    }
+                    return NextResponse.redirect(new URL('/', request.url));
                 }
             }
 
             if (tenantPath === 'coach') {
                 if (!['coach', 'admin', 'superadmin'].includes(userRole ?? '')) {
-                    return NextResponse.redirect(new URL(`/${gymId || currentGymIdParam}/member/dashboard`, request.url));
+                    if (gymId) {
+                        return NextResponse.redirect(new URL(`/${gymId}/member/dashboard`, request.url));
+                    }
+                    return NextResponse.redirect(new URL('/', request.url));
                 }
             }
         }
@@ -191,6 +200,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };
